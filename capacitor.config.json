@@ -1,0 +1,17 @@
+{
+  "appId": "com.benishchai.halachayomit",
+  "appName": "הלכות הבן איש חי",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "ios": {
+    "contentInset": "never"
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_icon",
+      "iconColor": "#1B2432"
+    }
+  }
+}

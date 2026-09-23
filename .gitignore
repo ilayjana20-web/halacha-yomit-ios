@@ -1,0 +1,9 @@
+node_modules/
+ios/App/Pods/
+ios/App/build/
+.DS_Store
+build/
+.claude/
+*.xcuserstate
+ios/App/App.xcodeproj/xcuserdata/
+ios/App/App.xcodeproj/project.xcworkspace/xcuserdata/

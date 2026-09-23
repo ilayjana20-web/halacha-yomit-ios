@@ -1,0 +1,39 @@
+{
+  "date": "2026-07-21",
+  "weekday_he": "יום שלישי",
+  "parasha_en": "Vaetchanan",
+  "parasha_he": "ואתחנן",
+  "diaspora": 0,
+  "holiday_week": false,
+  "show_intro": false,
+  "tracks": {
+    "year1": {
+      "segments": [
+        {
+          "key": "Vaetchanan",
+          "slug": "Vaetchanan",
+          "he": "ואתחנן",
+          "chapters": [
+            5,
+            6
+          ]
+        }
+      ]
+    },
+    "year2": {
+      "segments": [
+        {
+          "key": "Vaetchanan",
+          "slug": "Vaetchanan",
+          "he": "ואתחנן",
+          "chapters": [
+            9,
+            10,
+            11,
+            12
+          ]
+        }
+      ]
+    }
+  }
+}

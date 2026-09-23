@@ -1,0 +1,3276 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#E3F1F2">
+<title>הלכות הבן איש חי</title>
+<script>
+/* Theme bootstrap — MUST run here, before the stylesheet paints anything. Setting
+   data-theme later (e.g. on DOMContentLoaded) makes a dark-mode user see a full white
+   flash on every single app open, which is exactly what dark mode is meant to avoid. */
+(function(){
+  /* default is LIGHT, not "auto" — a device in dark mode must not silently change the look
+     of the app for someone who never asked for it. Dark is opt-in from Settings. */
+  var pref="light";
+  try{ pref=localStorage.getItem("hy_theme")||"light"; }catch(e){}
+  var dark = pref==="dark" || (pref==="auto" &&
+    window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  if(dark) document.documentElement.setAttribute("data-theme","dark");
+  var m=document.querySelector('meta[name="theme-color"]');
+  if(m) m.setAttribute("content", dark ? "#10161A" : "#E3F1F2");
+})();
+</script>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-512.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="בן איש חי">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700;900&family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F5EEDA; --paper2:#FCF8EC; --card:#FFFDF6;
+    --navy:#0F314D; --navy2:#1C537A; --navy3:#081B2A; --ink:#2B2A1A; --muted:#8C7D59; --muted2:#BBAC84;
+    --gold:#BF9530; --gold-soft:#E7D49E; --gold-deep:#8A6A1E; --gold-light:#F3E4B6; --line:#E8DCB4; --line2:#F2E9CD;
+    --good:#3F848A; --good-soft:#E3F1F2;
+    --sans:"Heebo",system-ui,-apple-system,"Segoe UI",sans-serif;
+    --serif:"Frank Ruhl Libre",Georgia,serif;
+    --maxw:700px;
+    --r-lg:28px; --r-md:20px; --r-sm:13px;
+    --shadow-card:0 1px 0 rgba(255,255,255,.9) inset, 0 3px 6px rgba(120,90,35,.06), 0 18px 44px rgba(120,90,35,.14);
+    --shadow-card-sm:0 1px 0 rgba(255,255,255,.85) inset, 0 2px 5px rgba(120,90,35,.06), 0 10px 26px rgba(120,90,35,.1);
+    --good-deep:#2C6D73;
+    --clay:9px 9px 20px rgba(140,125,89,.22), -8px -8px 18px rgba(255,255,255,.75), inset 0 0 0 1px rgba(255,255,255,.4);
+    --clay-sm:6px 6px 14px rgba(140,125,89,.18), -5px -5px 12px rgba(255,255,255,.7), inset 0 0 0 1px rgba(255,255,255,.4);
+  }
+
+  /* ============================ DARK MODE ============================
+     Applied by data-theme="dark" on <html> (set before first paint, see the inline
+     bootstrap in <head>, so there is never a white flash). Most of the app is already
+     driven by these variables, so re-pointing them does the bulk of the work; the blocks
+     further down override the handful of places that hard-code a colour — above all the
+     reader's SOURCE and BIUR panels, which are deliberately frozen in light mode and
+     would otherwise glare as two white slabs in a dark screen. */
+  html[data-theme="dark"]{
+    --paper:#10161A; --paper2:#162028; --card:#18222A;
+    --navy:#CFE3E8; --navy2:#9FD8CF; --navy3:#EAF3F5;
+    --ink:#DCE6EA; --muted:#7E939E; --muted2:#5F727C;
+    --gold:#D9B84A; --gold-soft:#4A3F22; --gold-deep:#E8CF7A; --gold-light:#5C4E2A;
+    --line:#25333C; --line2:#1E2A33;
+    --good:#4FB3A5; --good-soft:#16302E; --good-deep:#8FE6D6;
+    --shadow-card:0 10px 28px rgba(0,0,0,.5), 0 2px 6px rgba(0,0,0,.35);
+    --shadow-card-sm:0 6px 18px rgba(0,0,0,.45);
+    --clay:0 10px 26px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.05);
+    --clay-sm:0 6px 16px rgba(0,0,0,.42), inset 0 0 0 1px rgba(255,255,255,.05);
+    color-scheme:dark;
+  }
+  html[data-theme="dark"] body{
+    background-color:var(--paper);
+    background-image:
+      radial-gradient(1100px 520px at 88% -80px, rgba(79,179,165,.10), transparent 60%),
+      radial-gradient(900px 480px at 0% 50%, rgba(79,179,165,.05), transparent 55%),
+      linear-gradient(180deg, rgba(255,255,255,.03), transparent 360px);}
+  html[data-theme="dark"] .hero{background:linear-gradient(135deg,#16323A,#18222A 70%);}
+  html[data-theme="dark"] .hero .portrait{box-shadow:0 0 0 3px var(--card), 0 0 0 4.5px var(--good);}
+  html[data-theme="dark"] .gear-btn{background:#22343D;}
+  html[data-theme="dark"] .gear-btn svg{stroke:#9FD8CF;}
+  /* reader — the two frozen panels, re-tuned for dark but still clearly distinct from each other */
+  html[data-theme="dark"] .halacha{
+    box-shadow:0 10px 28px rgba(0,0,0,.5); border-color:var(--line);}
+  html[data-theme="dark"] .halacha.intro{background:linear-gradient(175deg,#162A36,#132430);}
+  html[data-theme="dark"] .halacha.done{border-color:#2A4F4C;
+    box-shadow:0 10px 28px rgba(0,0,0,.5), 0 0 0 1px rgba(79,179,165,.16);}
+  html[data-theme="dark"] .source{background:linear-gradient(180deg,#152430,#12202B);
+    border-top-color:#1E3242;}
+  html[data-theme="dark"] .source p{color:#CFE3F0;}
+  html[data-theme="dark"] .source p:first-of-type::first-letter{color:#7FB8DC;}
+  html[data-theme="dark"] .biur{background:linear-gradient(180deg,#152A28,#122421);
+    border-top-color:#1F3A36;}
+  html[data-theme="dark"] .biur p.exp{color:#C8E6DF;}
+  html[data-theme="dark"] .biur li{color:#AECFC8;}
+  html[data-theme="dark"] .biur.pending{background:#141F26;border-top-color:#25333C;}
+  html[data-theme="dark"] .jump-pill{background:var(--card);border-color:var(--line);color:var(--muted);}
+  html[data-theme="dark"] .jump-pill.done{background:#1B2B31;border-color:#2A4F4C;color:#7FC7BC;}
+  html[data-theme="dark"] .progress-bar{background:rgba(0,0,0,.42);box-shadow:none;}
+  /* --good-deep / --navy2 double as TEXT colours (light in dark mode) and as CARD
+     backgrounds. Flipping them for legibility inverted every element that used them as a
+     fill, so each of those gets an explicit dark gradient here. */
+  html[data-theme="dark"] .entry-card[data-track="year1"]{
+    background:linear-gradient(155deg,#1F6C63,#12433F);
+    box-shadow:0 12px 30px rgba(0,0,0,.5);}
+  html[data-theme="dark"] .entry-card[data-track="year1"] .progress-fill{background:#7FE3D0;}
+  html[data-theme="dark"] .entry-card[data-track="year1"] .entry-btn{
+    background:#0E1A1E;color:#8FE6D6;box-shadow:0 4px 12px rgba(0,0,0,.5);}
+  html[data-theme="dark"] .entry-card[data-track="year2"]{background:var(--card);}
+  html[data-theme="dark"] .entry-card[data-track="year2"] .entry-count{background:#25505C;color:#DDF3F5;}
+  html[data-theme="dark"] .entry-card[data-track="year2"] .progress-fill{
+    background:linear-gradient(90deg,#25505C,#4FB3A5);}
+  html[data-theme="dark"] .entry-btn{background:linear-gradient(145deg,#25505C,#16333B);color:#DDF3F5;}
+  html[data-theme="dark"] .tab.active,
+  html[data-theme="dark"] .tab-btn.active .tab-icon-wrap,
+  html[data-theme="dark"] .jump-pill.cur,
+  html[data-theme="dark"] .h-num,
+  html[data-theme="dark"] .ord,
+  html[data-theme="dark"] .chev,
+  html[data-theme="dark"] .biur-label{background:linear-gradient(155deg,#2A7F74,#15514B);color:#EAFBF7;}
+  html[data-theme="dark"] .halacha::after{
+    background:linear-gradient(90deg,#25505C,var(--gold) 50%,#25505C);opacity:.55;}
+  /* favourites row paints its gradient as an INLINE style from JS, so only !important wins */
+  html[data-theme="dark"] #favRow{
+    background:linear-gradient(180deg,#1B3B3F,#2A2A18)!important;border-color:var(--gold-soft)!important;}
+  /* the seal: its inner face hard-codes a white highlight; give it a dark face instead.
+     All the ring offsets already ride on --paper/--line2/--gold-soft, which flip on their own. */
+  html[data-theme="dark"] .seal{
+    background:radial-gradient(circle at 50% 34%, #24333C, var(--card) 75%);
+    box-shadow:0 6px 16px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.08),
+      0 0 0 1px var(--gold-soft), 0 0 0 5px var(--paper), 0 0 0 6px var(--line2);}
+  /* the dark "on" face rides the same cross-fade layer as the light one */
+  html[data-theme="dark"] .seal::before{
+    background:radial-gradient(circle at 50% 32%, #2A7F74, #15514B 78%);}
+  html[data-theme="dark"] .seal.on{
+    box-shadow:0 8px 20px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.16),
+      0 0 0 1px #15514B, 0 0 0 5px var(--paper), 0 0 0 6px var(--good-soft);}
+  html[data-theme="dark"] .chk{background:var(--card);border-color:var(--line);}
+  html[data-theme="dark"] .chk-mark{background:var(--paper2);border-color:var(--line);}
+  html[data-theme="dark"] .tool-btn{background:var(--card);border-color:var(--line);color:var(--muted);}
+  html[data-theme="dark"] .tool-btn.fav-on{background:#3A3218;border-color:var(--gold-soft);color:var(--gold-deep);}
+  html[data-theme="dark"] .tabbar-inner{background:rgba(24,34,42,.92);
+    box-shadow:0 10px 26px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.06);}
+  html[data-theme="dark"] .modal-panel{background:var(--card);}
+  html[data-theme="dark"] #searchInput{background:var(--card);color:var(--ink);}
+  html[data-theme="dark"] mark{background:rgba(127,227,208,.22);color:#7FE3D0;}
+  html[data-theme="dark"] .note{background:var(--card);color:var(--muted);}
+  html[data-theme="dark"] .chip,html[data-theme="dark"] .btile,html[data-theme="dark"] .prow,
+  html[data-theme="dark"] .ttile,
+  html[data-theme="dark"] .page-head{background:var(--card);}
+  html[data-theme="dark"] .ttile.full,
+  html[data-theme="dark"] .btile.full{background:linear-gradient(160deg,var(--card),#16302E);}
+  html[data-theme="dark"] .nav-btn.secondary{background:var(--card);color:var(--navy2);border-color:var(--line);}
+  html[data-theme="dark"] .glossSheet,html[data-theme="dark"] #glossSheet{background:var(--card);}
+  /* The share card is rasterised to a PNG that people send to others, so it must look the
+     same no matter which theme the sender is using. Overriding only its background was not
+     enough: every inner element still resolved --navy2/--gold/--line from the dark palette,
+     which turned the "ביאור" pill into light-on-light and made it vanish. Re-declare the
+     WHOLE light palette on the card itself so it is genuinely theme-independent. */
+  html[data-theme="dark"] .shcard{
+    --paper:#F5EEDA; --paper2:#FCF8EC; --card:#FFFDF6;
+    --navy:#0F314D; --navy2:#1C537A; --navy3:#081B2A;
+    --ink:#2B2A1A; --muted:#8C7D59; --muted2:#BBAC84;
+    --gold:#BF9530; --gold-soft:#E7D49E; --gold-deep:#8A6A1E; --gold-light:#F3E4B6;
+    --line:#E8DCB4; --line2:#F2E9CD;
+    --good:#3F848A; --good-soft:#E3F1F2; --good-deep:#2C6D73;
+    background:radial-gradient(ellipse at top,#FCF8EC,#F5EEDA 65%);color:#2B2A1A;}
+
+  /* theme picker in Settings */
+  .seg{display:flex;gap:6px;background:var(--paper2);border-radius:999px;padding:5px;}
+  .seg button{flex:1;border:none;background:none;font-family:var(--sans);font-weight:800;font-size:13px;
+    color:var(--muted);padding:9px 6px;border-radius:999px;cursor:pointer;transition:.18s;}
+  .seg button.on{background:var(--card);color:var(--good-deep);box-shadow:var(--clay-sm);}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html{scroll-behavior:smooth;}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-weight:700;}
+  body{padding-bottom:calc(110px + env(safe-area-inset-bottom));
+    background-color:var(--paper);
+    background-image:
+      radial-gradient(1100px 520px at 88% -80px, rgba(63,132,138,.16), transparent 60%),
+      radial-gradient(900px 480px at 0% 50%, rgba(63,132,138,.08), transparent 55%),
+      linear-gradient(180deg, rgba(255,253,245,.65), transparent 360px),
+      url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2280%22%20height%3D%2280%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%231C537A%22%20stroke-opacity%3D%220.05%22%3E%3Cpath%20d%3D%22M40%204L76%2040%2040%2076%204%2040Z%22%2F%3E%3Cpath%20d%3D%22M40%2020L60%2040%2040%2060%2020%2040Z%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E');
+    background-size:auto,auto,auto,80px 80px;}
+  ::selection{background:var(--gold-soft);color:var(--navy3);}
+
+  /* Hero — floating clay card, soft teal wash (design 34) */
+  .hero{position:relative;width:100%;max-width:var(--maxw);
+    margin:0 auto 2px;
+    background:linear-gradient(135deg,var(--good-soft),var(--card) 70%);
+    color:var(--ink);
+    display:flex;align-items:center;gap:13px;text-align:right;
+    padding:calc(env(safe-area-inset-top) + 6px) 18px 9px;
+    border-radius:0 0 28px 28px;
+    box-shadow:var(--clay);}
+  .hero-text{position:relative;flex:1;min-width:0;order:1;}
+  .hero-orn{position:relative;display:flex;align-items:center;gap:8px;margin:4px 0 2px;}
+  .hero-orn::before{content:"";width:26px;height:1.5px;border-radius:2px;
+    background:linear-gradient(90deg,var(--good),transparent);}
+  .hero-orn .diamond{width:6px;height:6px;background:linear-gradient(135deg,var(--good),var(--gold));transform:rotate(45deg);flex:0 0 auto;}
+  .portrait-frame{position:relative;width:52px;flex:0 0 auto;order:0;}
+  .hero .portrait{position:relative;width:52px;height:52px;object-fit:cover;object-position:50% 18%;
+    border-radius:50%;border:none;display:block;
+    box-shadow:0 0 0 3px var(--card), 0 0 0 4.5px var(--good);}
+  /* Three clear tiers in the hero: the book's name dominates, the attribution sits a step
+     below it, and the לעילוי-נשמת dedication is the quietest of the three. */
+  .hero h1{position:relative;font-family:var(--serif);font-weight:900;font-size:23px;margin:0;
+    letter-spacing:.3px;line-height:1.2;color:var(--navy3);}
+  .hero .tagline{position:relative;color:var(--good);font-size:13px;margin:0;font-family:var(--sans);
+    letter-spacing:.2px;font-weight:700;}
+  /* three names now, so the type steps down and the leading tightens — the block keeps
+     roughly the footprint it had at two lines instead of pushing the hero taller. */
+  .hero-dedication{position:relative;color:var(--gold-deep);font-size:8.5px;margin:4px 0 0;font-family:var(--serif);
+    letter-spacing:.1px;font-weight:700;opacity:.8;line-height:1.25;}
+
+  /* While a halacha is open the hero is a little tighter and the reader's own header
+     tightens up, so more of the TEXT is on screen. The לעילוי-נשמת dedication STAYS —
+     it just gets a touch smaller; it only folds away once you actually scroll (below).
+     Scoped to body.reading — the home screens keep the full hero exactly as-is. */
+  .reading .hero{padding:calc(env(safe-area-inset-top) + 4px) 18px 7px;border-radius:0 0 20px 20px;}
+  .reading .hero-orn{display:none;}
+  .reading .hero h1{font-size:19px;}
+  .reading .hero .tagline{font-size:11.5px;}
+  .reading .hero-dedication{font-size:8px;margin-top:2px;line-height:1.2;}
+  .reading .portrait-frame,
+  .reading .hero .portrait{width:38px;}
+  .reading .hero .portrait{height:38px;}
+  .reading .gear-btn{width:34px;height:34px;}
+  .reading .reader-head{padding:0;}
+  .reading #rTitle{font-size:19px!important;margin:2px 0 0!important;}
+  .reading .reader-pos{font-size:12px;margin-top:1px;}
+  .reading .jump-strip{padding:2px 2px 5px;}
+
+  /* ===== Bottom bar that gets out of the way while reading =====
+     Scrolling DOWN shrinks the tab bar and slides it toward the bottom edge, so the lines
+     it was covering become readable; scrolling back UP brings it straight back to full
+     size. The header at the top is deliberately left alone. Driven by body.navdown.
+     transform+opacity only — those are compositor-animated, so it stays smooth on a phone
+     while the page is scrolling. */
+  /* The tuck rides on .tabbar-inner, never on the position:fixed .tabbar itself — see the
+     long note next to the .tabbar rule for why animating the fixed element unpins it on iOS. */
+  .tabbar-inner{transition:transform .28s cubic-bezier(.4,0,.2,1), opacity .24s ease;
+    transform-origin:50% 100%;}
+  .navdown .tabbar-inner{transform:translateY(38%) scale(.82);opacity:.55;}
+  @media (prefers-reduced-motion: reduce){ .tabbar-inner{transition:none;} }
+
+  .offline-banner{max-width:var(--maxw);margin:0 auto;padding:4px 18px 0;text-align:center;}
+  .offline-bar{height:6px;border-radius:999px;background:var(--paper2);overflow:hidden;margin-bottom:6px;
+    box-shadow:inset 0 1px 3px rgba(0,0,0,.08);}
+  .offline-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--gold-light),var(--gold) 55%,var(--gold-deep));
+    transition:width .3s;}
+  #offlineText{font-size:12px;color:var(--muted);font-weight:700;}
+
+  .search-box{max-width:var(--maxw);position:relative;margin:12px 0 4px;}
+  .search-icon{position:absolute;inset-inline-start:18px;top:50%;transform:translateY(-50%);width:19px;height:19px;
+    stroke:var(--good);fill:none;stroke-width:2.4;pointer-events:none;opacity:.75;}
+  #searchInput{width:100%;box-sizing:border-box;padding:17px 50px 17px 20px;border-radius:999px;
+    border:none;background:var(--card);font-family:var(--sans);font-size:16px;color:var(--ink);
+    font-weight:700;outline:none;box-shadow:var(--clay-sm);transition:box-shadow .2s;}
+  #searchInput::placeholder{font-weight:600;color:var(--muted2);}
+  #searchInput:focus{box-shadow:var(--clay-sm), 0 0 0 4px rgba(63,132,138,.16);}
+  .search-status{text-align:center;color:var(--muted);font-size:13px;margin:11px 0;font-weight:700;}
+  .search-hit{font-size:13.5px;color:var(--muted);line-height:1.65;margin-top:5px;font-weight:600;}
+  .search-hit mark{background:var(--gold-soft);color:var(--navy3);border-radius:4px;padding:0 3px;font-weight:800;}
+
+  /* glossary: hard words marked and tappable; bottom sheet shows the meaning */
+  .gw{border-bottom:2px dotted rgba(28,83,122,.5);cursor:pointer;transition:background .15s;}
+  .gw:active{background:var(--gold-soft);border-radius:4px;}
+
+  .bottom-sheet{position:fixed;left:0;right:0;bottom:-48vh;z-index:60;
+    max-width:var(--maxw);margin:0 auto;
+    background:linear-gradient(180deg,#FFFFFF,#FBF6EA);
+    border:1.5px solid var(--line);border-bottom:none;
+    border-radius:26px 26px 0 0;box-shadow:0 -14px 46px rgba(8,27,42,.26);padding:22px 24px 32px;
+    transition:bottom .27s cubic-bezier(.2,.8,.2,1);direction:rtl;
+    max-height:70vh;overflow-y:auto;
+    /* NOTE: .tabbar used to carry a translateZ(0) too and it turned out to be the CAUSE of the
+       iOS drift, not the guard against it — see the note on .tabbar. Kept here only because this
+       sheet is a transient overlay you don't normally momentum-scroll behind, so it has never
+       shown the symptom; if it ever does, strip these two lines the same way. */
+    transform:translateZ(0);-webkit-transform:translateZ(0);
+    -webkit-backface-visibility:hidden;backface-visibility:hidden;}
+  .bottom-sheet::before{content:"";position:absolute;top:10px;left:50%;transform:translateX(-50%);
+    width:46px;height:5px;border-radius:999px;background:var(--line);}
+  .bottom-sheet.show{bottom:0;}
+  .bottom-sheet .gw-word{font-family:var(--serif);font-weight:900;font-size:23px;color:var(--navy);margin:8px 0 8px;}
+  .bottom-sheet .gw-word::after{content:"";display:block;width:40px;height:3px;border-radius:2px;margin-top:8px;
+    background:linear-gradient(90deg,var(--gold),transparent);}
+  .bottom-sheet .gw-def{font-size:17.5px;color:#23323A;line-height:1.75;font-weight:700;}
+  .bottom-sheet .gw-close{position:absolute;top:14px;left:18px;font-size:17px;color:#8F9DA6;cursor:pointer;padding:4px 8px;
+    transition:.15s;}
+  .bottom-sheet .gw-close:active{transform:scale(.85);}
+
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 16px 0;animation:fadeIn .32s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+  @keyframes cardIn{from{opacity:0;transform:translateY(18px) scale(.97);}to{opacity:1;transform:none;}}
+
+  .page-head{position:relative;text-align:right;background:var(--card);border-radius:28px;
+    padding:15px 20px 14px;margin:6px 0 4px;overflow:hidden;
+    box-shadow:var(--clay);}
+  .page-head::before{content:"";position:absolute;width:160px;height:160px;border-radius:50%;
+    background:radial-gradient(circle, rgba(63,132,138,.22), transparent 68%);top:-46px;left:-38px;pointer-events:none;}
+  .page-eyebrow{position:relative;display:inline-flex;align-items:center;gap:6px;
+    font-size:12.5px;color:#fff;font-weight:800;letter-spacing:.2px;
+    background:var(--good);padding:5px 13px;border-radius:999px;margin:0 0 9px;}
+  .page-eyebrow::before{content:"✶";font-size:11px;}
+  .page-title{position:relative;font-family:var(--serif);font-weight:900;font-size:29px;color:var(--navy3);margin:0;
+    letter-spacing:.3px;line-height:1.15;}
+  .page-sub{position:relative;color:var(--good);font-size:13px;margin:6px 0 0;font-weight:600;}
+  .page-prog{position:relative;color:var(--muted);font-size:12px;margin:7px 0 0;font-weight:700;}
+  .page-prog b{color:var(--gold-deep);font-weight:800;}
+
+  /* week card: text on one side, the decorative sefer filling the other */
+  #weekView .page-head{display:flex;align-items:center;gap:12px;}
+  .ph-text{position:relative;flex:1;min-width:0;}
+  .ph-art{position:relative;flex:0 0 auto;width:64px;
+    animation:sferIn .5s cubic-bezier(.2,.8,.2,1) .1s backwards;}
+  .ph-art svg{width:100%;height:auto;display:block;
+    filter:drop-shadow(0 8px 14px rgba(44,109,115,.28));}
+  @keyframes sferIn{from{opacity:0;transform:translateY(10px) rotate(-6deg);}to{opacity:1;transform:none;}}
+  @media (max-width:340px){ .ph-art{display:none;} }
+
+  /* Track entry cards — claymorphism (design 34): year1 solid teal, year2 soft teal wash */
+  /* festival card — gold, so it reads as "special", distinct from the two teal track cards */
+  .fest-card{position:relative;border-radius:26px;padding:16px 18px 15px;margin:10px 0;
+    background:linear-gradient(150deg,var(--gold-light),var(--gold-soft));
+    box-shadow:var(--clay);overflow:hidden;animation:cardIn .45s cubic-bezier(.2,.8,.2,1) backwards;}
+  .fest-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .fest-tag{font-size:12px;font-weight:900;color:var(--gold-deep);letter-spacing:.3px;}
+  .fest-count{font-size:12px;font-weight:800;color:var(--gold-deep);background:rgba(255,255,255,.45);padding:5px 12px;border-radius:999px;}
+  .fest-title{font-family:var(--serif);font-weight:900;font-size:24px;color:var(--navy);line-height:1.15;}
+  .fest-day{font-weight:800;font-size:15px;color:var(--gold-deep);margin:4px 0 8px;}
+  .fest-why{font-size:13.5px;line-height:1.55;color:var(--ink);opacity:.85;margin-bottom:10px;}
+  .fest-card .progress-label,.fest-card .progress-pct{color:var(--navy);}
+  .fest-card .progress-bar{background:rgba(255,255,255,.55);}
+  .fest-card .progress-fill{background:linear-gradient(90deg,var(--gold-deep),var(--gold));}
+  .fest-btn{background:linear-gradient(145deg,var(--gold-deep),var(--gold));}
+  .fest-all{display:block;width:100%;margin-top:8px;background:transparent;border:1.5px solid var(--gold-deep);
+    color:var(--gold-deep);border-radius:999px;padding:10px;font-family:var(--sans);font-weight:800;font-size:14px;cursor:pointer;}
+  .week-note{margin:6px 2px 10px;font-size:13.5px;line-height:1.5;}
+  html[data-theme="dark"] .fest-card{background:linear-gradient(150deg,#3A3220,#26210F);box-shadow:0 12px 30px rgba(0,0,0,.5);}
+  html[data-theme="dark"] .fest-title{color:#F3E4B6;}
+  html[data-theme="dark"] .fest-why{color:#E8DCB4;}
+  html[data-theme="dark"] .fest-card .progress-label,html[data-theme="dark"] .fest-card .progress-pct{color:#F3E4B6;}
+  html[data-theme="dark"] .fest-card .progress-bar{background:rgba(0,0,0,.42);}
+  html[data-theme="dark"] .entry-btn.fest-btn{background:linear-gradient(145deg,var(--gold-deep),var(--gold));color:#1A1608;}
+  .entry-card{position:relative;background:var(--card);
+    border:none;border-radius:26px;
+    padding:16px 18px 15px;margin:10px 0;
+    box-shadow:var(--clay);
+    overflow:hidden;animation:cardIn .45s cubic-bezier(.2,.8,.2,1) backwards;}
+  .entry-card:nth-of-type(2){animation-delay:.07s;}
+  .entry-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .entry-name{font-family:var(--serif);font-weight:900;font-size:20px;color:var(--navy);letter-spacing:.2px;}
+  .entry-count{font-size:12px;color:var(--navy2);font-weight:800;background:rgba(28,83,122,.07);
+    padding:5px 12px;border-radius:999px;}
+  .entry-btn{position:relative;display:block;width:100%;margin-top:12px;
+    background:linear-gradient(145deg,var(--navy2),var(--good));
+    color:#fff;border:none;border-radius:999px;padding:13px;font-family:var(--sans);font-weight:800;
+    font-size:15px;cursor:pointer;
+    box-shadow:0 1px 0 rgba(255,255,255,.15) inset, 0 9px 24px rgba(28,83,122,.3);
+    transition:.15s;letter-spacing:.4px;}
+  .entry-btn:active{transform:scale(.985);box-shadow:0 1px 0 rgba(255,255,255,.1) inset, 0 4px 12px rgba(8,27,42,.3);}
+  .entry-card[data-track="year1"]{background:linear-gradient(150deg,var(--good),var(--good-deep));
+    box-shadow:9px 9px 20px rgba(44,109,115,.35), -6px -6px 16px rgba(255,255,255,.3);}
+  .entry-card[data-track="year1"] .entry-name{color:#fff;}
+  .entry-card[data-track="year1"] .entry-count{background:rgba(255,255,255,.25);color:#fff;}
+  .entry-card[data-track="year1"] .progress-label{color:rgba(255,255,255,.85);}
+  .entry-card[data-track="year1"] .progress-pct{color:#fff;}
+  .entry-card[data-track="year1"] .progress-bar{background:rgba(0,0,0,.18);
+    box-shadow:inset 3px 3px 6px rgba(0,0,0,.3);}
+  .entry-card[data-track="year1"] .progress-fill{background:var(--gold-light);box-shadow:none;}
+  .entry-card[data-track="year1"] .entry-btn{background:#fff;color:var(--good-deep);
+    box-shadow:0 5px 12px rgba(0,0,0,.2);}
+  .entry-card[data-track="year2"]{background:linear-gradient(160deg,var(--good-soft) 0%,var(--card) 55%);}
+  .entry-card[data-track="year2"] .entry-count{background:var(--navy2);color:#fff;}
+  .entry-card[data-track="year2"] .progress-fill{background:linear-gradient(90deg,var(--navy2),var(--good));box-shadow:none;}
+
+  /* Progress bar */
+  .progress-wrap{margin:0;}
+  .progress-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;}
+  .progress-label{font-size:12.5px;color:var(--muted);font-weight:700;}
+  .progress-pct{font-family:var(--serif);font-size:14.5px;color:var(--navy2);font-weight:800;}
+  .progress-bar{height:10px;border-radius:999px;background:linear-gradient(180deg,#EFE6C9,#F7F0DA);overflow:hidden;
+    box-shadow:inset 0 2px 4px rgba(0,0,0,.09), 0 1px 0 rgba(255,255,255,.75);}
+  .progress-fill{position:relative;height:100%;border-radius:999px;overflow:hidden;
+    background:linear-gradient(180deg,var(--gold-light),var(--gold) 55%,var(--gold-deep));
+    box-shadow:0 0 11px rgba(191,149,48,.45);
+    transition:width .5s cubic-bezier(.34,1.3,.64,1);}
+  .progress-fill::after{content:"";position:absolute;inset:0 0 auto;height:44%;border-radius:999px 999px 0 0;
+    background:linear-gradient(180deg,rgba(255,255,255,.6),transparent);}
+  .progress-fill::before{content:"";position:absolute;inset:0;width:60%;
+    background:linear-gradient(100deg,transparent,rgba(255,255,255,.65),transparent);
+    animation:shimmer 2.6s ease-in-out infinite;}
+  .progress-fill.full{background:linear-gradient(180deg,#8FD2D3,var(--good) 55%,#336E71);
+    box-shadow:0 0 11px rgba(63,132,138,.45);}
+  @keyframes shimmer{0%{transform:translateX(-120%);}100%{transform:translateX(220%);}}
+
+  /* Picker / topic list rows */
+  .tabs{display:flex;gap:10px;margin:10px 0 4px;justify-content:center;}
+  .tab{flex:1;max-width:190px;text-align:center;border:none;background:var(--card);
+    color:var(--muted);font-weight:800;font-size:15.5px;padding:14px;border-radius:999px;cursor:pointer;
+    font-family:var(--serif);transition:.2s;box-shadow:var(--clay-sm);}
+  .tab.active{background:linear-gradient(145deg,var(--good),var(--good-deep));color:#fff;
+    box-shadow:0 1px 0 rgba(255,255,255,.12) inset, 0 7px 20px rgba(44,109,115,.35);}
+  .tab:active{transform:scale(.97);}
+  /* books grid (2-up tiles) */
+  .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0 0;}
+  /* the five books are few and their meta line is long — show them as full-width rows */
+  .bgrid.books{grid-template-columns:1fr;}
+  .btile{--tint:var(--good);
+    position:relative;display:flex;align-items:center;gap:11px;
+    background:var(--card);border:none;border-radius:20px;
+    padding:13px 14px 19px;overflow:hidden;cursor:pointer;box-shadow:var(--clay-sm);
+    animation:cardIn .4s cubic-bezier(.2,.8,.2,1) backwards;}
+  .btile:active{transform:scale(.97);}
+  .btile .ord{flex:0 0 auto;width:34px;height:34px;border-radius:12px;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--serif);font-weight:900;font-size:15px;color:#fff;
+    background:linear-gradient(155deg,var(--good),var(--good-deep));
+    box-shadow:0 3px 9px rgba(44,109,115,.3);}
+  .btile .btxt{min-width:0;flex:1;}
+  .btile .bn{font-family:var(--serif);font-weight:900;font-size:17.5px;color:var(--navy);line-height:1.2;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .btile .bm{font-size:11.5px;color:var(--muted);margin-top:4px;font-weight:700;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .btile .bm b{color:var(--good-deep);font-weight:800;}
+  .bgrid.books .btile{padding:15px 16px 20px;}
+  .bgrid.books .btile .ord{width:38px;height:38px;font-size:16px;border-radius:14px;}
+  .bgrid.books .btile .bn{font-size:19px;}
+
+  /* "סך הכל" banner — the running total, at both levels of the picker (the whole year on the
+     books screen, the open book on the parshiyot screen). It is deliberately the ONLY filled,
+     coloured slab on the screen: as a white card with a bar it read as just another book row,
+     which is exactly what a grand total must not look like. Teal→navy is the app's own two
+     brand colours, so it separates itself without introducing a new hue. */
+  .tot-banner{position:relative;overflow:hidden;border-radius:20px;padding:16px 18px 17px;
+    margin:12px 0 2px;background:linear-gradient(150deg,#3F848A,#123A56);
+    box-shadow:0 12px 30px rgba(18,58,86,.34);}
+  .tot-banner::after{content:"";position:absolute;top:-38px;left:-30px;width:120px;height:120px;
+    border-radius:50%;background:rgba(255,255,255,.09);pointer-events:none;}
+  .tot-banner .tb-lbl{position:relative;font-size:11.5px;font-weight:800;color:rgba(255,255,255,.74);}
+  .tot-banner .tb-num{position:relative;font-family:var(--serif);font-weight:900;color:#fff;
+    font-size:27px;line-height:1.1;margin-top:3px;}
+  .tot-banner .tb-num span{font-size:15px;color:rgba(255,255,255,.74);font-weight:700;}
+  .tot-banner .tb-track{position:relative;height:9px;border-radius:999px;background:rgba(0,0,0,.24);
+    overflow:hidden;margin-top:11px;}
+  .tot-banner .tb-track i{display:block;height:100%;border-radius:999px;
+    background:linear-gradient(90deg,#F3E4B6,#BFE9E2);}
+  .tot-banner .tb-foot{position:relative;display:flex;justify-content:space-between;gap:10px;
+    font-size:11.5px;font-weight:700;color:rgba(255,255,255,.74);margin-top:8px;}
+
+  /* per-book / per-parasha progress, same language as the topics grid */
+  .btile .bpct{flex:0 0 auto;font-size:12px;font-weight:800;color:var(--good-deep);
+    background:var(--good-soft);border-radius:999px;padding:4px 10px;}
+  .btile .bpct.zero{background:var(--line2);color:var(--muted);}
+  .btile.full{background:linear-gradient(160deg,var(--card),var(--good-soft));}
+  .btile.full .bn{color:var(--good-deep);}
+  .btile.untouched .bm{color:var(--muted2);}
+  .btile.untouched .ord{background:var(--line2);color:var(--muted);box-shadow:none;}
+
+  /* level-2 picker header: book name + back pill on one tidy row (no card, no blob) */
+  /* Back button sits on its own line ABOVE the book title and hard against the right edge
+     (the start side in RTL) — same place and direction as the reader's ▶ חזרה, so "go back"
+     is always in the same corner. Stacked rather than side-by-side so neither element has
+     to shrink when a book name is long. */
+  .book-head{display:flex;flex-direction:column;align-items:flex-start;gap:9px;margin:6px 0 8px;}
+  .book-head h2{font-family:var(--serif);font-weight:900;font-size:24px;color:var(--navy3);margin:0;letter-spacing:.2px;}
+  .book-back{display:inline-flex;align-items:center;gap:5px;border:none;cursor:pointer;flex:0 0 auto;
+    background:var(--card);color:var(--good-deep);font-family:var(--sans);font-weight:800;font-size:12.5px;
+    padding:9px 15px;border-radius:999px;box-shadow:var(--clay-sm);transition:.15s;}
+  .book-back:active{transform:scale(.94);}
+  .btile:nth-of-type(1){animation-delay:.02s;}.btile:nth-of-type(2){animation-delay:.06s;}
+  .btile:nth-of-type(3){animation-delay:.1s;}.btile:nth-of-type(4){animation-delay:.14s;}
+  .btile:nth-of-type(5){animation-delay:.18s;}
+  /* ---------- topics grid (לפי נושא) ----------
+     30 topics as one flat list meant six screens of scrolling. They are bucketed into eight
+     families, each family a 2-up grid of tiles, and every tile carries a progress bar welded
+     to its bottom edge so "how far am I in this subject" is answered without opening it. */
+  .tsec{display:flex;align-items:center;gap:8px;margin:17px 4px 9px;}
+  .tsec h3{font-family:var(--serif);font-size:16px;font-weight:800;color:var(--navy2);margin:0;}
+  .tsec .ln{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent);}
+  .tsec .gpct{font-size:11.5px;font-weight:800;color:var(--good-deep);
+    background:var(--good-soft);border-radius:999px;padding:3px 9px;}
+  .tsec .gcnt{font-size:11.5px;color:var(--muted);font-weight:800;
+    background:var(--card);border-radius:999px;padding:3px 9px;box-shadow:inset 0 0 0 1px var(--line);}
+  .tgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .ttile{position:relative;display:flex;flex-direction:column;justify-content:space-between;
+    background:var(--card);border-radius:19px;padding:13px 13px 19px;min-height:112px;
+    overflow:hidden;cursor:pointer;box-shadow:var(--clay-sm);
+    animation:cardIn .4s cubic-bezier(.2,.8,.2,1) backwards;transition:.15s cubic-bezier(.4,0,.2,1);}
+  .ttile:active{transform:scale(.97);}
+  /* the tinted blob is what keeps a flat tile from reading as a plain box */
+  .ttile::after{content:"";position:absolute;top:-22px;left:-22px;width:74px;height:74px;
+    border-radius:50%;background:var(--tint);opacity:.07;pointer-events:none;}
+  .ttile.wide{grid-column:1 / -1;}
+  .tico{position:relative;width:32px;height:32px;border-radius:11px;display:flex;
+    align-items:center;justify-content:center;
+    background:linear-gradient(155deg,var(--good-soft),var(--card));
+    box-shadow:inset 0 0 0 1px rgba(63,132,138,.18);}
+  .tico svg{width:17px;height:17px;fill:none;stroke:var(--tint);
+    stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+  .ttxt{position:relative;}
+  /* "כשרות — בשר בחלב" would render as five identical tiles if the shared head were the
+     title, so the distinguishing tail is the title and the head shrinks to a kicker. */
+  .tk{font-size:10.5px;font-weight:800;color:var(--tint);opacity:.75;margin-top:9px;}
+  .tk + .tn{margin-top:1px;}
+  .tn{font-family:var(--serif);font-weight:800;font-size:15px;color:var(--navy);
+    line-height:1.22;margin-top:9px;}
+  /* deliberately NOT a flex row: a flex gap adds a second space beside the bold count,
+     which renders as "41  מתוך 76" */
+  .tm{font-size:11.5px;color:var(--muted);font-weight:700;margin-top:5px;}
+  .tm b{color:var(--good-deep);font-size:12.5px;font-weight:800;}
+  .ttile.untouched .tm{color:var(--muted2);}
+  .tbar{position:absolute;inset-inline:0;bottom:0;height:6px;background:var(--line2);}
+  .tbar i{display:block;height:100%;
+    background:linear-gradient(90deg,var(--tint),color-mix(in srgb,var(--tint) 55%,var(--card)));}
+  .ttile.full{background:linear-gradient(160deg,var(--card),var(--good-soft));}
+  .ttile.full .tn{color:var(--good-deep);}
+  .tdone{width:19px;height:19px;border-radius:50%;background:var(--good);color:#fff;
+    font-size:11px;display:inline-flex;align-items:center;justify-content:center;
+    font-weight:800;vertical-align:-4px;margin-inline-end:3px;}
+
+  .plist{margin:10px 0 0;}
+  .prow{position:relative;display:flex;align-items:center;justify-content:space-between;
+    background:var(--card);
+    border:none;border-radius:22px;padding:17px 19px;margin-bottom:12px;cursor:pointer;
+    animation:cardIn .4s cubic-bezier(.2,.8,.2,1) backwards;
+    transition:.15s cubic-bezier(.4,0,.2,1);
+    box-shadow:var(--clay-sm);}
+  .prow::before{content:"";position:absolute;inset-inline-start:0;top:16px;bottom:16px;width:4px;
+    border-radius:0 4px 4px 0;background:linear-gradient(var(--good),var(--navy2));opacity:.75;}
+  .prow:active{transform:scale(.985);}
+  .prow:nth-of-type(1){animation-delay:.02s;} .prow:nth-of-type(2){animation-delay:.05s;}
+  .prow:nth-of-type(3){animation-delay:.08s;} .prow:nth-of-type(4){animation-delay:.11s;}
+  .prow:nth-of-type(5){animation-delay:.14s;} .prow:nth-of-type(6){animation-delay:.17s;}
+  .prow:nth-of-type(7){animation-delay:.2s;} .prow:nth-of-type(8){animation-delay:.23s;}
+  .prow:nth-of-type(n+9){animation-delay:.25s;}
+  .prow .nm{font-family:var(--serif);font-weight:800;font-size:18px;color:var(--navy);}
+  .prow .meta{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:8px;margin-top:5px;font-weight:700;}
+  .prow .chev{width:28px;height:28px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+    color:#fff;font-size:14px;border-radius:50%;font-weight:800;
+    background:linear-gradient(155deg,var(--good),var(--good-deep));
+    box-shadow:0 3px 9px rgba(44,109,115,.3);}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;box-shadow:0 0 0 2px #fff;}
+  .dot.full{background:var(--good);} .dot.part{background:var(--gold);} .dot.none{background:#BFCBD3;}
+
+  .backbtn{display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--navy2);
+    font-family:var(--sans);font-weight:800;font-size:14.5px;cursor:pointer;padding:3px 0 0;margin-top:0;
+    transition:.15s;}
+  .backbtn:active{transform:translateX(3px);}
+
+  /* ===== READER ===== */
+  .reader{padding-bottom:8px;}
+  .reader-head{text-align:center;padding:0 0 4px;}
+  .reader-parasha{font-family:var(--serif);font-weight:900;font-size:20px;color:var(--navy);margin:0;}
+  .reader-pos{font-size:13px;color:var(--muted);margin-top:3px;font-weight:700;}
+
+  .jump-strip{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 7px;scrollbar-width:none;}
+  .jump-strip::-webkit-scrollbar{display:none;}
+  .jump-pill{flex:0 0 auto;min-width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line);
+    background:var(--card);color:var(--muted);font-family:var(--serif);font-weight:800;font-size:13.5px;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.16s;padding:0 8px;
+    box-shadow:0 3px 8px rgba(120,90,35,.07);}
+  .jump-pill.cur{background:linear-gradient(165deg,var(--good),var(--good-deep));color:#fff;border-color:var(--good);
+    box-shadow:0 5px 14px rgba(44,109,115,.35);transform:translateY(-2px);}
+  .jump-pill.done{border-color:#C6E0E1;background:var(--good-soft);color:#2C676B;}
+  .jump-pill.cur.done{background:linear-gradient(165deg,var(--good),#336E71);color:#fff;}
+  .jump-pill:active{transform:scale(.88);}
+
+  .halacha{position:relative;background:var(--card);
+    border:1.5px solid var(--line);border-radius:var(--r-lg);
+    padding:20px 24px 4px;margin-bottom:16px;overflow:hidden;
+    box-shadow:0 1px 0 rgba(255,255,255,.9) inset, 0 20px 48px rgba(120,90,35,.12), 0 4px 10px rgba(120,90,35,.05);
+    transition:box-shadow .2s,border-color .2s;
+    animation:halachaIn .35s cubic-bezier(.2,.8,.2,1);}
+  .halacha::after{content:"";position:absolute;top:0;inset-inline:0;height:4.5px;
+    background:linear-gradient(90deg,var(--navy2),var(--gold) 50%,var(--navy2));opacity:.9;}
+  @keyframes halachaIn{from{opacity:0;transform:translateX(14px);}to{opacity:1;transform:none;}}
+  .halacha.intro{background:linear-gradient(175deg,#E7F5FA,#D6EEF7);border-color:var(--gold-soft);}
+  .halacha.done{border-color:#C6E0E1;box-shadow:0 1px 0 rgba(255,255,255,.9) inset, 0 20px 48px rgba(63,132,138,.13);}
+  .halacha.done::before{content:"";position:absolute;inset-inline-start:0;top:0;bottom:0;width:5px;
+    background:linear-gradient(var(--good),#336E71);}
+  .h-badge{display:flex;align-items:center;gap:13px;margin-bottom:17px;}
+  .h-num{font-family:var(--serif);font-weight:800;font-size:16px;color:#fff;
+    background:linear-gradient(155deg,#2E769E,var(--navy2) 45%,var(--navy3));
+    min-width:40px;height:40px;padding:0 12px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+    box-shadow:0 1px 0 rgba(255,255,255,.25) inset, 0 5px 14px rgba(8,27,42,.4);
+    animation:hNumPop .4s cubic-bezier(.34,1.56,.64,1) .05s backwards;}
+  @keyframes hNumPop{from{opacity:0;transform:scale(.4) rotate(-15deg);}to{opacity:1;transform:none;}}
+  .h-label{font-size:13px;color:var(--muted);font-weight:700;flex:1;}
+  /* halacha-level "view source on Sefaria" link, next to the chapter badge. Reuses the same
+     small-pill visual language as .tool-btn (radius, size, weight) but in the blue already used
+     by the "מקור" ribbon on the source block below, so it reads as "points at the source". */
+  .sefaria-link{display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;
+    background:linear-gradient(155deg,#2C82AE,#1F6E96);color:#EAF7FF;text-decoration:none;
+    font-family:var(--sans);font-weight:800;font-size:12px;padding:7px 14px;border-radius:999px;
+    box-shadow:0 3px 9px rgba(44,130,174,.35);transition:.15s;}
+  .sefaria-link:active{transform:scale(.94);}
+  .sefaria-link svg{width:13px;height:13px;stroke:#EAF7FF;fill:none;stroke-width:2.2;}
+
+  .source{position:relative;margin:0 -24px;padding:17px 24px 5px;
+    background:linear-gradient(180deg,#EAF4FC,#DBEDFA);
+    border-top:1.5px solid #C0E1F5;}
+  .source::before{content:"מקור";position:absolute;top:-11px;inset-inline-start:20px;
+    background:linear-gradient(155deg,#2C82AE,#1F6E96);color:#EAF7FF;
+    font-family:var(--sans);font-size:11px;font-weight:800;letter-spacing:.5px;
+    padding:4px 13px;border-radius:999px;
+    box-shadow:0 3px 9px rgba(44,130,174,.35);}
+  /* Ragged-left, NOT justified. Justifying vocalized Hebrew on a phone-width column
+     stretches the inter-word spaces badly — the niqqud makes words wide and unbreakable,
+     so a line with few words opens into "rivers" of white running down the paragraph.
+     Ragged-left keeps every word space identical and reads far calmer. */
+  .source p{font-family:var(--serif);font-weight:700;font-size:17px;line-height:1.95;color:#123A4A;margin:0 0 12px;
+    text-align:right;letter-spacing:.1px;}
+  .source p:first-of-type::first-letter{font-size:1.5em;line-height:1;color:#2C82AE;font-weight:900;}
+
+  .biur{position:relative;margin:0 -24px 0;padding:22px 24px 24px;
+    background:linear-gradient(180deg,#E4F0F3,#D3E6EB);
+    border-top:2px solid #BFDBE0;}
+  .biur::before{content:"";position:absolute;top:-1px;inset-inline:24px;height:1px;
+    background:linear-gradient(90deg,transparent,rgba(44,130,174,.35),transparent);}
+  .biur-label{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(155deg,var(--navy2),var(--navy3));
+    color:#C3E5F3;font-size:12.5px;font-weight:800;padding:7px 16px;border-radius:999px;margin-bottom:14px;
+    letter-spacing:.5px;
+    box-shadow:0 1px 0 rgba(255,255,255,.15) inset, 0 5px 14px rgba(8,27,42,.3);}
+  .biur-label svg{width:14px;height:14px;stroke:#C3E5F3;}
+  .biur p.exp{font-size:15px;line-height:1.9;color:#1E323A;margin:0 0 11px;font-weight:700;}
+  .biur p.exp:last-of-type{margin-bottom:0;}
+  .biur ul{margin:15px 0 0;padding:0;list-style:none;}
+  .biur li{position:relative;padding:5px 26px 5px 0;font-size:13.5px;line-height:1.75;color:#2C3D44;font-weight:700;}
+  .biur li::before{content:"";position:absolute;right:5px;top:14px;width:8px;height:8px;border-radius:2px;
+    transform:rotate(45deg);background:linear-gradient(135deg,#2E769E,var(--navy2));}
+  .biur.pending{background:#F6F9FC;border-top:1.5px dashed #D6E2E8;}
+  .biur.pending .wait{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:14.5px;font-weight:700;}
+  .spin{width:17px;height:17px;border-radius:50%;border:2.5px solid #D6E2E8;border-top-color:#4EA8D6;
+    animation:sp .8s linear infinite;flex:0 0 auto;}
+  @keyframes sp{to{transform:rotate(360deg);}}
+
+  /* Share-card image (off-screen render target for buildHalachaImageBlob — never shown on
+     screen, only rasterized). Height is intentionally NOT fixed: the card grows/shrinks to
+     whatever the content needs, so a one-line halacha and a 3000-character one both render
+     cleanly instead of getting clipped or leaving a huge empty gap. */
+  /* ===== share card — design J ===== */
+  .shcard{width:640px;background:linear-gradient(150deg,#1B6B72 0%,#2C6D73 40%,#123F52 100%);
+    display:flex;flex-direction:column;align-items:stretch;padding:0;text-align:right;}
+  /* the white "sheet" that rises over the coloured header */
+  .shcard .sheet{background:#fff;border-radius:30px 30px 0 0;padding:32px 40px 0;margin-top:6px;}
+  /* section chips — .badge is the source chip, .shband .lbl is the biur chip */
+  .shcard .badge{display:inline-block;font-family:var(--sans);font-size:10.5px;letter-spacing:3px;
+    font-weight:900;color:#1B6B72;background:#E4F2F1;padding:6px 13px;border-radius:8px;margin-bottom:16px;}
+  .shcard .shband{padding:0;background:none;border:0;text-align:right;margin:24px 0 0;}
+  .shcard .shband .lbl{display:inline-block;font-family:var(--sans);font-size:10.5px;letter-spacing:3px;
+    font-weight:900;color:#1B6B72;background:#E4F2F1;padding:6px 13px;border-radius:8px;margin-bottom:14px;}
+  .shcard .src{font-family:var(--serif);font-weight:600;font-size:19px;line-height:1.95;color:#152026;
+    text-align:right;margin:0;padding:0;background:none;}
+  .shcard .src+.src{margin-top:14px;}
+  .shcard .shbiur{font-family:var(--sans);font-size:14.5px;line-height:1.95;color:#4E5C64;
+    font-weight:400;margin:0;padding:0;background:none;text-align:right;}
+  .shcard .shbiur+.shbiur{margin-top:12px;}
+  .shcard .shbiur ul{margin:18px 0 0;padding:0;list-style:none;text-align:start;}
+  .shcard .shbiur li{position:relative;padding:12px 44px 12px 14px;margin-bottom:9px;
+    font-size:13.5px;line-height:1.7;color:#2C4048;background:#F4F8F8;border-radius:14px;font-weight:500;}
+  .shcard .shbiur li::before{content:"\2713";position:absolute;inset-inline-start:14px;top:11px;
+    width:20px;height:20px;border-radius:50%;background:#1B6B72;color:#fff;font-size:11px;
+    text-align:center;line-height:20px;font-weight:900;transform:none;}
+  /* the footer now carries the hero's לעילוי-נשמת dedication instead of the site name:
+     serif + gold, quiet, set off by a hairline — the same tier it holds in the app. */
+  .shcard .foot{margin-top:24px;padding:16px 0 22px;font-family:var(--serif);font-size:12.5px;
+    font-weight:700;color:var(--gold-deep);letter-spacing:.1px;line-height:1.5;text-align:center;
+    border:0;border-top:1px solid #ECEFF0;background:none;}
+  .shcard .shmore{margin-top:18px;font-family:var(--sans);font-size:12.5px;font-weight:700;
+    color:#1B6B72;text-align:center;}
+  /* multi-slide continuation header (same shape in both variants) */
+  .shcard .shcont{display:flex;align-items:center;gap:12px;padding:30px 40px 24px;}
+  .shcard .shcont .face{width:48px;height:48px;border-radius:16px;border:2px solid rgba(255,255,255,.45);
+    flex:0 0 auto;display:block;}
+  .shcard .shcont .t{font-family:var(--sans);font-weight:800;font-size:16px;color:#fff;}
+  .shcard .shcont .p{font-family:var(--sans);font-size:12px;color:rgba(255,255,255,.62);margin-top:2px;}
+  /* header — compact row, no duplicate chapter pill (the .badge chip below already says it) */
+  .shcard .jhd{display:flex;align-items:center;gap:14px;padding:32px 40px 26px;}
+  .shcard .jhd .face{width:56px;height:56px;border-radius:18px;flex:0 0 auto;display:block;
+    border:2px solid rgba(255,255,255,.45);}
+  .shcard .jhd .t{flex:1;}
+  .shcard .jhd h1{font-family:var(--sans);font-size:20px;font-weight:800;color:#fff;margin:0;letter-spacing:-.3px;}
+  .shcard .jhd .sub{font-family:var(--sans);font-size:12px;color:rgba(255,255,255,.62);margin-top:2px;}
+
+  /* Checkbox */
+  .chk-zone{margin:18px -24px 0;padding:18px 24px;border-top:1.5px solid var(--line2);
+    display:flex;justify-content:center;}
+  .chk{display:inline-flex;align-items:center;gap:10px;cursor:pointer;user-select:none;
+    padding:12px 23px 12px 18px;border-radius:999px;background:var(--paper2);border:2px solid var(--line);
+    transition:.25s cubic-bezier(.34,1.56,.64,1);font-size:15px;color:var(--muted);font-weight:800;
+    box-shadow:0 3px 10px rgba(120,90,35,.06);}
+  .chk:active{transform:scale(.97);}
+  .chk input{position:absolute;opacity:0;width:0;height:0;}
+  .chk-mark{position:relative;width:26px;height:26px;border-radius:50%;border:2.5px solid var(--line);background:#fff;
+    display:flex;align-items:center;justify-content:center;flex:0 0 auto;transition:.25s cubic-bezier(.34,1.56,.64,1);}
+  .chk-mark svg{width:15px;height:15px;stroke:#fff;stroke-width:3.2;fill:none;opacity:0;transform:scale(.3) rotate(-20deg);
+    transition:.3s cubic-bezier(.34,1.56,.64,1) .05s;}
+  .chk-mark::after{content:"";position:absolute;inset:-2px;border-radius:50%;border:2px solid var(--good);
+    opacity:0;transform:scale(1);pointer-events:none;}
+  .chk input:checked ~ .chk-mark{background:linear-gradient(155deg,var(--good),#336E71);border-color:transparent;
+    animation:chkPop .4s cubic-bezier(.34,1.56,.64,1);}
+  .chk input:checked ~ .chk-mark svg{opacity:1;transform:scale(1) rotate(0);}
+  .chk input:checked ~ .chk-mark::after{animation:chkRing .5s ease-out;}
+  .chk.on{background:var(--good-soft);border-color:#C6E0E1;color:#2C676B;animation:chkGlow .5s ease;}
+  @keyframes chkPop{0%{transform:scale(1);}40%{transform:scale(1.25);}100%{transform:scale(1);}}
+  @keyframes chkRing{0%{opacity:.7;transform:scale(1);}100%{opacity:0;transform:scale(1.7);}}
+  @keyframes chkGlow{0%{box-shadow:0 0 0 0 rgba(63,132,138,.4);}100%{box-shadow:0 0 0 10px rgba(63,132,138,0);}}
+
+  /* "marked as learned" ✓ — a bare green check that draws itself. No badge, no border:
+     depth comes from a soft glow blooming behind the stroke, so nothing boxes the mark in. */
+  #doneFx{position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;
+    pointer-events:none;opacity:0;visibility:hidden;}
+  /* Timeline (1.6s): 0.06s in the stroke starts drawing, it lands at 0.84s, the shadow blooms
+     under the finished mark until 1.18s, then the whole thing fades out. The old 1.35s version
+     was cut off by its own JS after 1.0s — see playDoneFx — so the fade never actually ran and
+     the flourish vanished in one frame. */
+  #doneFx.play{visibility:visible;animation:fxWrap 1.6s ease forwards;}
+  @keyframes fxWrap{0%{opacity:0;}6%{opacity:1;}72%{opacity:1;}100%{opacity:0;}}
+  /* the bloom replaces the old frame — a diffuse halo, never a hard edge */
+  #doneFx .fx-glow{position:absolute;width:250px;height:250px;border-radius:50%;
+    background:radial-gradient(circle, rgba(63,132,138,.30) 0%, rgba(63,132,138,.12) 42%, transparent 70%);
+    transform:scale(.35);opacity:0;will-change:transform,opacity;}
+  #doneFx.play .fx-glow{animation:fxGlow 1.6s cubic-bezier(.16,1,.3,1) forwards;}
+  @keyframes fxGlow{0%{transform:scale(.35);opacity:0;}26%{opacity:1;}100%{transform:scale(1.3);opacity:0;}}
+  #doneFx svg{width:148px;height:148px;overflow:visible;}
+  /* Still deliberately NO scale animation on the mark — every scale change re-rasterises the
+     stroke and shows a moment of jagged edges. The soft-to-sharp "ink" feel now comes from an
+     opacity ramp instead of an animated blur: a filter that changes every frame forces a full
+     filter pass per frame WHILE the stroke geometry is also changing, which is the expensive
+     combination that made this stutter on a phone. Nothing is filtered during the draw now;
+     the depth shadow blooms in afterwards, when the geometry is already static and the layer
+     can be cached. */
+  #doneFx .fx-check{fill:none;stroke:url(#fxGrad);stroke-width:11;stroke-linecap:round;stroke-linejoin:round;
+    stroke-dasharray:96;stroke-dashoffset:96;will-change:stroke-dashoffset,opacity;}
+  #doneFx.play .fx-check{animation:fxDraw .78s cubic-bezier(.22,1,.36,1) .06s forwards,
+    fxSink .34s ease .84s forwards;}
+  @keyframes fxDraw{0%{stroke-dashoffset:96;opacity:.45;}34%{opacity:1;}100%{stroke-dashoffset:0;opacity:1;}}
+  @keyframes fxSink{from{filter:drop-shadow(0 3px 8px rgba(44,109,115,0));}
+    to{filter:drop-shadow(0 5px 16px rgba(44,109,115,.42));}}
+  @media (prefers-reduced-motion: reduce){ #doneFx{display:none;} }
+
+  /* Reader nav bar */
+  .reader-nav{display:flex;gap:11px;margin:20px 0 10px;}
+  .nav-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;
+    background:linear-gradient(145deg,var(--navy2),var(--good));color:#fff;border:none;
+    border-radius:999px;padding:16px 10px;font-family:var(--sans);font-weight:800;font-size:15.5px;
+    cursor:pointer;box-shadow:0 1px 0 rgba(255,255,255,.15) inset, 0 8px 22px rgba(28,83,122,.3);transition:.15s;}
+  .nav-btn:active{transform:scale(.97);}
+  .nav-btn.secondary{background:var(--card);color:var(--navy);border:none;
+    box-shadow:var(--clay-sm);}
+  .nav-btn:disabled{opacity:.35;pointer-events:none;}
+  .nav-btn svg{width:18px;height:18px;stroke:currentColor;stroke-width:2.5;fill:none;}
+  /* An outlined pill rather than the old bare grey line: the line was so quiet that the jump
+     was easy to miss entirely. Everything here rides on --card/--line/--good-deep, so it
+     flips with the dark theme on its own. */
+  /* -webkit-fit-content first: unprefixed `fit-content` only landed in Safari 14, and this is
+     installed as a PWA on iPhones. Without the fallback an older iOS would stretch the pill
+     to the full column width. */
+  .skip-unread{display:flex;align-items:center;gap:8px;
+    width:-webkit-fit-content;width:fit-content;margin:12px auto 2px;
+    background:var(--card);border:1.5px solid var(--line);border-radius:999px;cursor:pointer;
+    color:var(--good-deep);font-family:var(--sans);font-weight:700;font-size:12.5px;
+    padding:9px 16px 9px 14px;box-shadow:0 2px 6px rgba(120,90,35,.07);
+    transition:transform .15s, box-shadow .2s, border-color .2s;}
+  /* the same left-pointing chevron the seal's own "next" button uses — forward is leftward in
+     Hebrew, so the two controls point the same way instead of inventing a second language */
+  .skip-unread svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.5;
+    stroke-linecap:round;stroke-linejoin:round;}
+  .skip-unread:active{transform:scale(.97);}
+
+  /* ===== The SEAL closing device =====
+     One ornamental rule across the column, interrupted by a wax-seal mark; the prev/next
+     chevrons sit at the rule's ends, so the whole row reads as page ornament in the same
+     language as the sefer (gold diamonds, hairlines, serif letter caption) — not app chrome. */
+  .seal-zone{margin:26px 0 6px;}
+  .seal-row{display:flex;align-items:center;gap:11px;}
+  .orn-line{flex:1;height:1px;
+    background:linear-gradient(90deg,transparent,var(--line) 18%,var(--line) 82%,transparent);}
+  .orn-d{width:6px;height:6px;flex:0 0 auto;transform:rotate(45deg);
+    background:linear-gradient(135deg,var(--good),var(--gold));}
+  .seal-nav{flex:0 0 auto;min-width:34px;height:34px;border:none;background:none;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;color:var(--good-deep);
+    padding:0 2px;transition:.16s;}
+  .seal-nav svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2.2;
+    stroke-linecap:round;stroke-linejoin:round;opacity:.75;}
+  .seal-nav:active{transform:scale(.85);}
+  .seal-nav[disabled]{opacity:.25;pointer-events:none;}
+  .seal-slot{flex:0 0 auto;display:flex;}
+  .seal{position:relative;width:64px;height:64px;border-radius:50%;cursor:pointer;
+    background:radial-gradient(circle at 50% 34%, #FFFFFF, var(--card) 72%);
+    box-shadow:0 6px 16px rgba(120,90,35,.18), inset 0 0 0 1px rgba(255,255,255,.9),
+      0 0 0 1px var(--gold-soft), 0 0 0 5px var(--paper), 0 0 0 6px var(--line2);
+    display:flex;align-items:center;justify-content:center;
+    transition:transform .2s cubic-bezier(.34,1.4,.64,1), box-shadow .34s ease;}
+  /* The "on" face is its OWN layer that cross-fades in. CSS cannot interpolate between two
+     radial-gradients, so the `transition:background` that used to sit above did nothing at
+     all: the disc snapped to green in one frame while its ring glided over 250ms. That
+     mismatch is most of what read as janky. Opacity on an overlay interpolates properly and
+     is composited on the GPU, so the whole seal now changes as one motion. */
+  .seal::before{content:"";position:absolute;inset:0;border-radius:50%;z-index:0;
+    background:radial-gradient(circle at 50% 32%, #4E9A9F, var(--good-deep) 78%);
+    opacity:0;transition:opacity .34s ease;}
+  .seal.on::before{opacity:1;}
+  .seal:active{transform:scale(.92);}
+  .seal input{position:absolute;opacity:0;pointer-events:none;}
+  .seal svg{position:relative;z-index:1;width:25px;height:25px;fill:none;stroke:var(--gold);
+    stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;opacity:.42;
+    transition:stroke .34s ease, opacity .34s ease, stroke-width .34s ease;}
+  .seal.on{box-shadow:0 8px 20px rgba(44,109,115,.4), inset 0 1px 0 rgba(255,255,255,.28),
+      0 0 0 1px var(--good-deep), 0 0 0 5px var(--paper), 0 0 0 6px var(--good-soft);}
+  .seal.on svg{stroke:#fff;opacity:1;stroke-width:2.8;}
+  /* One gentle settle, and ONLY on the tap that turns it on (.just-on is added by the change
+     handler, not by the render) — otherwise every re-render of an already-read halacha would
+     replay it. Transform-only, so the disc is never re-rasterised mid-motion. */
+  .seal.just-on{animation:sealSettle .44s cubic-bezier(.22,1,.36,1);}
+  @keyframes sealSettle{0%{transform:scale(.93);}52%{transform:scale(1.05);}100%{transform:scale(1);}}
+  .seal-cap{text-align:center;margin-top:11px;font-family:var(--serif);font-size:12px;
+    letter-spacing:3px;color:var(--muted);font-weight:500;}
+  .seal-cap.done{color:var(--good-deep);}
+  .seal-minor{display:flex;justify-content:center;gap:32px;margin-top:14px;}
+  .minor-btn{background:none;border:none;padding:0;cursor:pointer;color:var(--muted2);
+    font-family:var(--sans);font-size:11.5px;font-weight:600;display:inline-flex;
+    align-items:center;gap:6px;transition:.16s;}
+  .minor-btn:active{transform:scale(.94);}
+  .minor-btn svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;}
+  .minor-btn.fav-on{color:var(--gold-deep);}
+  .minor-btn.fav-on svg{fill:var(--gold);stroke:var(--gold-deep);}
+  /* the reader is a reading page — the home-screen footer chips have no business there */
+  .reading footer{display:none;}
+
+  .note{text-align:center;color:var(--muted);font-size:15.5px;background:var(--card);border:none;
+    border-radius:30px;padding:34px 24px;margin-top:16px;line-height:1.8;font-weight:700;
+    box-shadow:var(--clay-sm);}
+  footer{text-align:center;color:var(--muted2);font-size:11px;margin:28px auto 10px;max-width:var(--maxw);
+    padding:0 16px;line-height:1.8;font-weight:600;}
+  /* Footer stat chips: live presence + total devices, straight off Firebase. */
+  .stat-chips{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;}
+  .chip{display:flex;align-items:center;gap:9px;padding:11px 16px;border-radius:18px;
+    background:var(--card);box-shadow:var(--clay-sm);min-width:132px;}
+  .chip-ico{width:30px;height:30px;border-radius:50%;flex:0 0 auto;position:relative;
+    display:flex;align-items:center;justify-content:center;}
+  .chip.live .chip-ico{background:var(--good-soft);}
+  .chip.total .chip-ico{background:var(--gold-light);}
+  .chip-ico svg{width:16px;height:16px;fill:none;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round;}
+  .chip.total .chip-ico svg{stroke:var(--gold-deep);}
+  .chip-txt{text-align:right;line-height:1.15;}
+  .chip-num{display:block;font-family:var(--serif);font-weight:900;font-size:19px;}
+  .chip.live .chip-num{color:var(--good-deep);}
+  .chip.total .chip-num{color:var(--gold-deep);}
+  .chip-lbl{display:block;font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:.2px;
+    margin-top:1px;}
+  /* the live dot breathes so "now" reads as actually live */
+  .live-dot{width:9px;height:9px;border-radius:50%;background:var(--good);position:relative;}
+  .live-dot::after{content:"";position:absolute;inset:-5px;border-radius:50%;
+    border:1.5px solid var(--good);animation:livePulse 1.9s ease-out infinite;}
+  @keyframes livePulse{0%{transform:scale(.45);opacity:.85;}100%{transform:scale(1.6);opacity:0;}}
+  .foot-ver{margin-top:9px;font-size:10px;color:var(--muted2);opacity:.8;}
+  .hidden{display:none!important;}
+
+  /* Bottom tab bar — floating light clay dock, teal active pill (design 34).
+     SPLIT ON PURPOSE, do not merge back into one element:
+       .tabbar       = positioning shell ONLY (position:fixed + offsets). Deliberately has no
+                       transform, no will-change, no backdrop-filter and no background.
+       .tabbar-inner = everything that paints, plus the scroll "tuck" animation.
+     Why: on iOS — most visibly in the installed PWA, where there is no URL bar to blame — a
+     position:fixed element that ALSO gets composited (by will-change:transform, by its own
+     transform, or by a backdrop-filter) stops being treated by WebKit as viewport-constrained
+     while the page is momentum-scrolling. The layer then rides with the scroll instead of
+     staying pinned, so the dock visibly slides up to mid-screen and only snaps back to the
+     bottom once the scroll settles. Keeping the fixed element plain lets WebKit pin it, and
+     the blur/scale/fade all still happen — one level down, where they are harmless. */
+  .tabbar{position:fixed;left:16px;right:16px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:40;
+    max-width:calc(var(--maxw) - 32px);margin:0 auto;
+    border:none;
+    pointer-events:none;}
+  /* iOS 26 safe-area hardening (installed PWA / native WebView). iOS 26 changed its safe-area
+     logic: in a home-screen app it can report the TOP inset as ~0 while still painting the
+     status bar over the page (header slides under the clock), and report the BOTTOM inset far
+     larger than the home indicator (dock floats above a dead band). Guard both directions:
+     the header never sits under the status bar, the dock never rises more than the real 34px
+     home-indicator inset above its 14px margin. Progressive — engines without min()/max() on
+     env() simply keep the plain rules above. iOS-only via -webkit-touch-callout. */
+  @supports (-webkit-touch-callout: none){
+    /* Sit just above the home indicator (20px on a 34px inset) instead of floating 14px
+       higher; on a device with no inset (or in-browser Safari) keep an 8px margin. */
+    .tabbar{bottom:max(8px, calc(min(env(safe-area-inset-bottom), 34px) - 14px));}
+    @media (display-mode: standalone){
+      .hero{padding-top:calc(max(env(safe-area-inset-top), 47px) + 6px);}
+      .reading .hero{padding-top:calc(max(env(safe-area-inset-top), 47px) + 4px);}
+    }
+  }
+  .tabbar-inner{pointer-events:auto;
+    max-width:none;margin:0;display:flex;justify-content:space-around;gap:2px;
+    padding:6px;
+    background:rgba(255,253,246,.88);
+    backdrop-filter:blur(16px) saturate(1.5);
+    -webkit-backdrop-filter:blur(16px) saturate(1.5);
+    border-radius:999px;
+    box-shadow:0 10px 26px rgba(8,27,42,.22), inset 0 0 0 1px rgba(255,255,255,.5);}
+  .tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;
+    padding:4px 2px 3px;cursor:pointer;color:var(--muted);}
+  .tab-icon-wrap{width:48px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:16px;
+    transition:.22s cubic-bezier(.4,0,.2,1);}
+  .tab-btn svg{width:21px;height:21px;stroke:var(--muted);fill:none;stroke-width:1.9;transition:.2s;}
+  .tab-btn span{font-size:11px;font-weight:800;color:var(--muted);transition:.2s;white-space:nowrap;}
+  .tab-btn.active .tab-icon-wrap{background:linear-gradient(145deg,var(--good),var(--good-deep));
+    box-shadow:0 1px 0 rgba(255,255,255,.25) inset, 0 5px 16px rgba(63,132,138,.45);
+    animation:tabBounce .45s cubic-bezier(.34,1.56,.64,1);}
+  .tab-btn.active svg{stroke:#fff;animation:tabIconPop .45s cubic-bezier(.34,1.56,.64,1);}
+  .tab-btn.active span{color:var(--good-deep);}
+  .tab-btn:active .tab-icon-wrap{transform:scale(.92);}
+  @keyframes tabBounce{0%{transform:translateY(0) scale(1);}35%{transform:translateY(-5px) scale(1.12);}
+    65%{transform:translateY(0) scale(.96);}100%{transform:translateY(-1px) scale(1);}}
+  @keyframes tabIconPop{0%{transform:scale(1);}45%{transform:scale(1.22) rotate(-4deg);}100%{transform:scale(1) rotate(0);}}
+
+  /* Settings gear + modal */
+  .hero-icons{position:relative;z-index:5;order:2;flex:0 0 auto;
+    display:flex;flex-direction:column;gap:7px;}
+  .gear-btn{width:36px;height:36px;border-radius:50%;border:none;cursor:pointer;
+    background:var(--good);display:flex;align-items:center;justify-content:center;
+    box-shadow:3px 3px 8px rgba(63,132,138,.35), -3px -3px 8px rgba(255,255,255,.8);
+    transition:.2s;}
+  .gear-btn:active{transform:scale(.9) rotate(20deg);}
+  .gear-btn svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:1.8;
+    stroke-linecap:round;stroke-linejoin:round;}
+  .modal-overlay{position:fixed;inset:0;z-index:80;background:rgba(6,22,32,.6);
+    backdrop-filter:blur(4px);display:flex;align-items:flex-end;animation:overlayIn .25s ease;}
+  @keyframes overlayIn{from{opacity:0;}to{opacity:1;}}
+  .modal-panel{position:relative;width:100%;max-width:var(--maxw);margin:0 auto;max-height:86vh;
+    background:linear-gradient(180deg,var(--paper2),#F6EFDB);
+    border-radius:28px 28px 0 0;box-shadow:0 -16px 52px rgba(0,0,0,.34);
+    display:flex;flex-direction:column;animation:sheetUp .3s cubic-bezier(.2,.8,.2,1);}
+  @keyframes sheetUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+  .modal-handle{width:44px;height:5px;border-radius:999px;background:var(--line);margin:12px auto 0;flex:0 0 auto;}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;padding:12px 24px 8px;flex:0 0 auto;}
+  .modal-head h2{font-family:var(--serif);font-size:21px;color:var(--navy);margin:0;font-weight:900;}
+  .modal-close{width:34px;height:34px;border-radius:50%;border:none;background:var(--line2);color:var(--muted);
+    font-size:15px;cursor:pointer;transition:.15s;font-weight:800;}
+  .modal-close:active{transform:scale(.88);}
+  .modal-body{overflow-y:auto;padding:6px 24px 32px;}
+  .settings-sec{padding:18px 0;border-bottom:1.5px solid var(--line2);}
+  .settings-sec:last-child{border-bottom:none;}
+  .settings-sec h3{font-family:var(--serif);font-size:16px;color:var(--navy);margin:0 0 11px;font-weight:800;}
+  .settings-hint{font-size:13px;color:var(--muted);line-height:1.7;margin:9px 0 0;font-weight:600;}
+  .fsz-row{display:flex;align-items:center;gap:13px;}
+  .fsz-btn{flex:0 0 auto;width:50px;height:44px;border-radius:14px;border:1.5px solid var(--line);
+    background:var(--card);font-family:var(--serif);font-weight:800;font-size:16px;color:var(--navy);cursor:pointer;
+    box-shadow:0 3px 10px rgba(120,90,35,.06);transition:.15s;}
+  .fsz-btn:active{transform:scale(.94);}
+  .fsz-label{flex:1;text-align:center;font-size:14px;color:var(--muted);font-weight:700;}
+  .stats-body{display:flex;flex-direction:column;gap:14px;}
+  /* Progress RINGS. A 2-of-2100 bar renders as an invisible sliver and makes the whole
+     panel look broken/empty; a ring carries the number in the middle, so the reading works
+     at any percentage and the arc is a bonus rather than the only signal. round linecaps
+     mean even a fraction of a percent still shows as a visible dot. */
+  .ring-wrap{display:flex;flex-direction:column;align-items:center;gap:7px;}
+  .ring-box{position:relative;display:flex;align-items:center;justify-content:center;}
+  /* Scoped to .ring-box on purpose. A bare `.ring` rule also matched .shcard .ring — the
+     share card's PORTRAIT wrapper, which has carried that class since long before these
+     stats rings existed — and silently rotated the rabbi's photo 90° in every shared image.
+     The bug was invisible in the app because the share card is only ever rasterised
+     off-screen. Keep progress-ring rules under .ring-box. */
+  .ring-box .ring{transform:rotate(-90deg);display:block;}
+  .ring-box .ring circle{fill:none;stroke-linecap:round;}
+  .ring-box .ring .ring-bg{stroke:var(--line);}
+  .ring-box .ring .ring-fg{stroke:var(--good);transition:stroke-dashoffset .7s cubic-bezier(.4,0,.2,1);}
+  .ring-mid{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;line-height:1;}
+  .ring-done{font-family:var(--serif);font-weight:900;color:var(--navy);}
+  .ring-of{font-size:10px;color:var(--muted);font-weight:700;margin-top:3px;}
+  .ring-lbl{font-size:12.5px;font-weight:800;color:var(--navy2);}
+  .ring-pct{font-size:11px;color:var(--muted);font-weight:700;}
+  .rings-row{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;}
+  .stats-hero{display:flex;flex-direction:column;align-items:center;gap:4px;
+    padding:4px 0 14px;border-bottom:1.5px solid var(--line2);margin-bottom:4px;}
+  .toast{position:fixed;bottom:calc(110px + env(safe-area-inset-bottom));left:50%;
+    transform:translateX(-50%) translateZ(0);-webkit-backface-visibility:hidden;
+    z-index:90;background:var(--navy3);color:#DFF2FB;font-size:14px;
+    font-weight:800;padding:13px 24px;border-radius:999px;
+    box-shadow:0 1px 0 rgba(255,255,255,.12) inset, 0 12px 30px rgba(0,0,0,.4);
+    animation:toastIn .25s cubic-bezier(.2,.8,.2,1);white-space:nowrap;}
+  @keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(10px) translateZ(0);}
+    to{opacity:1;transform:translateX(-50%) translateZ(0);}}
+
+  /* Reader utility row */
+  .reader-tools{display:flex;justify-content:center;gap:11px;margin-top:2px;}
+  .tool-btn{display:inline-flex;align-items:center;gap:7px;padding:11px 18px;border-radius:999px;
+    background:var(--card);border:1.5px solid var(--line);color:var(--muted);font-weight:800;
+    font-size:13.5px;cursor:pointer;transition:.18s;box-shadow:0 3px 10px rgba(120,90,35,.05);}
+  .tool-btn:active{transform:scale(.95);}
+  .tool-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.2;}
+  .tool-btn.fav-on{background:#F6ECCF;border-color:var(--gold-soft);color:var(--gold-deep);}
+  .tool-btn.fav-on svg{fill:var(--gold);stroke:var(--gold-deep);animation:favPop .4s cubic-bezier(.34,1.56,.64,1);}
+  @keyframes favPop{0%{transform:scale(1);}45%{transform:scale(1.35) rotate(-8deg);}100%{transform:scale(1);}}
+
+  .source p{font-size:calc(17px * var(--fsz,1));}
+  .biur p.exp{font-size:calc(15px * var(--fsz,1));}
+  .biur li{font-size:calc(13.5px * var(--fsz,1));}
+
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="hero-icons">
+    <button class="gear-btn" id="openStats" aria-label="ההתקדמות שלי">
+      <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M11 20V4M18 20v-7"/></svg>
+    </button>
+    <button class="gear-btn" id="openSettings" aria-label="הגדרות">
+      <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    </button>
+  </div>
+  <div class="portrait-frame">
+    <img class="portrait" src="beninshai.jpg" alt="רבנו יוסף חיים - הבן איש חי">
+  </div>
+  <div class="hero-text">
+    <h1>הלכות הבן איש חי</h1>
+    <div class="hero-orn"><span class="diamond"></span></div>
+    <p class="tagline">לפי רבינו יוסף חיים זצוק״ל</p>
+    <p class="hero-dedication">לעילוי נשמת אליהו בן אהרון הנולד מן אסתר ז״ל<br>שמואל בן אברהם הנולד מן רות חנה ז״ל</p>
+  </div>
+</header>
+
+<div class="modal-overlay hidden" id="settingsOverlay">
+  <div class="modal-panel">
+    <div class="modal-handle"></div>
+    <div class="modal-head">
+      <h2>הגדרות</h2>
+      <button class="modal-close" id="closeSettings" aria-label="סגור">✕</button>
+    </div>
+    <div class="modal-body">
+      <section class="settings-sec">
+        <h3>מראה</h3>
+        <div class="seg" id="themeSeg">
+          <button data-theme-choice="auto">אוטומטי</button>
+          <button data-theme-choice="light">בהיר</button>
+          <button data-theme-choice="dark">כהה</button>
+        </div>
+      </section>
+      <section class="settings-sec">
+        <h3>גודל טקסט</h3>
+        <div class="fsz-row">
+          <button class="fsz-btn" id="fszDown">א־</button>
+          <div class="fsz-label" id="fszLabel">רגיל</div>
+          <button class="fsz-btn" id="fszUp">א+</button>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="statsOverlay">
+  <div class="modal-panel">
+    <div class="modal-handle"></div>
+    <div class="modal-head">
+      <h2>ההתקדמות שלי</h2>
+      <button class="modal-close" id="closeStats" aria-label="סגור">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="statsBody" class="stats-body"><div class="note" style="padding:16px;">טוען…</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast hidden" id="toast"></div>
+
+<div class="offline-banner hidden" id="offlineBanner">
+  <div class="offline-bar"><div class="offline-fill" id="offlineFill" style="width:0%"></div></div>
+  <span id="offlineText">מוריד תוכן לשימוש אופליין…</span>
+</div>
+
+<!-- WEEK HOME -->
+<div class="wrap" id="weekView">
+  <div class="page-head">
+    <div class="ph-text">
+      <p class="page-eyebrow">לימוד השבוע</p>
+      <h2 class="page-title" id="wParasha">—</h2>
+      <p class="page-sub" id="wSub">—</p>
+    </div>
+    <!-- decorative sefer: a bound volume with gold tooling, fills the empty side of the card -->
+    <div class="ph-art" aria-hidden="true">
+      <svg viewBox="0 0 80 104" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="sfCover" x1="8" y1="6" x2="66" y2="96" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#54A2A8"/><stop offset="1" stop-color="#2C6D73"/>
+          </linearGradient>
+          <linearGradient id="sfSpine" x1="56" y1="0" x2="72" y2="0" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#2C6D73"/><stop offset="1" stop-color="#1D4E53"/>
+          </linearGradient>
+          <linearGradient id="sfPages" x1="4" y1="0" x2="16" y2="0" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#E8DCB4"/><stop offset=".5" stop-color="#FFFDF6"/><stop offset="1" stop-color="#EFE6C9"/>
+          </linearGradient>
+        </defs>
+        <ellipse cx="40" cy="97" rx="30" ry="4.5" fill="#2C6D73" opacity=".16"/>
+        <rect x="5" y="12" width="16" height="82" rx="3" fill="url(#sfPages)"/>
+        <path d="M8 18h9M8 26h9M8 34h9M8 42h9M8 50h9M8 58h9M8 66h9M8 74h9M8 82h9"
+              stroke="#BBAC84" stroke-opacity=".45" stroke-width="1" stroke-linecap="round"/>
+        <rect x="9" y="6" width="63" height="88" rx="5" fill="url(#sfCover)"/>
+        <rect x="57" y="6" width="15" height="88" rx="5" fill="url(#sfSpine)"/>
+        <path d="M57 26h15M57 48h15M57 70h15" stroke="#BF9530" stroke-opacity=".75" stroke-width="1.6"/>
+        <rect x="17" y="17" width="34" height="66" rx="3" stroke="#E7D49E" stroke-opacity=".85" stroke-width="1.6"/>
+        <rect x="21" y="21" width="26" height="58" rx="2" stroke="#BF9530" stroke-opacity=".5" stroke-width="1"/>
+        <path d="M34 42l6 6-6 6-6-6z" fill="#E7D49E"/>
+        <path d="M34 33.5l2.4 2.4-2.4 2.4-2.4-2.4z" fill="#BF9530" opacity=".8"/>
+        <path d="M34 57.7l2.4 2.4-2.4 2.4-2.4-2.4z" fill="#BF9530" opacity=".8"/>
+        <path d="M24 68h20" stroke="#E7D49E" stroke-opacity=".6" stroke-width="1.4" stroke-linecap="round"/>
+        <path d="M27 72.5h14" stroke="#E7D49E" stroke-opacity=".4" stroke-width="1.2" stroke-linecap="round"/>
+        <rect x="9" y="6" width="63" height="88" rx="5" stroke="#1D4E53" stroke-opacity=".25" stroke-width="1"/>
+      </svg>
+    </div>
+  </div>
+  <div id="wContent"></div>
+</div>
+
+<!-- TOPICS HOME -->
+<div class="wrap hidden" id="topicsView">
+  <div id="topicsList">
+    <div class="page-head">
+      <p class="page-eyebrow">עיון לפי נושא</p>
+      <h2 class="page-title">הלכות לפי נושא</h2>
+      <p class="page-sub">כל ההלכות הקשורות לנושא, משולבות מכל הפרשיות שבהן הן מובאות</p>
+      <p class="page-prog" id="topicsProg"></p>
+    </div>
+    <div class="plist" id="topicsPlist"></div>
+  </div>
+</div>
+
+<!-- PICKER HOME -->
+<div class="wrap hidden" id="pickerView">
+  <div id="pickerList">
+    <div class="tabs" id="pickerTabs">
+      <button class="tab active" id="tabY1" data-track="year1">שנה ראשונה</button>
+      <button class="tab" id="tabY2" data-track="year2">שנה שנייה</button>
+    </div>
+    <div class="plist" id="plist"></div>
+  </div>
+</div>
+
+<!-- SEARCH -->
+<div class="wrap hidden" id="searchView">
+  <div class="page-head">
+    <p class="page-eyebrow">חיפוש בכל הספר</p>
+    <h2 class="page-title">חיפוש הלכה</h2>
+  </div>
+  <div class="search-box">
+    <svg viewBox="0 0 24 24" class="search-icon"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+    <input type="search" id="searchInput" placeholder="חפשו מילה, נושא או ביטוי…" autocomplete="off">
+  </div>
+  <div id="searchStatus" class="search-status"></div>
+  <div class="plist" id="searchResults"></div>
+</div>
+
+<!-- SHARED READER (single halacha at a time) -->
+<div class="wrap hidden" id="readerView">
+  <button class="backbtn" id="rBack">▶ חזרה</button>
+  <div class="reader">
+    <div class="reader-head">
+      <h2 class="reader-title" id="rTitle" style="font-family:var(--serif);font-weight:900;font-size:24px;color:var(--navy);margin:6px 0 2px;">—</h2>
+      <div class="reader-pos" id="rPos">—</div>
+    </div>
+    <div class="progress-wrap" style="margin-bottom:2px;">
+      <div class="progress-bar"><div class="progress-fill" id="rFill" style="width:0%"></div></div>
+    </div>
+    <div class="jump-strip" id="rJump"></div>
+    <div id="rCard"></div>
+    <!-- The "seal" closing device: one ornamental rule spanning the column, interrupted by
+         the wax-seal mark control, with the prev/next chevrons at the rule's ends — the
+         whole control row reads as a single piece of page ornament, not as app buttons.
+         Same element ids as before, so all existing listeners keep working unchanged. -->
+    <div class="seal-zone">
+      <div class="seal-row">
+        <button class="seal-nav" id="rPrev" aria-label="הקודם"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+        <span class="orn-line"></span><span class="orn-d"></span>
+        <span class="seal-slot" id="sealSlot"></span>
+        <span class="orn-d"></span><span class="orn-line"></span>
+        <button class="seal-nav" id="rNext" aria-label="הבא"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
+      </div>
+      <div class="seal-cap" id="sealCap"></div>
+      <div class="seal-minor" id="sealMinor"></div>
+      <button class="skip-unread hidden" id="rSkipUnread"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg><span>להלכה הבאה</span></button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="stat-chips">
+    <div class="chip live">
+      <span class="chip-ico"><span class="live-dot"></span></span>
+      <span class="chip-txt"><span class="chip-num" id="liveCount">–</span><span class="chip-lbl">מחוברים כעת</span></span>
+    </div>
+    <div class="chip total">
+      <span class="chip-ico"><svg viewBox="0 0 24 24"><path d="M16 20v-1.6a4 4 0 00-4-4H6a4 4 0 00-4 4V20"/><circle cx="9" cy="7" r="3.4"/><path d="M22 20v-1.6a4 4 0 00-3-3.87M16.5 4a4 4 0 010 6.6"/></svg></span>
+      <span class="chip-txt"><span class="chip-num" id="totalCount">–</span><span class="chip-lbl">משתמשים</span></span>
+    </div>
+  </div>
+  <div class="foot-ver"><span id="verLabel"></span></div>
+</footer>
+
+<!-- glossary bottom-sheet: shows the meaning of a tapped hard word -->
+<div id="glossSheet" class="bottom-sheet" aria-hidden="true">
+  <span class="gw-close" id="glossClose">✕</span>
+  <div class="gw-word" id="glossWord"></div>
+  <div class="gw-def" id="glossDef"></div>
+</div>
+
+<!-- slick full-screen ✓ that plays when a halacha is marked as learned -->
+<div id="doneFx" aria-hidden="true">
+  <span class="fx-glow"></span>
+  <svg viewBox="0 0 100 100">
+    <defs>
+      <linearGradient id="fxGrad" x1="24" y1="71" x2="78" y2="30" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#4FA0A6"/><stop offset="1" stop-color="#2C6D73"/>
+      </linearGradient>
+    </defs>
+    <path class="fx-check" d="M24 52 L44 71 L78 30"/>
+  </svg>
+</div>
+
+<nav class="tabbar">
+  <div class="tabbar-inner">
+    <button class="tab-btn active" id="segWeek">
+      <span class="tab-icon-wrap"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>
+      <span>השבוע</span>
+    </button>
+    <button class="tab-btn" id="segTopics">
+      <span class="tab-icon-wrap"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 12.1l-8.5-8.5a2 2 0 0 0-1.4-.6H4.5A1.5 1.5 0 0 0 3 4.5v5.7c0 .5.2 1 .6 1.4l8.5 8.5a2 2 0 0 0 2.8 0l5.7-5.7a2 2 0 0 0 0-2.3z"/><circle cx="7.5" cy="7.5" r="1.3"/></svg></span>
+      <span>לפי נושא</span>
+    </button>
+    <button class="tab-btn" id="segPicker">
+      <span class="tab-icon-wrap"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5C4 4.7 4.7 4 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5z"/><path d="M20 5.5c0-.8-.7-1.5-1.5-1.5H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5z"/></svg></span>
+      <span>כל הפרשיות</span>
+    </button>
+    <button class="tab-btn" id="segSearch">
+      <span class="tab-icon-wrap"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg></span>
+      <span>חיפוש</span>
+    </button>
+  </div>
+</nav>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script>
+/* Live presence counter — how many visitors are on the site right now.
+   Each tab registers a random key under /presence while connected and
+   Firebase removes it automatically on disconnect (tab close, network drop). */
+(function(){
+  // Never write to the live stats from a development copy. localStorage is scoped per
+  // ORIGIN, and a port is part of the origin — so serving the app from 127.0.0.1:8878,
+  // :8880, :8881 … made every one of those a "new device" and inflated totalDevices by
+  // one apiece. Excluding local hosts (rather than allow-listing the production domain)
+  // means a future domain change won't silently switch the counters off.
+  const IS_LOCAL = location.protocol === "file:" ||
+    /^(localhost|127\.|0\.0\.0\.0|\[?::1\]?|192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(location.hostname);
+  // The native app runs from capacitor://localhost — a real user, not a dev copy — so it
+  // is counted together with the website (owner's decision, 2026-09-23).
+  const IS_NATIVE_APP = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  if(IS_LOCAL && !IS_NATIVE_APP) return;     // chips just stay at their "–" placeholder
+  try{
+    const app = firebase.initializeApp({
+      apiKey: "AIzaSyBCr1BIGzmwUqpYb3xZjknCF7EQVJ-EhwA",
+      authDomain: "ben-ish-hai.firebaseapp.com",
+      databaseURL: "https://ben-ish-hai-default-rtdb.firebaseio.com",
+      projectId: "ben-ish-hai"
+    });
+    const db = firebase.database(app);
+    const myRef = db.ref("presence").push();
+    db.ref(".info/connected").on("value", snap=>{
+      if(snap.val()===true){ myRef.onDisconnect().remove(); myRef.set(true); }
+    });
+    db.ref("presence").on("value", snap=>{
+      const el=document.getElementById("liveCount");
+      if(el) el.textContent = snap.numChildren();
+    });
+    window.addEventListener("beforeunload", ()=>myRef.remove());
+
+    // Devices that have ever opened the app — counted once per localStorage flag.
+    // This is an APPROXIMATION and the label says "מכשירים", not "משתמשים", on purpose:
+    // one device can be counted more than once (a second browser, cleared site data, a
+    // private window, a home-screen install alongside the Safari tab, or Safari's ITP
+    // wiping script-writable storage after 7 days without interaction), and two people
+    // sharing one phone count as one. Real per-person numbers would need accounts.
+    const totalRef = db.ref("stats/totalDevices");
+    if(!localStorage.getItem("hy_device_counted")){
+      totalRef.transaction(cur=>(cur||0)+1, (err,committed)=>{
+        if(!err && committed) localStorage.setItem("hy_device_counted","1");
+      });
+    }
+    totalRef.on("value", snap=>{
+      const el=document.getElementById("totalCount");
+      if(el) el.textContent = (snap.val()||0).toLocaleString("he");
+    });
+  }catch(e){ /* offline / blocked — badges just stay at placeholder */ }
+})();
+const HE_ONES=["","א","ב","ג","ד","ה","ו","ז","ח","ט"];
+const HE_TENS=["","י","כ","ל","מ","נ","ס","ע","פ","צ"];
+const HE_HUND=["","ק","ר","ש","ת"];
+function heNum(n){
+  if(n<=0) return String(n);
+  let s="",h=Math.floor(n/100),t=Math.floor((n%100)/10),o=n%10;
+  s+=HE_HUND[h]||""; let tt=n%100;
+  if(tt===15) s+="טו"; else if(tt===16) s+="טז"; else {s+=HE_TENS[t]||"";s+=HE_ONES[o]||"";}
+  if(s.length===1) return s+"׳";
+  return s.slice(0,-1)+"״"+s.slice(-1);
+}
+function esc(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function trackName(slug){return slug==="year1"?"שנה ראשונה":"שנה שנייה";}
+async function getJson(p,fresh){try{const r=await fetch(p,{cache:fresh?"no-store":"default"});return r.ok?await r.json():null;}catch(e){return null;}}
+function fmtDate(iso){const d=new Date(iso+"T00:00:00");return d.toLocaleDateString("he-IL",{day:"numeric",month:"long",year:"numeric"});}
+
+// Hebrew (Jewish-calendar) date, computed ENTIRELY on the device — the browser's Intl Hebrew
+// calendar gives the numeric day/year and the correct month name (incl. leap-year Adar א׳/ב׳),
+// and we render the day+year as Hebrew gematria letters. No API, works offline. Verified to
+// match Hebcal across regular/leap years and the ט״ו/ט״ז special cases.
+function _heNum(n){
+  const ONES=["","א","ב","ג","ד","ה","ו","ז","ח","ט"];
+  const TENS=["","י","כ","ל","מ","נ","ס","ע","פ","צ"];
+  const HUND=["","ק","ר","ש","ת","תק","תר","תש","תת","תתק"];
+  let s=HUND[Math.floor(n/100)]||""; n%=100;
+  if(n===15) s+="טו"; else if(n===16) s+="טז"; else { s+=TENS[Math.floor(n/10)]; s+=ONES[n%10]; }
+  return s;
+}
+function _hePunct(s){ return s.length===1 ? s+"׳" : s.slice(0,-1)+"״"+s.slice(-1); }
+function hebrewDate(d){
+  try{
+    const p=new Intl.DateTimeFormat("en-u-ca-hebrew",{day:"numeric",year:"numeric"}).formatToParts(d);
+    const day=+p.find(x=>x.type==="day").value, year=+p.find(x=>x.type==="year").value;
+    const mon=new Intl.DateTimeFormat("he-u-ca-hebrew",{month:"long"}).format(d);
+    return _hePunct(_heNum(day))+" "+mon+" "+_hePunct(_heNum(year%1000));
+  }catch(e){ return ""; }
+}
+
+// The Jewish day rolls at nightfall (צאת הכוכבים), not civil midnight. To reflect that in the
+// Hebrew date/weekday we need the local nightfall time, which depends on location — derived
+// here from the device TIMEZONE (a representative city per zone; Asia/Jerusalem→Jerusalem is
+// exact for Israel), per the user's choice of no location prompt. Nightfall is computed ENTIRELY
+// on the device with a standard solar-position algorithm (no API, always works offline, no
+// network dependency to silently fail). If the zone is unknown we fall back to a rough 18:30
+// local sunset so the roll still happens rather than not at all.
+const TZ_GEO = {
+  "Asia/Jerusalem":[31.78,35.21], "Asia/Tel_Aviv":[32.08,34.78],
+  "America/New_York":[40.71,-74.01], "America/Chicago":[41.88,-87.63],
+  "America/Denver":[39.74,-104.99], "America/Los_Angeles":[34.05,-118.24],
+  "America/Toronto":[43.65,-79.38], "America/Mexico_City":[19.43,-99.13],
+  "America/Argentina/Buenos_Aires":[-34.60,-58.38], "America/Sao_Paulo":[-23.55,-46.63],
+  "Europe/London":[51.51,-0.13], "Europe/Paris":[48.86,2.35], "Europe/Berlin":[52.52,13.40],
+  "Europe/Moscow":[55.75,37.62], "Australia/Sydney":[-33.87,151.21],
+  "Australia/Melbourne":[-37.81,144.96], "Africa/Johannesburg":[-26.20,28.05],
+};
+// --- Client-side solar calc (SunCalc-lite). Returns the UTC instant of the evening event where
+// the sun's center is `hDeg` below the horizon on the solar day around `date`. For צאת הכוכבים
+// (three stars) we use 7.083° below the horizon — the standard geometric depression the printed
+// Jewish calendars use. Absolute instants, so comparing with Date.now() is timezone-proof.
+function _sunsetInstant(date, lat, lon, hDeg){
+  const rad=Math.PI/180, dayMs=86400000, J1970=2440588, J2000=2451545;
+  const toDays=d=>(d.valueOf()/dayMs - 0.5 + J1970) - J2000;
+  const e=rad*23.4397;
+  const d=toDays(date), lw=rad*(-lon), phi=rad*lat;
+  const J0=0.0009;
+  const n=Math.round(d - J0 - lw/(2*Math.PI));
+  const ds=J0 + (0+lw)/(2*Math.PI) + n;
+  const M=rad*(357.5291 + 0.98560028*ds);
+  const C=rad*(1.9148*Math.sin(M) + 0.02*Math.sin(2*M) + 0.0003*Math.sin(3*M));
+  const L=M + C + rad*102.9372 + Math.PI;
+  const dec=Math.asin(Math.sin(e)*Math.sin(L));
+  const Jtransit=J2000 + ds + 0.0053*Math.sin(M) - 0.0069*Math.sin(2*L);
+  const h=rad*hDeg;
+  const cosW=(Math.sin(h) - Math.sin(phi)*Math.sin(dec))/(Math.cos(phi)*Math.cos(dec));
+  if(cosW< -1 || cosW> 1) return null;   // polar day/night: no event
+  const w=Math.acos(cosW);
+  const a=J0 + (w+lw)/(2*Math.PI) + n;
+  const Jset=J2000 + a + 0.0053*Math.sin(M) - 0.0069*Math.sin(2*L);
+  return new Date((Jset + 0.5 - J1970)*dayMs);
+}
+// Returns the date to use for Hebrew reckoning (noon of the civil day, or of the next civil
+// day if nightfall already passed), plus whether it was shifted. Fully synchronous & offline.
+function jewishReckoningDate(){
+  const now=new Date();
+  const tzid=Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const geo=TZ_GEO[tzid];
+  let tzeit=null;
+  // Anchor the solar calc at LOCAL NOON of the current CIVIL day — never at `now`.
+  // _sunsetInstant picks the solar day nearest its input; between civil midnight and ~00:40
+  // it would pick YESTERDAY's event, so `now >= tzeit(yesterday)` shifted an extra day on top
+  // of the already-rolled civil date (Hebrew date jumped TWO days ahead after midnight).
+  // Anchored at noon, tzeit is always TODAY's nightfall: after midnight now < tzeit => no
+  // shift (civil date already correct); in the evening after nightfall => shift exactly +1.
+  if(geo){
+    const anchor=new Date(now); anchor.setHours(12,0,0,0);
+    tzeit=_sunsetInstant(anchor, geo[0], geo[1], -7.083);
+  }
+  let shifted;
+  if(tzeit){
+    shifted = now.getTime() >= tzeit.getTime();
+  }else{
+    // unknown zone: approximate nightfall at ~18:45 local as a best-effort fallback
+    shifted = now.getHours() >= 18 && (now.getHours()>18 || now.getMinutes()>=45);
+  }
+  const d=new Date(now);
+  if(shifted) d.setDate(d.getDate()+1);
+  d.setHours(12,0,0,0);
+  return {date:d, shifted};
+}
+
+const BIUR_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a6 6 0 0 0-4 10.5c.6.6 1 1.4 1 2.5h6c0-1.1.4-1.9 1-2.5A6 6 0 0 0 12 2Z"/></svg>';
+const CHECK_ICON='<svg viewBox="0 0 24 24"><path d="M4 12l6 6L20 6"/></svg>';
+const STAR_ICON='<svg viewBox="0 0 24 24"><path d="M12 2.8l2.9 6 6.6.9-4.8 4.6 1.1 6.6L12 17.8l-5.8 3.1 1.1-6.6L2.5 9.7l6.6-.9z"/></svg>';
+const SHARE_ICON='<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.7l7.4-4.2M8.3 13.3l7.4 4.2"/></svg>';
+const SEFARIA_ICON='<svg viewBox="0 0 24 24"><path d="M13 3h7v7M20 3l-8 8M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5"/></svg>';
+
+// ---------- personal progress (localStorage, this device only) ----------
+const PROGRESS_KEY="hy_progress_v1";
+function loadProgressMap(){try{return JSON.parse(localStorage.getItem(PROGRESS_KEY)||"{}");}catch(e){return {};}}
+function saveProgressMap(m){try{localStorage.setItem(PROGRESS_KEY,JSON.stringify(m));}catch(e){}}
+function pKey(track,key,ch){return track+"::"+key+"::"+ch;}
+function isDone(track,key,ch){return !!loadProgressMap()[pKey(track,key,ch)];}
+function setDone(track,key,ch,val){
+  const m=loadProgressMap(); const k=pKey(track,key,ch);
+  if(val) m[k]=true; else delete m[k];
+  saveProgressMap(m);
+}
+
+// ---------- favorites (separate bookmark, independent of "done") ----------
+const FAV_KEY="hy_favorites_v1";
+function loadFavMap(){try{return JSON.parse(localStorage.getItem(FAV_KEY)||"{}");}catch(e){return {};}}
+function saveFavMap(m){try{localStorage.setItem(FAV_KEY,JSON.stringify(m));}catch(e){}}
+function isFav(track,key,ch){return !!loadFavMap()[pKey(track,key,ch)];}
+function toggleFav(track,key,ch){
+  const m=loadFavMap(); const k=pKey(track,key,ch);
+  if(m[k]) delete m[k]; else m[k]=true;
+  saveFavMap(m);
+  return !!m[k];
+}
+
+// ---------- reader font size (persisted, applied via a CSS variable) ----------
+const FSZ_KEY="hy_fontsize_v1";
+const FSZ_STEPS=[{v:.88,label:"קטן"},{v:1,label:"רגיל"},{v:1.16,label:"גדול"},{v:1.32,label:"גדול מאוד"}];
+function getFszIdx(){
+  const saved=parseFloat(localStorage.getItem(FSZ_KEY)||"1");
+  let idx=FSZ_STEPS.findIndex(s=>Math.abs(s.v-saved)<.001);
+  return idx<0?1:idx;
+}
+function applyFsz(idx){
+  idx=Math.max(0,Math.min(FSZ_STEPS.length-1,idx));
+  document.documentElement.style.setProperty("--fsz",FSZ_STEPS[idx].v);
+  localStorage.setItem(FSZ_KEY,FSZ_STEPS[idx].v);
+  const lbl=document.getElementById("fszLabel");
+  if(lbl) lbl.textContent=FSZ_STEPS[idx].label;
+  return idx;
+}
+
+function showToast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg;
+  t.classList.remove("hidden");
+  clearTimeout(showToast._t);
+  showToast._t=setTimeout(()=>t.classList.add("hidden"),2200);
+}
+
+function biurHtml(clar){
+  if(!clar || !clar.explanation){
+    if(apiAvailable){
+      return '<div class="biur pending"><div class="wait"><div class="spin"></div>הביאור בהכנה…</div></div>';
+    }
+    return '<div class="biur pending"><div class="wait">הביאור לפרק זה עדיין לא הוכן.</div></div>';
+  }
+  let ta="";
+  if(clar.takeaways && clar.takeaways.length){
+    ta='<ul>'+clar.takeaways.map(t=>'<li>'+esc(t)+'</li>').join('')+'</ul>';
+  }
+  const exp=splitBiur(clar.explanation).map(p=>'<p class="exp">'+esc(p)+'</p>').join('');
+  return '<div class="biur"><span class="biur-label">'+BIUR_ICON+' ביאור</span>'+
+    exp+ta+'</div>';
+}
+
+// Image sharing: render a branded share-card (portrait medallion + source + biur + CTA) to an
+// off-screen ".shcard" clone, rasterize it with html2canvas, export as PNG — a real shareable
+// image file, not just a link. The card's height is NOT fixed (see .shcard CSS) so it grows to
+// fit whatever content is present instead of clipping long halachot or leaving empty space on
+// short ones. html2canvas loads lazily from a CDN on first use (kept out of the offline
+// precache/service-worker cache on purpose — cross-origin requests bypass it, see sw.js).
+function _loadScript(src){
+  return new Promise((resolve,reject)=>{
+    if(document.querySelector('script[src="'+src+'"]')){ resolve(); return; }
+    const s=document.createElement("script");
+    s.src=src; s.onload=()=>resolve(); s.onerror=()=>reject(new Error("load failed: "+src));
+    document.head.appendChild(s);
+  });
+}
+async function _ensureImageLibs(){
+  if(!window.html2canvas) await _loadScript("https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js");
+}
+// The portrait is now painted as a CSS background (html2canvas has no object-fit support),
+// so there is no <img> left for the DOM to tell us about. Decode it once up front instead —
+// otherwise html2canvas can rasterise the card before the bitmap is ready and the face comes
+// out blank. The promise is cached, so this costs one fetch for the whole session.
+let _portraitReady=null;
+function _awaitPortrait(){
+  if(!_portraitReady){
+    _portraitReady=new Promise(res=>{
+      const im=new Image();
+      im.onload=res; im.onerror=res;      // a failed portrait must not block sharing
+      im.src="beninshai-square.jpg";
+    });
+  }
+  return _portraitReady;
+}
+async function _awaitImg(root){
+  const img=root.querySelector("img");
+  if(img && !img.complete) await new Promise(res=>{ img.onload=res; img.onerror=res; });
+  await _awaitPortrait();
+}
+async function _rasterizeShcard(innerHtml){
+  const wrap=document.createElement("div");
+  wrap.style.cssText="position:fixed;top:0;inset-inline-start:-99999px;";
+  wrap.innerHTML='<div class="shcard">'+innerHtml+'</div>';
+  document.body.appendChild(wrap);
+  let canvas;
+  try{
+    await _awaitImg(wrap);
+    canvas=await window.html2canvas(wrap,{scale:2,backgroundColor:"#FFFFFF",useCORS:true});
+  }finally{
+    document.body.removeChild(wrap);
+  }
+  return new Promise(resolve=>canvas.toBlob(resolve,"image/png"));
+}
+// Long content (a long מקור and/or a long ביאור) would make a single image absurdly tall and
+// hard to read on a phone screen, so past a height budget we split into several normal-sized
+// slide images that continue one another (like a carousel) — breaking ONLY between whole
+// paragraphs/takeaways, never mid-sentence. Returns an ARRAY of PNG blobs, always length >= 1.
+async function buildHalachaImageBlobs(it,label){
+  await _ensureImageLibs();
+  if(document.fonts && document.fonts.ready) await document.fonts.ready;
+
+  const paras=splitParas(srcParas(it));
+  const clar=it.clarification;
+  const biurParas=(clar && clar.explanation)?splitBiur(clar.explanation):[];
+  const takeaways=(clar && clar.takeaways && clar.takeaways.length)?clar.takeaways:null;
+  const badgeText=it.isIntro?("פתיחת פרשת "+esc(it.keyHe||it.key)):esc(label);
+
+  const HEADER_HTML='<div class="jhd"><img class="face" src="beninshai-square.jpg" alt="">'+
+    '<div class="t"><h1>הלכות הבן איש חי</h1>'+
+    '<div class="sub">לפי רבינו יוסף חיים זצוק״ל</div></div></div>';
+  const BADGE_HTML='<div class="badge">'+badgeText+'</div>';
+  const FOOT_HTML='<div class="foot">לעילוי נשמת אליהו בן אהרון הנולד מן אסתר ז״ל<br>'+
+    'שמואל בן אברהם הנולד מן רות חנה ז״ל</div>';
+
+  // Atomic content blocks -- a slide break may only fall BETWEEN these, never inside one.
+  const blocks=[];
+  paras.forEach(p=>blocks.push('<p class="src">'+esc(p)+'</p>'));
+  if(biurParas.length){
+    blocks.push('<div class="shband"><span class="lbl">ביאור</span></div>');
+    biurParas.forEach(p=>blocks.push('<div class="shbiur">'+esc(p)+'</div>'));
+  }
+  if(takeaways) blocks.push('<div class="shbiur"><ul>'+takeaways.map(t=>'<li>'+esc(t)+'</li>').join('')+'</ul></div>');
+
+  // Pass 1: lay out everything once (unrasterized) purely to measure each block's real height.
+  const mWrap=document.createElement("div");
+  mWrap.style.cssText="position:fixed;top:0;inset-inline-start:-99999px;";
+  mWrap.innerHTML='<div class="shcard">'+HEADER_HTML+'<div class="sheet">'+BADGE_HTML+
+    blocks.map((h,i)=>'<div data-b="'+i+'">'+h+'</div>').join('')+'</div></div>';
+  document.body.appendChild(mWrap);
+  await _awaitImg(mWrap);
+  const heights=Array.from(mWrap.querySelectorAll("[data-b]")).map(el=>el.offsetHeight);
+  document.body.removeChild(mWrap);
+
+  // Pass 2: group blocks into slides under a per-slide content-height budget.
+  const MAX_CONTENT_H=1000;
+  const groups=[]; let cur=[], curH=0;
+  blocks.forEach((h,i)=>{
+    if(cur.length && curH+heights[i]>MAX_CONTENT_H){ groups.push(cur); cur=[]; curH=0; }
+    cur.push(h); curH+=heights[i];
+  });
+  groups.push(cur);
+
+  if(groups.length<=1){
+    return [await _rasterizeShcard(HEADER_HTML+'<div class="sheet">'+BADGE_HTML+blocks.join("")+FOOT_HTML+'</div>')];
+  }
+
+  // Pass 3: rasterize each slide with its own continuation header/footer chrome.
+  const blobs=[];
+  for(let gi=0; gi<groups.length; gi++){
+    const isFirst=gi===0, isLast=gi===groups.length-1;
+    let inner=isFirst
+      ? (HEADER_HTML+BADGE_HTML)
+      : ('<div class="shcont"><img class="face" src="beninshai-square.jpg" alt=""><div><div class="t">הלכות הבן איש חי</div>'+
+         '<div class="p">המשך — תמונה '+(gi+1)+' מתוך '+groups.length+'</div></div></div>');
+    inner+='<div class="sheet">'+groups[gi].join("");
+    if(!isLast) inner+='<div class="shmore">↓ ממשיך בתמונה הבאה</div>';
+    inner+=FOOT_HTML+'</div>';
+    blobs.push(await _rasterizeShcard(inner));
+  }
+  return blobs;
+}
+// Long biur explanations arrive as one blob (no newlines). For readability, break them into
+// paragraphs at sentence boundaries (., !, ?), further splitting very long run-on sentences at
+// "; ", then grouping to ~roughly-even chunks. Short biurim stay as a single paragraph.
+// Public splitter: if the biur already has authored paragraph breaks (\n — the rewritten/long
+// biurim are divided thematically), RESPECT them and only sentence-split a segment that is still
+// very long; otherwise (a single unbroken blob — the auto-generated biurim) sentence-split it.
+function splitBiur(text){
+  const t=(text||"").trim();
+  if(t.indexOf("\n")>=0){
+    const out=[];
+    t.split(/\n+/).forEach(seg=>{ seg=seg.trim(); if(!seg) return;
+      if(seg.length>380){ _sentSplit(seg).forEach(p=>out.push(p)); } else out.push(seg); });
+    return out.length?out:[t];
+  }
+  return _sentSplit(t);
+}
+// Scan for sentence-terminator runs (.!?), but never inside an open "(...)"/"[...]" (a
+// citation or parenthetical aside) and never at a decimal point (e.g. "12.6") — same class
+// of fix as _splitParaText below, applied to biur prose instead of the verbatim source text.
+function _sentUnits(text){
+  const units=[]; let cur=""; let depth=0;
+  for(let i=0;i<text.length;i++){
+    const ch=text[i]; cur+=ch;
+    if(ch==="("||ch==="[") depth++;
+    else if(ch===")"||ch==="]") depth=Math.max(0,depth-1);
+    else if((ch==="."||ch==="!"||ch==="?") && depth===0){
+      const isDecimal = ch==="." && /\d/.test(text[i-1]||"") && /\d/.test(text[i+1]||"");
+      if(!isDecimal){
+        let j=i+1;
+        while(j<text.length && /[.!?]/.test(text[j])) j++;        // consume a run (e.g. "...")
+        cur+=text.slice(i+1,j); i=j-1;
+        let k=i+1;
+        while(k<text.length && /[”"'׳״)\]]/.test(text[k])) k++;   // trailing closing punctuation
+        cur+=text.slice(i+1,k); i=k-1;
+        let s=i+1;
+        while(s<text.length && /\s/.test(text[s])) s++;
+        cur+=text.slice(i+1,s); i=s-1;
+        units.push(cur); cur="";
+      }
+    }
+  }
+  if(cur) units.push(cur);
+  return units;
+}
+function _sentSplit(text){
+  let t=(text||"").trim();
+  if(t.length < 230) return [t];                 // very short — keep as one
+  let units = _sentUnits(t);
+  if(!units || !units.length) return [t];
+  const refined=[];
+  for(const u of units){                          // break very long run-on sentences at "; " too
+    if(u.length>360 && u.indexOf("; ")>-1){
+      const arr=u.split("; ");
+      arr.forEach((p,i)=>refined.push(i<arr.length-1 ? p+"; " : p));
+    } else refined.push(u);
+  }
+  // one paragraph per sentence, but keep appending while the paragraph is still very short
+  // (<60 chars) so we don't create orphan one-word paragraphs (60 not 70 so a ~65-char opening
+  // sentence isn't swallowed into the next one, producing a single long block).
+  const paras=[]; let cur="";
+  for(const s of refined){
+    cur += s;
+    if(cur.trim().length >= 60){ paras.push(cur.trim()); cur=""; }
+  }
+  if(cur.trim()){
+    if(paras.length && cur.trim().length < 40) paras[paras.length-1]+=" "+cur.trim();
+    else paras.push(cur.trim());
+  }
+  return paras.length?paras:[t];
+}
+// Split the verbatim text into readable paragraphs — the Ben Ish Chai text marks logical
+// units with a colon, so we break after each one (keeping the original words untouched).
+// Exception: a colon INSIDE an open "(...)" or "[...]" is part of a citation (Talmudic
+// daf:amud like "טו:", a chapter:verse ref like "נא:ב'", a footnote aside, etc.) — never a
+// clause end. Splitting there would tear the citation apart / orphan the bracket onto a new line.
+function _splitParaText(p){
+  const out=[]; let cur=""; let depth=0;
+  for(let i=0;i<p.length;i++){
+    const ch=p[i]; cur+=ch;
+    if(ch==="("||ch==="[") depth++;
+    else if(ch===")"||ch==="]") depth=Math.max(0,depth-1);
+    else if((ch===":"||ch==="׃") && depth===0){
+      let j=i+1; while(j<p.length && /\s/.test(p[j])) j++;
+      cur+=p.slice(i+1,j); i=j-1;
+      const t=cur.trim(); if(t) out.push(t);
+      cur="";
+    }
+  }
+  const t=cur.trim(); if(t) out.push(t);
+  return out.length?out:[p];
+}
+function splitParas(paragraphs){
+  const out=[];
+  (paragraphs||[]).forEach(p=>{ _splitParaText(p).forEach(s=>out.push(s)); });
+  return out.length?out:(paragraphs||[]);
+}
+
+// Vocalized (מנוקד) source paragraphs, overlaid at render time from content/nikud.json
+// (keyed by track|key|chapter, "intro" for the intro). Verified to match the plain source
+// letter-for-letter (only מלא→חסר spelling differs, as proper menukad text does). Falls back
+// to the plain paragraphs if the nikud map isn't loaded yet or an entry is missing.
+let nikudMap=null;
+// Abbreviations (ראשי תיבות/קיצורים) must NOT be vocalized — the Nakdan wrongly reads e.g. בחי'
+// as the word בחינה. Detect a token as an abbreviation by its skeleton (niqqud removed): a
+// gershayim BETWEEN letters (ז"ל, אע"פ) or a geresh at the END (וכו', ה', בחי'). Surrounding
+// straight quotes are quotation marks, so a regular quoted word ("ברוך") stays vocalized.
+const _NIKMARKS=/[֑-ׇ]/g;
+function _isAbbr(bare){
+  bare=bare.replace(/^["“]+|["”]+$/g,"").replace(/^[(]+|[).,:;]+$/g,"");
+  if(/['׳’]$/.test(bare)) return true;                 // trailing geresh
+  if(/[א-ת]["״]/.test(bare)) return true;         // internal gershayim
+  return false;
+}
+function _deNikudAbbr(text){
+  return text.split(/(\s+)/).map(tok=>{
+    if(!tok.trim()) return tok;
+    const bare=tok.replace(_NIKMARKS,"");
+    return _isAbbr(bare) ? bare : tok;   // abbreviation -> show the plain (un-vocalized) letters
+  }).join("");
+}
+function srcParas(it){
+  const key=it.track+"|"+it.key+"|"+(it.isIntro?"intro":it.chapter);
+  const nk = nikudMap && nikudMap[key];
+  return nk ? nk.map(_deNikudAbbr) : it.paragraphs;
+}
+
+// ---------- glossary (tap a hard word -> meaning) ----------
+// Only words present in content/glossary.json (Aramaic, halachic/talmudic terms, and
+// abbreviations — per the user's choices; NO Kabbalah entries) are marked and tappable.
+let glossMap=null, phraseMap={};   // phraseMap = glossary entries whose key is a multi-word Aramaic phrase
+// ctxGloss = PER-HALACHA contextual translations: { "track|key|chapter": { bareword|phrase : "meaning" } }.
+// Checked BEFORE the global glossary so the same Aramaic word can be translated per its context.
+let ctxGloss=null, curLoc="";
+// sefariaRefs = halacha-level "view source" links: { "track|key|chapter": {url,ref,resolved} }.
+// Keyed identically to ctxGloss/nikud. Loaded at startup (see init()); may be null/{} if the
+// data file doesn't exist yet -- every lookup below is defensive against that.
+let sefariaRefs=null;
+// ambig = HOMOGRAPH disambiguation by VOCALIZATION: { skeleton: [ {v:"vocalized form", d:"meaning"|null} ] }.
+// Same consonants, different niqqud+meaning (חוֹטֵא=חוטא vs חוּטָא=חוט). The reader shows vocalized
+// text, so we pick the sense whose vocalized form matches the token; d:null = understood word → don't mark.
+let ambig=null;
+function _ambigNorm(s){ return (s||"").replace(/[ּֿׁׂ]/g,"").replace(/[^ְ-ׇֻא-ת]/g,""); } // ignore dagesh + maqaf
+function ambigSense(skel, tok){        // -> meaning string, or null (=don't mark / no match)
+  const arr = ambig && ambig[skel]; if(!arr) return null;
+  const nt=_ambigNorm(tok);
+  for(const s of arr){ const nv=_ambigNorm(s.v); if(nt===nv || nt.endsWith(nv)) return s.d; }
+  return null;                          // a vocalization we didn't list — safest is NOT to mark
+}
+function ambigKey(bare){               // the ambig skeleton this token maps to (bare or prefix-stripped)
+  if(!ambig) return null;
+  if(ambig[bare]) return bare;
+  if(bare.length>=2 && "ובכלדשמה".indexOf(bare[0])>=0 && ambig[bare.slice(1)]) return bare.slice(1);
+  return null;
+}
+function glossLookup(bare){
+  if(!glossMap) return null;
+  if(glossMap[bare]) return {w:bare, d:glossMap[bare]};
+  // strip ONE leading prefix letter (ו/ב/כ/ל/ד/ש/מ/ה) if the remaining Aramaic word (>=4 letters,
+  // so short Hebrew words like בשרי→שרי can't false-match) is a known entry — resolves
+  // דעלמא/וסבירא/בהיכא/מדינא/הסטרא and the like.
+  if(bare.length>=5){
+    const p=bare[0], rest=bare.slice(1);
+    if(rest.length>=4 && rest.indexOf(" ")<0 && "ובכלדשמה".indexOf(p)>=0 && glossMap[rest]){
+      const note=(p==="ד"||p==="ש")?" (ד/ש = שֶׁ־)":"";
+      return {w:bare, d:glossMap[rest]+note};
+    }
+  }
+  return null;
+}
+// Wrap ONLY glossary words in a paragraph with a tappable span. Works on the vocalized text:
+// match by the niqqud-stripped token.
+function _bareTok(tok){ return tok.replace(_NIKMARKS,"").replace(/^["“(]+|[").,:;!?”]+$/g,""); }
+// Wrap glossary hits: first the longest multi-word Aramaic PHRASE (prefix-tolerant on the first
+// word, e.g. "הסטרא אחרא"/"דקודשא בריך הוא"), then any single glossary word.
+function paraHtml(p){
+  const cg = (ctxGloss && curLoc) ? ctxGloss[curLoc] : null;   // per-halacha contextual overrides
+  const raw=p.split(/(\s+)/);                 // word, space, word, ...
+  const idxs=[]; raw.forEach((t,i)=>{ if(t.trim()) idxs.push(i); });
+  const html=new Array(raw.length).fill(null);
+
+  const PMAX=10;   // long enough to catch full Aramaic clauses (Zohar/Gemara quotes), not just 2-4-word idioms
+  for(let a=0;a<idxs.length;a++){
+    if(html[idxs[a]]!==null) continue;
+    for(let len=Math.min(PMAX, idxs.length-a); len>=2; len--){
+      const bares=[]; for(let k=0;k<len;k++) bares.push(_bareTok(raw[idxs[a+k]]));
+      const cands=[bares.join(" ")];
+      if(bares[0].length>2 && "ובכלדשמה".indexOf(bares[0][0])>=0)
+        cands.push([bares[0].slice(1)].concat(bares.slice(1)).join(" "));
+      // KEY PRESENCE, not value truthiness -- a ctxgloss entry can deliberately hold "" to
+      // silence a global/phrase hit (e.g. a tractate citation like "(יומא עג:)" that would
+      // otherwise pick up the global "יום"). Checking cg[c] here would skip a "" override and
+      // fall straight through to phraseMap, defeating the suppression.
+      let ck=cands.find(c=>(cg&&Object.prototype.hasOwnProperty.call(cg,c))||phraseMap[c]);
+      if(ck){
+        const s=idxs[a], e=idxs[a+len-1];
+        const inCg=cg&&Object.prototype.hasOwnProperty.call(cg,ck);
+        const pd=inCg?cg[ck]:phraseMap[ck];
+        if(pd){
+          html[s]='<span class="gw" data-w="'+esc(ck)+'" data-d="'+esc(pd)+'">'+raw.slice(s,e+1).map(esc).join("")+'</span>';
+        }else{
+          html[s]=raw.slice(s,e+1).map(esc).join("");   // deliberately silenced -- plain text, not a span
+        }
+        for(let k=s+1;k<=e;k++) html[k]="";     // mark consumed
+        break;
+      }
+    }
+  }
+  return raw.map((tok,i)=>{
+    if(html[i]!==null) return html[i];
+    if(!tok.trim()) return esc(tok);
+    const bare=_bareTok(tok);
+    let d=null;
+    const ak=ambigKey(bare);
+    const inCg=cg&&Object.prototype.hasOwnProperty.call(cg,bare);   // presence, not truthiness -- see above
+    if(inCg) d=cg[bare];                            // 1) per-halacha contextual override wins
+    else if(ak) d=ambigSense(ak, tok);             // 2) homograph: pick sense by vocalization (or null)
+    else { const h=glossLookup(bare); d=h?h.d:null; }   // 3) global glossary
+    return d ? '<span class="gw" data-w="'+esc(bare)+'" data-d="'+esc(d)+'">'+esc(tok)+'</span>' : esc(tok);
+  }).join("");
+}
+function openGloss(word, def){
+  if(!def) return;
+  document.getElementById("glossWord").textContent=word;
+  document.getElementById("glossDef").textContent=def;   // the resolved meaning carried on the span
+  document.getElementById("glossSheet").classList.add("show");
+}
+document.getElementById("glossClose").addEventListener("click",()=>document.getElementById("glossSheet").classList.remove("show"));
+// Opening an external (cross-origin) link with window.open/target="_blank" from an installed,
+// standalone-mode PWA (see manifest.json's "display":"standalone") makes iOS present it as an
+// in-app modal sheet with a "Done"/✕ button instead of a real Safari tab -- jarring, and the
+// user has to manually dismiss it to get back. Same-window navigation (location.href) instead
+// makes iOS hand off to full Safari like a normal outbound link. Only take that path when we're
+// actually running standalone; a plain browser tab keeps the (better, non-destructive) new-tab
+// behavior via window.open.
+function _isStandalone(){
+  return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || !!window.navigator.standalone;
+}
+function openExternal(url){
+  if(!url) return;
+  if(_isStandalone()) location.href=url;
+  else window.open(url, "_blank", "noopener");
+}
+document.addEventListener("click",(e)=>{
+  const slink=e.target.closest&&e.target.closest(".sefaria-link");
+  if(slink){ e.preventDefault(); openExternal(slink.href); return; }
+  const gw=e.target.closest&&e.target.closest(".gw");
+  if(gw){ openGloss(gw.dataset.w, gw.dataset.d); return; }
+  if(!e.target.closest("#glossSheet")) document.getElementById("glossSheet").classList.remove("show");
+});
+
+// ---------- state ----------
+let master=null, topicsIdx=null, pickerTrack="year1", pickerBook=null;
+const pcache={};
+let apiAvailable=false;
+
+// current reader sequence
+let R={items:[], idx:0, title:""};
+
+async function probeApi(){
+  try{const r=await fetch("/api/clarify?track=year1&key=",{cache:"no-store"});apiAvailable=(r.status!==404);}
+  catch(e){apiAvailable=false;}
+}
+async function loadParasha(track,key,fresh){
+  const slug=key.replace(/[^A-Za-z0-9]+/g,"_").replace(/^_|_$/g,"");
+  const path="content/"+track+"/"+slug+".json";
+  if(!fresh && pcache[path]) return pcache[path];
+  const d=await getJson(path,fresh);
+  if(d) pcache[path]=d;
+  return d;
+}
+async function triggerClarify(track,key){
+  try{await fetch("/api/clarify?track="+track+"&key="+encodeURIComponent(key),{cache:"no-store"});}catch(e){}
+}
+
+// Build a flat reader sequence from an ordered list of {track,key} parasha refs.
+async function buildSequence(refs, fresh){
+  const items=[]; const pending=[];
+  for(const ref of refs){
+    const pr=await loadParasha(ref.track, ref.key, fresh);
+    if(!pr) continue;
+    if(pr.intro && pr.intro.paragraphs && pr.intro.paragraphs.length){
+      items.push({track:ref.track,key:ref.key,keyHe:pr.parasha_he,chapter:"intro",isIntro:true,
+        paragraphs:pr.intro.paragraphs, clarification:pr.intro.clarification});
+      if(!pr.intro.clarification) pending.push({track:ref.track,key:ref.key});
+    }
+    for(const h of (pr.halachot||[])){
+      items.push({track:ref.track,key:ref.key,keyHe:pr.parasha_he,chapter:h.chapter,isIntro:false,
+        paragraphs:h.paragraphs, clarification:h.clarification});
+      if(!h.clarification) pending.push({track:ref.track,key:ref.key});
+    }
+  }
+  return {items, pending};
+}
+
+// ---------- READER ----------
+function firstUnread(items){
+  // The פתיחה (intro) sits at index 0 but often never gets its own checkbox ticked (it reads
+  // more like a preface than a "lesson"), so once the learner has actually started on the
+  // numbered halachot, "first unread" should mean the next unlearned NUMBERED halacha — not
+  // get stuck reopening the intro forever just because its checkbox happens to be unchecked.
+  // A brand-new parasha (nothing done yet) still opens at the intro, as normal reading order.
+  const anyNumberedDone = items.some(it=>!it.isIntro && isDone(it.track,it.key,it.chapter));
+  if(anyNumberedDone){
+    const i=items.findIndex(it=>!it.isIntro && !isDone(it.track,it.key,it.chapter));
+    if(i>=0) return i;
+  }
+  const j=items.findIndex(it=>!isDone(it.track,it.key,it.chapter));
+  return j<0?0:j;
+}
+// Jump the page to the top INSTANTLY. html{scroll-behavior:smooth} would otherwise turn this
+// into an animation, and an in-flight smooth scroll is fragile: anything that changes the
+// document's height mid-glide (swapping in the next halacha, the hero slimming) makes the
+// browser clamp or abandon it, leaving the page parked somewhere other than the top. Toggling
+// the inline style rather than passing behavior:"instant" keeps this working on older iOS
+// Safari, which rejects that enum value.
+function scrollPageTop(){
+  const h=document.documentElement, sb=h.style.scrollBehavior;
+  h.style.scrollBehavior="auto";
+  window.scrollTo(0,0);
+  h.style.scrollBehavior=sb;
+}
+// Shared by BOTH entry points. These lines used to be copy-pasted into each of them, and the
+// scroll reset lived in only one — so opening a halacha from a scrolled-down parshiyot list
+// (or from the week screen) dropped you into the middle of the reader instead of at its top.
+function enterReaderView(title){
+  document.getElementById("weekView").classList.add("hidden");
+  document.getElementById("topicsView").classList.add("hidden");
+  document.getElementById("pickerView").classList.add("hidden");
+  document.getElementById("searchView").classList.add("hidden");
+  document.getElementById("readerView").classList.remove("hidden");
+  document.body.classList.add("reading");      // slims the hero so more text fits on screen
+  document.body.classList.remove("navdown");   // opening at the top -> tab bar fully shown
+  // Always open a halacha from the TOP — the list we came from may have been scrolled far
+  // down, and that position otherwise carries straight over into the reader.
+  // This MUST be instant: html{scroll-behavior:smooth} turns a plain scrollTo into an
+  // animation, and renderJumpStrip's scrollIntoView then retargets it mid-glide, leaving the
+  // reader parked partway down the page. Toggling the inline style (rather than passing
+  // behavior:"instant") keeps this working on older iOS Safari, which rejects that enum.
+  scrollPageTop();
+  // Re-assert once the reader has actually laid out: body.reading slims the hero, and the
+  // browser's scroll anchoring compensates for that height change by nudging the page back
+  // down a few dozen pixels. One extra frame costs nothing and lands us exactly at the top.
+  requestAnimationFrame(scrollPageTop);
+  document.getElementById("rTitle").textContent=title;
+}
+
+async function openReader(refs, title, opts){
+  opts=opts||{};
+  enterReaderView(title);
+  document.getElementById("rCard").innerHTML='<div class="note">טוען…</div>';
+  const {items,pending}=await buildSequence(refs, true);
+  R={items, idx: opts.startAt==="first-unread"?firstUnread(items):0, title, refs, pending};
+  renderReaderCard();
+  if(pending.length && apiAvailable) pending.forEach(p=>triggerClarify(p.track,p.key));
+}
+// Topics are pre-built as flat item lists (already carrying source + ביאור) — no per-parasha
+// fetch needed, and each item may come from a different parasha since topics are curated at
+// the individual-halacha level, not the whole-parasha level.
+function openReaderWithItems(rawItems, title, opts){
+  opts=opts||{};
+  enterReaderView(title);
+  const items=rawItems.map(it=>({track:it.track,key:it.key,keyHe:it.he,chapter:it.chapter,
+    isIntro:!!it.isIntro, paragraphs:it.paragraphs, clarification:it.clarification}));
+  let idx=0;
+  if(opts.startAt==="first-unread") idx=firstUnread(items);
+  else if(typeof opts.startAt==="number") idx=opts.startAt;
+  R={items, idx, title, pending:[]};
+  renderReaderCard();
+}
+// recenter=false when only refreshing the pills' done-state (e.g. after marking learned) so the
+// PAGE never scrolls — scrollIntoView would otherwise yank a scrolled-down reader back to the top.
+function renderJumpStrip(recenter){
+  if(recenter===undefined) recenter=true;
+  const el=document.getElementById("rJump");
+  el.innerHTML=R.items.map((it,i)=>{
+    const label = it.isIntro ? "פ׳" : heNum(it.chapter);
+    const cur = i===R.idx ? " cur":"";
+    const done = isDone(it.track,it.key,it.chapter) ? " done":"";
+    return '<div class="jump-pill'+cur+done+'" data-i="'+i+'">'+label+'</div>';
+  }).join('');
+  [...el.querySelectorAll('.jump-pill')].forEach(p=>{
+    p.addEventListener('click', ()=>{ R.idx=parseInt(p.dataset.i,10); renderReaderCard(true); });
+  });
+  const curEl=el.querySelector('.jump-pill.cur');
+  // Centre the pill HORIZONTALLY inside its strip without ever moving the page vertically.
+  // scrollIntoView walks every scrollable ancestor, so even with block:"nearest" it nudges the
+  // window when the strip sits partly under the sticky header — and because the document is
+  // scroll-behavior:smooth that nudge is an animation that lands a moment AFTER the reader has
+  // been reset to the top, which is what left a freshly opened halacha parked mid-page.
+  if(recenter && curEl){
+    const html=document.documentElement, sb=html.style.scrollBehavior, y=window.scrollY;
+    html.style.scrollBehavior="auto";
+    curEl.scrollIntoView({inline:"center", block:"nearest"});
+    if(window.scrollY!==y) window.scrollTo(0,y);
+    html.style.scrollBehavior=sb;
+  }
+}
+// slick full-screen ✓ flourish; restart the animation on each call.
+// The class is dropped when the wrapper's OWN animation ends, not on a hand-tuned timer —
+// the old code removed it after 1000ms while fxWrap ran for 1350ms, so the flourish was
+// killed a third of the way through its fade-out and disappeared in a single frame.
+// The timeout that remains is only a safety net for browsers that swallow animationend.
+function playDoneFx(){
+  const fx=document.getElementById("doneFx");
+  if(!fx) return;
+  fx.classList.remove("play");
+  void fx.offsetWidth;
+  fx.classList.add("play");
+  clearTimeout(fx._t);
+  if(!fx._bound){
+    fx._bound=true;
+    fx.addEventListener("animationend",(e)=>{
+      // descendant animations bubble here too; only the wrapper's own fade means "done"
+      if(e.target===fx && e.animationName==="fxWrap") fx.classList.remove("play");
+    });
+  }
+  fx._t=setTimeout(()=>fx.classList.remove("play"), 1900);
+}
+// navigated=true means we are MOVING to a different halacha (next / prev / jump pill / skip),
+// so the reader must restart at the top. It used to scroll smoothly and unconditionally, which
+// broke in both directions: the glide raced the innerHTML swap below, and when the incoming
+// halacha was shorter than the one being read the document shrank mid-animation, the browser
+// clamped the scroll to the new maximum, and you landed at the BOTTOM of the next halacha.
+// Instant + re-asserted on the next frame (once the new card has laid out) lands it exactly at
+// the top. Re-renders that keep you on the SAME halacha — nikud/glossary arriving late, the
+// done-state refresh — pass nothing and must never move the page under the reader's eyes.
+function renderReaderCard(navigated){
+  if(navigated){
+    scrollPageTop();
+    requestAnimationFrame(scrollPageTop);
+  }
+  const n=R.items.length;
+  if(n===0){
+    document.getElementById("rCard").innerHTML='<div class="note">אין הלכות להצגה כאן.</div>';
+    document.getElementById("rPos").textContent="";
+    document.getElementById("rJump").innerHTML="";
+    document.getElementById("rFill").style.width="0%";
+    document.getElementById("rPrev").disabled=true;
+    document.getElementById("rNext").disabled=true;
+    document.getElementById("sealSlot").innerHTML="";
+    document.getElementById("sealCap").textContent="";
+    document.getElementById("sealMinor").innerHTML="";
+    return;
+  }
+  const it=R.items[R.idx];
+  curLoc = it.track+"|"+it.key+"|"+(it.isIntro?"intro":it.chapter);   // key into ctxGloss (same as srcParas)
+  const doneCount=R.items.filter(x=>isDone(x.track,x.key,x.chapter)).length;
+  document.getElementById("rPos").textContent = (it.isIntro?"פתיחה":"הלכה "+heNum(it.chapter))+" · "+
+    "פרשת "+(it.keyHe||it.key)+" ("+trackName(it.track)+") · "+(R.idx+1)+" מתוך "+n;
+  document.getElementById("rFill").style.width = Math.round(doneCount/n*100)+"%";
+  document.getElementById("rFill").classList.toggle("full", doneCount>=n);
+  renderJumpStrip();
+
+  const skipBtn=document.getElementById("rSkipUnread");
+  const hasOtherUnread = R.items.some((x,i)=> i!==R.idx && !isDone(x.track,x.key,x.chapter));
+  skipBtn.classList.toggle("hidden", !hasOtherUnread);
+
+  const paras=splitParas(srcParas(it)).map(p=>'<p>'+paraHtml(p)+'</p>').join('');
+  // Halacha-level "view on Sefaria" link -- only rendered when we actually have a validated,
+  // resolved URL for this exact location; a broken/absent link is worse than no link, so any
+  // other case (missing entry, resolved:false) renders nothing at all, not a placeholder.
+  const sref=(sefariaRefs && sefariaRefs[curLoc] && sefariaRefs[curLoc].resolved===true) ? sefariaRefs[curLoc] : null;
+  const sefariaLink=sref
+    ? '<a class="sefaria-link" href="'+esc(sref.url)+'" target="_blank" rel="noopener">'+SEFARIA_ICON+'<span>מקור בספריא</span></a>'
+    : '';
+  const badge=it.isIntro
+    ? '<div class="h-badge"><span class="h-num">פ׳</span><span class="h-label">פתיחת פרשת '+esc(it.keyHe||it.key)+'</span>'+sefariaLink+'</div>'
+    : '<div class="h-badge"><span class="h-num">'+heNum(it.chapter)+'</span><span class="h-label">הלכה '+heNum(it.chapter)+' · פרשת '+esc(it.keyHe||it.key)+'</span>'+sefariaLink+'</div>';
+  const biur=biurHtml(it.clarification);
+  const done=isDone(it.track,it.key,it.chapter);
+  const fav=isFav(it.track,it.key,it.chapter);
+  // The card now ends with the biur; the mark/fav/share controls live in the seal-zone
+  // ornament below it (see the static markup), so the text closes clean like a printed page.
+  document.getElementById("rCard").innerHTML =
+    '<div class="halacha'+(it.isIntro?' intro':'')+(done?' done':'')+'">'+badge+'<div class="source">'+paras+'</div>'+biur+'</div>';
+
+  // ---- seal-zone: the wax seal (mark control), its caption, and the quiet minor actions ----
+  document.getElementById("sealSlot").innerHTML =
+    '<label class="seal'+(done?' on':'')+'"><input type="checkbox" id="rChk" '+(done?'checked':'')+'>'+CHECK_ICON+'</label>';
+  document.getElementById("sealCap").textContent =
+    it.isIntro ? 'פתיחת '+(it.keyHe||it.key) : 'הלכה '+heNum(it.chapter);
+  document.getElementById("sealMinor").innerHTML =
+    '<button class="minor-btn'+(fav?' fav-on':'')+'" id="rFavBtn">'+STAR_ICON+'<span id="rFavTxt">'+(fav?'במועדפים':'מועדפים')+'</span></button>'+
+    '<button class="minor-btn" id="rShareBtn">'+SHARE_ICON+'<span>שתף</span></button>';
+
+  document.getElementById("rChk").addEventListener("change", (e)=>{
+    setDone(it.track,it.key,it.chapter, e.target.checked);
+    document.querySelector("#rCard .halacha").classList.toggle("done", e.target.checked);
+    const sealEl=document.querySelector("#sealSlot .seal");
+    sealEl.classList.toggle("on", e.target.checked);
+    // the settle bounce belongs to the TAP, not to the state — see .seal.just-on
+    sealEl.classList.remove("just-on");
+    if(e.target.checked){ void sealEl.offsetWidth; sealEl.classList.add("just-on"); }
+    document.getElementById("sealCap").classList.toggle("done", e.target.checked);
+    const dc=R.items.filter(x=>isDone(x.track,x.key,x.chapter)).length;
+    document.getElementById("rFill").style.width = Math.round(dc/n*100)+"%";
+    document.getElementById("rFill").classList.toggle("full", dc>=n);
+    renderJumpStrip(false);          // update pills WITHOUT scrolling the page back up
+    if(e.target.checked) playDoneFx();
+  });
+
+  document.getElementById("rFavBtn").addEventListener("click", ()=>{
+    const nowFav=toggleFav(it.track,it.key,it.chapter);
+    const btn=document.getElementById("rFavBtn");
+    btn.classList.toggle("fav-on",nowFav);
+    document.getElementById("rFavTxt").textContent=nowFav?"במועדפים":"מועדפים";
+    showToast(nowFav?"נוסף למועדפים ★":"הוסר מהמועדפים");
+  });
+
+  document.getElementById("rShareBtn").addEventListener("click", async ()=>{
+    const btn=document.getElementById("rShareBtn");
+    const origHtml=btn.innerHTML;
+    btn.disabled=true; btn.style.opacity=".7";
+    btn.innerHTML='<span class="spin" style="width:14px;height:14px;border-width:2px;"></span><span>מכין תמונה…</span>';
+    try{
+      const label=it.isIntro?("פתיחת פרשת "+(it.keyHe||it.key)):("הלכה "+heNum(it.chapter)+" · פרשת "+(it.keyHe||it.key));
+      const blobs=await buildHalachaImageBlobs(it,label);
+      const baseName="halacha-"+(it.key||"")+"-"+(it.isIntro?"peticha":it.chapter);
+      const files=blobs.map((b,i)=>new File([b],
+        blobs.length>1?(baseName+"-"+(i+1)+"of"+blobs.length+".png"):(baseName+".png"),
+        {type:"image/png"}));
+      const shareText="הלכות הבן איש חי — "+label;
+      if(navigator.canShare && navigator.canShare({files})){
+        await navigator.share({title:"הלכות הבן איש חי",text:shareText,files});
+      }else{
+        for(const f of files){
+          const url=URL.createObjectURL(f);
+          const a=document.createElement("a"); a.href=url; a.download=f.name;
+          document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(()=>URL.revokeObjectURL(url),4000);
+          if(files.length>1) await new Promise(r=>setTimeout(r,300));  // let each download start before the next
+        }
+        showToast(files.length>1?"התמונות הורדו, אפשר לשתף אותן מהמכשיר":"התמונה הורדה, אפשר לשתף אותה מהמכשיר");
+      }
+    }catch(e){
+      if(!e || e.name!=="AbortError") showToast("לא הצלחנו להכין את התמונה לשיתוף");
+    }finally{
+      btn.disabled=false; btn.style.opacity=""; btn.innerHTML=origHtml;
+    }
+  });
+
+  // Both nav chevrons are bare glyphs at the ends of the ornament rule, and each one simply
+  // dims out when there is nowhere left to go — back on the first item, forward on the last.
+  // (The last item used to swap the forward chevron for the word "סיימתי"; removed on request.)
+  document.getElementById("rPrev").disabled = R.idx<=0;
+  document.getElementById("rNext").disabled = R.idx>=n-1;
+  document.getElementById("rNext").innerHTML = '<svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>';
+}
+document.getElementById("rPrev").addEventListener("click", ()=>{ if(R.idx>0){R.idx--; renderReaderCard(true);} });
+// The button is disabled on the last item, so there is no "end of sequence" branch to handle.
+document.getElementById("rNext").addEventListener("click", ()=>{
+  if(R.idx<R.items.length-1){ R.idx++; renderReaderCard(true); }
+});
+document.getElementById("rSkipUnread").addEventListener("click", ()=>{
+  const n=R.items.length;
+  for(let step=1; step<=n; step++){
+    const i=(R.idx+step)%n;
+    const x=R.items[i];
+    if(!isDone(x.track,x.key,x.chapter)){ R.idx=i; renderReaderCard(true); return; }
+  }
+  showToast("כל ההלכות ברשימה הזו כבר נלמדו!");
+});
+document.getElementById("rBack").addEventListener("click", ()=>{
+  document.getElementById("readerView").classList.add("hidden");
+  document.body.classList.remove("reading");   // restore the full hero on the home screens
+  if(lastHome==="topics"){ document.getElementById("topicsView").classList.remove("hidden"); }
+  else if(lastHome==="picker"){ document.getElementById("pickerView").classList.remove("hidden"); }
+  else if(lastHome==="search"){ document.getElementById("searchView").classList.remove("hidden"); }
+  else{
+    document.getElementById("weekView").classList.remove("hidden");
+    refreshWeekProgress();
+  }
+});
+// Re-draw the week cards' "X מתוך Y" from localStorage. The week view, unlike the other
+// tabs, has no refresh call of its own — showWeek() runs once at startup and renderWeek()
+// only re-runs when the PARASHA changes, so its HTML would otherwise sit there stale and
+// keep showing the count from whenever it was last drawn. Every path back to the week
+// screen must call this, or a halacha just marked as learned won't be reflected.
+// Uses the cached week record so it costs no network round-trip.
+function refreshWeekProgress(){ if(curWeekRec) renderWeek(curWeekRec); }
+let lastHome="week";
+
+// Pull THIS week's parasha live from Sefaria, by the user's own date + Israel/diaspora
+// (timezone tells us which — Asia/Jerusalem => Israel calendar, else diaspora). Sefaria does
+// all the calendar math (leap years, combined-reading weeks, the Israel/diaspora divergence);
+// we then map the returned name to our content via the precached parasha_resolve.json table.
+// Layers of fallback so it never shows nothing: live -> last live result (offline) -> the
+// baked current.json shipped with the app.
+async function resolveWeekLive(){
+  // Use the Jewish-reckoning date (rolls at צאת הכוכבים) rather than the civil date, so the
+  // parasha changes at nightfall on Motzaei Shabbat — same moment the Hebrew date/weekday roll
+  // in the header — instead of lagging until civil midnight. On weekdays the nightfall shift
+  // stays within the same parasha week, so nothing rolls early; only מוצ"ש actually advances it.
+  const now=(await jewishReckoningDate()).date;
+  const diaspora = (Intl.DateTimeFormat().resolvedOptions().timeZone==="Asia/Jerusalem") ? 0 : 1;
+  const url="https://www.sefaria.org/api/calendars?year="+now.getFullYear()+
+            "&month="+(now.getMonth()+1)+"&day="+now.getDate()+"&diaspora="+diaspora;
+  // HARD TIMEOUT. Without it a stalled request (weak mobile data — a connection that is "up"
+  // but never answers) leaves this promise pending forever, so getWeekRecord() never returns,
+  // showWeek() never gets past its first await, and the week screen sits on its "—" placeholders
+  // with an empty card area indefinitely. The offline fallbacks below are useless if we never
+  // stop waiting for the network. fetch() has no default timeout, so this must be explicit.
+  const ctl = new AbortController();
+  const timer = setTimeout(()=>ctl.abort(), 6000);
+  let j;
+  try{ j = await fetch(url,{cache:"no-store",signal:ctl.signal}).then(r=>r.json()); }
+  finally{ clearTimeout(timer); }
+  const par = (j.calendar_items||[]).find(c=>c.title&&c.title.en==="Parashat Hashavua");
+  let nameEn = par ? par.displayValue.en : null;
+  // Sefaria's parasha calendar ends at 5790 (Sept 2030). When it has no answer for the coming
+  // Shabbat, the baked calendar (Hebcal's cycle, validated against Sefaria for 2026–2030)
+  // takes over — so the app keeps naming the right parasha for the next decades on its own.
+  if(!nameEn) nameEn = await calendarName(now, diaspora);
+  if(!nameEn) return {parasha_he:"שבוע חג",holiday_week:true,tracks:{year1:null,year2:null}};
+  const table = await getJson("content/parasha_resolve.json",true) || {};
+  const rec = table[nameEn];
+  if(rec) return rec;
+  // A festival variant the table does not list verbatim ("Pesach III"…): reuse the entry of
+  // the same festival, keeping the calendar's own name/Hebrew for the record.
+  const fam = ["Rosh Hashana","Yom Kippur","Sukkot","Shmini Atzeret","Simchat Torah","Pesach","Shavuot"]
+    .find(f=>nameEn.startsWith(f));
+  if(fam){
+    const k = Object.keys(table).find(k=>k.startsWith(fam) && table[k].holiday);
+    if(k) return Object.assign({}, table[k], {parasha_en:nameEn, parasha_he:((par&&par.displayValue.he)||table[k].parasha_he)});
+  }
+  // a name we don't have mapped — treat as a no-regular-halacha week
+  return {parasha_en:nameEn, parasha_he:((par&&par.displayValue.he)||nameEn),
+          holiday_week:true, tracks:{year1:null,year2:null}};
+}
+// The coming Shabbat's name from the baked calendar (content/parasha_calendar.json, precached):
+// "IL"/"DIA" → {"YYYY-MM-DD" (a Saturday): Sefaria-style name}. Null when the date is past the
+// file's horizon or the file is missing.
+async function calendarName(now, diaspora){
+  const cal = await getJson("content/parasha_calendar.json",false); if(!cal) return null;
+  const sat=new Date(now); sat.setDate(sat.getDate()+((6-sat.getDay())+7)%7);   // Shabbat on/after `now`
+  const key=sat.getFullYear()+"-"+String(sat.getMonth()+1).padStart(2,"0")+"-"+String(sat.getDate()).padStart(2,"0");
+  return ((diaspora ? cal.DIA : cal.IL)||{})[key] || null;
+}
+// Offline (or Sefaria down): resolve the week from the baked calendar + table, no network at all.
+async function resolveWeekBaked(){
+  const now=(await jewishReckoningDate()).date;
+  const diaspora = (Intl.DateTimeFormat().resolvedOptions().timeZone==="Asia/Jerusalem") ? 0 : 1;
+  const nameEn = await calendarName(now, diaspora); if(!nameEn) return null;
+  const table = await getJson("content/parasha_resolve.json",false) || {};
+  return table[nameEn] || null;
+}
+// The week record we already have on the device, with no network at all: last live result
+// first, then the copy baked into the app. Used to paint the screen instantly.
+async function getWeekLocal(){
+  // The baked calendar knows the right week for any date up to 2050 without a network — it
+  // beats a cached record from a previous week and the build-time current.json.
+  try{ const baked=await resolveWeekBaked(); if(baked) return baked; }catch(e){}
+  try{ const c=localStorage.getItem("hy_week_cache"); if(c) return JSON.parse(c); }catch(e){}
+  return await getJson("content/week/current.json",false);
+}
+async function getWeekRecord(){
+  try{
+    const rec = await resolveWeekLive();
+    if(rec){ try{ localStorage.setItem("hy_week_cache", JSON.stringify(rec)); }catch(e){} return rec; }
+  }catch(e){ /* offline, timed out, or a Sefaria hiccup — fall through */ }
+  return await getWeekLocal();
+}
+
+// ---------- WEEK HOME ----------
+// Paint from local data FIRST, then upgrade from the live calendar if it answers and actually
+// says something different. The parasha only changes once a week, so the local copy is almost
+// always already right — waiting on the network before drawing anything just meant a blank
+// screen whenever the connection was poor.
+async function showWeek(){
+  const local = await getWeekLocal();
+  if(local) await renderWeek(local);
+  const live = await getWeekRecord();
+  if(live && (!local || live.parasha_en!==local.parasha_en
+                     || !!live.holiday_week!==!!local.holiday_week)){
+    await renderWeek(live);
+  }else if(!local && !live){
+    document.getElementById("wContent").innerHTML='<div class="note">עדיין אין נתוני השבוע. נסו לרענן בעוד רגע.</div>';
+  }
+}
+
+
+// ---------- festival card ----------
+// The Ben Ish Chai's halachot for a festival, learned on the WEEKDAYS AROUND it — never on the
+// festival itself: on Yom Tov and Shabbat nobody opens a phone. So each festival gets a learning
+// window of the seven days before its first day plus its own permitted days (chol ha-moed,
+// Chanukah, Purim), with Shabbat and every Yom Tov day removed, and the halachot are spread
+// evenly over those days. A card above the week's parasha shows today's portion, names the
+// source parasha (where the author taught them) and says plainly that these are the festival's
+// special halachot, not the parasha of the week. Dates come from the device's own Hebrew
+// calendar (Intl) and the app's nightfall-aware "today", so it works offline and rolls at
+// candle-lighting; Israel/diaspora follows the same timezone rule the week lookup uses.
+const YOM_TOV_IL  = [["Tishri",1],["Tishri",2],["Tishri",10],["Tishri",15],["Tishri",22],["Nisan",15],["Nisan",21],["Sivan",6]];
+const YOM_TOV_DIA = YOM_TOV_IL.concat([["Tishri",16],["Tishri",23],["Nisan",16],["Nisan",22],["Sivan",7]]);
+const FESTIVALS=[ // first = first festival day; span = festival length in days (IL / diaspora); keys = year-1 nodes, in learning order
+  {id:"rh",   name:"ראש השנה",     first:[["Elul",29]],  span:3, erev:true, keys:["Nitzavim"]},                 // erev counted as a festival day so it gets its own portion
+  {id:"yk",   name:"יום הכיפורים", first:[["Tishri",9]], span:2, erev:true, keys:["Vayeilech"]},
+  {id:"suk",  name:"סוכות",        first:[["Tishri",14]],span:9, spanDia:10, erev:true, keys:["Ha'Azinu","V'Zot HaBerachah"],
+   during:(md)=> md[0]==="Tishri" && md[1]===21 ? "הושענא רבה" : "חול המועד סוכות"},
+  {id:"chan", name:"חנוכה",        first:[["Kislev",25]],span:8, keys:["Chanukah"],
+   during:(md,off)=> "נר "+heNum(off+1)+" של חנוכה"},
+  {id:"pur",  name:"פורים",        first:[["Adar",13],["Adar II",13]], span:3, keys:["Tetzaveh"], from:25, to:46,
+   during:(md,off)=> ["תענית אסתר","פורים","שושן פורים"][off]},
+  {id:"pes",  name:"פסח",          first:[["Nisan",14]], span:8, spanDia:9, erev:true, keys:["Tzav"],
+   during:(md)=> "חול המועד פסח"},
+  {id:"shav", name:"שבועות",       first:[["Sivan",5]],  span:2, spanDia:3, erev:true, keys:["Bamidbar"]},
+];
+const PRE_DAYS=7;   // the "week of the festival": seven days before its first day
+function _hebMonthDay(d){
+  try{
+    const p=new Intl.DateTimeFormat("en-u-ca-hebrew",{month:"long",day:"numeric"}).formatToParts(d);
+    return [p.find(x=>x.type==="month").value, +p.find(x=>x.type==="day").value];
+  }catch(e){ return null; }
+}
+function _sameMD(a,b){ return a && b && a[0]===b[0] && a[1]===b[1]; }
+function _addDays(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+const _hebCache=new Map();
+function _hebMD(d){ const k=d.toDateString(); if(!_hebCache.has(k)) _hebCache.set(k,_hebMonthDay(d)); return _hebCache.get(k); }
+// Where each festival sits on the civil calendar around today (±40 days), so windows that
+// touch each other can be separated: a day belongs to the festival that ENDS soonest — the
+// seven days before Sukkot start only after Yom Kippur is over, never two cards at once.
+function _festivalWindows(today, diaspora){
+  const out=[];
+  for(const f of FESTIVALS){
+    const span = diaspora ? (f.spanDia||f.span) : f.span;
+    for(let off=-40; off<=40; off++){
+      const d=_addDays(today,off);
+      if(f.first.some(md=>_sameMD(md,_hebMD(d)))){
+        out.push({f, first:d, span, start:_addDays(d,-PRE_DAYS), end:_addDays(d,span-1)}); break;
+      }
+    }
+  }
+  return out;
+}
+function _owner(windows, d){
+  let best=null;
+  for(const w of windows){ if(d>=w.start && d<=w.end && (!best || w.end<best.end)) best=w; }
+  return best;
+}
+// The learning schedule of one festival relative to `today`: null when today is outside its
+// window or is a day nobody learns on (Shabbat / Yom Tov / a day that belongs to an earlier festival).
+function festivalSchedule(w, windows, today, diaspora){
+  const f=w.f;
+  const yomTov = diaspora ? YOM_TOV_DIA : YOM_TOV_IL;
+  const permitted = d => d.getDay()!==6 && !yomTov.some(md=>_sameMD(md,_hebMD(d))) && _owner(windows,d)===w;
+  const days=[];
+  for(let off=-PRE_DAYS; off<w.span; off++){
+    const d=_addDays(w.first,off);
+    if(permitted(d)) days.push({date:d, off, pre: off<0});
+  }
+  const idx=days.findIndex(x=>x.date.toDateString()===today.toDateString());
+  if(idx<0) return null;
+  const day=days[idx];
+  const label = day.pre ? "לקראת "+f.name+" · יום "+heNum(idx+1)+" מתוך "+heNum(days.length)
+    : (day.off===0 && f.erev) ? "ערב "+f.name
+    : f.during ? f.during(_hebMD(day.date), day.off) : f.name;
+  return {f, days, idx, label, span:w.span};
+}
+async function activeFestivals(){
+  const today=(await jewishReckoningDate()).date;
+  const diaspora = (Intl.DateTimeFormat().resolvedOptions().timeZone!=="Asia/Jerusalem");
+  const windows=_festivalWindows(today, diaspora);
+  return windows.map(w=>festivalSchedule(w, windows, today, diaspora)).filter(Boolean);
+}
+// The festival's halachot as reader items (intro first), optionally just a chapter range
+// (Tetzaveh year 1 is priestly blessing 1–24, then Purim 25–46).
+async function festivalItems(f){
+  const {items}=await buildSequence(f.keys.map(k=>({track:"year1",key:k})), false);
+  return (f.from ? items.filter(it=>!it.isIntro && it.chapter>=f.from && it.chapter<=f.to) : items)
+    .map(it=>Object.assign({}, it, {he:it.keyHe}));
+}
+// Even split of N items over the D learning days: day i gets [floor(iN/D), floor((i+1)N/D)).
+function festivalPortion(items, dayIndex, days){
+  const n=items.length, a=Math.floor(dayIndex*n/days), b=Math.floor((dayIndex+1)*n/days);
+  return b>a ? items.slice(a,b) : items;
+}
+function _itemLabel(it){ return it.isIntro ? "פתיחה" : heNum(it.chapter); }
+async function renderFestivalCard(sch){
+  const {f, days, idx, label}=sch;
+  const items=await festivalItems(f);
+  const portion=festivalPortion(items, idx, days.length);
+  const srcHe=[...new Set(items.map(it=>it.he))].map(he=>he.startsWith("הלכות")?he:"פרשת "+he).join(" וב");
+  const done=portion.filter(x=>isDone(x.track,x.key,x.chapter)).length;
+  const pct=portion.length?Math.round(done/portion.length*100):0;
+  const first=portion[0], last=portion[portion.length-1];
+  const pn = he => he.startsWith("הלכות") ? he : "פרשת "+he;     // the Chanukah node is "הלכות חנוכה", not a parasha
+  const range = first.he!==last.he
+    ? _itemLabel(first)+" ("+pn(first.he)+") – "+_itemLabel(last)+" ("+pn(last.he)+")"
+    : (portion.length===1 ? "הלכה "+_itemLabel(first) : "הלכות "+_itemLabel(first)+"–"+_itemLabel(last))+" ("+pn(first.he)+")";
+  return '<div class="fest-card" data-fest="'+esc(f.id)+'">'+
+    '<div class="fest-top"><span class="fest-tag">✦ הלכות החג</span><span class="fest-count">'+portion.length+' מתוך '+items.length+'</span></div>'+
+    '<div class="fest-title">'+esc(f.name)+'</div>'+
+    '<div class="fest-day">'+esc(label)+' · '+esc(range)+'</div>'+
+    '<div class="fest-why">הלכות מיוחדות ל'+esc(f.name)+', מתוך מה שכתב הבן איש חי ב'+esc(srcHe)+' (שנה ראשונה) — לא פרשת השבוע. '+
+      'ההלכות מחולקות באופן שווה בין '+heNum(days.length)+' ימי החול של השבוע שלפני החג'+(days.some(d=>!d.pre)?' וימי חול המועד':'')+
+      ', כי ביום טוב ובשבת לא לומדים בטלפון.</div>'+
+    '<div class="progress-wrap"><div class="progress-top"><span class="progress-label">המנה של היום</span>'+
+      '<span class="progress-pct">'+done+' מתוך '+portion.length+'</span></div>'+
+      '<div class="progress-bar"><div class="progress-fill'+(pct>=100?' full':'')+'" style="width:'+pct+'%"></div></div></div>'+
+    '<button class="entry-btn fest-btn" data-act="today">'+(done>0?"המשך בהלכות היום ›":"ללימוד ההלכות של היום ›")+'</button>'+
+    '<button class="fest-all" data-act="all">כל הלכות '+esc(f.name)+' ('+items.length+')</button>'+
+    '</div>';
+}
+function wireFestivalCards(scheds){
+  for(const sch of scheds){
+    const card=document.querySelector('.fest-card[data-fest="'+sch.f.id+'"]'); if(!card) continue;
+    card.querySelector('[data-act="today"]').addEventListener("click", async ()=>{
+      const items=await festivalItems(sch.f);
+      lastHome="week";
+      openReaderWithItems(festivalPortion(items, sch.idx, sch.days.length), "הלכות "+sch.f.name+" · "+sch.label, {startAt:"first-unread"});
+    });
+    card.querySelector('[data-act="all"]').addEventListener("click", async ()=>{
+      const items=await festivalItems(sch.f);
+      lastHome="week";
+      openReaderWithItems(items, "הלכות "+sch.f.name, {startAt:"first-unread"});
+    });
+  }
+}
+function shabbatFestivalHe(rec){
+  const n=rec.parasha_en||"";
+  if(n.startsWith("Rosh Hashana")) return "ראש השנה";
+  if(n.startsWith("Yom Kippur")) return "יום הכיפורים";
+  if(n.startsWith("Sukkot")) return n.includes("Chol") ? "שבת חול המועד סוכות" : "סוכות";
+  if(n.startsWith("Shmini Atzeret")) return "שמיני עצרת";
+  if(n.startsWith("Simchat Torah")) return "שמחת תורה";
+  if(n.startsWith("Pesach")) return n.includes("Chol") ? "שבת חול המועד פסח" : "פסח";
+  if(n.startsWith("Shavuot")) return "שבועות";
+  return rec.parasha_he||"חג";
+}
+let curWeekRec=null;
+async function renderWeek(rec){
+  if(!rec){document.getElementById("wContent").innerHTML='<div class="note">עדיין אין נתוני השבוע. נסו לרענן בעוד רגע.</div>';return;}
+  curWeekRec=rec;
+  // A festival week that HAS content (holiday:true, title_he from parasha_resolve.json) is
+  // titled by the festival ("הלכות סוכות"); an ordinary week by its parasha; a week with no
+  // content at all (holiday_week) by whatever name the calendar gave.
+  document.getElementById("wParasha").textContent = rec.title_he ? rec.title_he
+    : rec.holiday_week ? (rec.parasha_he||"שבוע חג") : ("פרשת "+rec.parasha_he);
+  // Show the REAL current day/date computed on the device, not the date baked into
+  // current.json (that file only refreshes on a daily rebuild, so it lagged a day —
+  // e.g. still showing "יום רביעי 22 ביולי" after midnight into Thursday). The parasha
+  // above is weekly and still comes from current.json; only this date label is "today".
+  // Hebrew weekday + Hebrew date follow nightfall (roll at צאת הכוכבים); civil date rolls at
+  // midnight. So in the evening after nightfall the header reads e.g. "יום שישי · [tomorrow's
+  // Hebrew date] · [today's civil date]".
+  const _now=new Date();
+  const _jr=await jewishReckoningDate();
+  const _heDate=hebrewDate(_jr.date);
+  document.getElementById("wSub").textContent =
+    _jr.date.toLocaleDateString("he-IL",{weekday:"long"})+
+    (_heDate ? " · "+_heDate : "")+" · "+
+    _now.toLocaleDateString("he-IL",{day:"numeric",month:"long",year:"numeric"});
+
+  if(rec.holiday_week || (!rec.tracks.year1 && !rec.tracks.year2)){
+    document.getElementById("wContent").innerHTML='<div class="note">אין הלכת בן איש חי רגילה השבוע.<br>הלוח מתעדכן אוטומטית עם פרשת השבוע הבאה.</div>';
+    return;
+  }
+  let html="";
+  const scheds=await activeFestivals();
+  for(const sch of scheds) html+=await renderFestivalCard(sch);
+  // A festival Shabbat has no parasha: say so, and say where this week's halachot come from.
+  const festNodeShown = scheds.length>0 && rec.tracks.year1 &&
+    rec.tracks.year1.some(k=>scheds.some(sch=>sch.f.keys.includes(k.key)));
+  if(rec.holiday){
+    html+='<div class="note week-note">השבת חלה ב'+esc(shabbatFestivalHe(rec))+' ואין פרשת שבוע. '+
+      (festNodeShown ? 'הלכות החג מחולקות לימי החול שסביב החג, בכרטיס למעלה.'
+                     : 'לכן השבוע נלמדות הלכות החג, מתוך הפרשה שבה כתב אותן הבן איש חי (שנה ראשונה).')+'</div>';
+  }
+  for(const tk of ["year1","year2"]){
+    const keys=rec.tracks[tk]; if(!keys || !keys.length) continue;
+    if(rec.holiday && festNodeShown) continue;   // the festival card already carries them
+    const refs=keys.map(k=>({track:k.track||tk,key:k.key}));
+    // Name the source parasha when it is not simply "this week's": a festival week (the
+    // halachot come from the parasha where the Ben Ish Chai taught that festival) or a week
+    // that carries the Chanukah node alongside its own parasha.
+    const srcNote = (rec.holiday || keys.some(k=>k.track))
+      ? ' · '+keys.map(k=>k.label||k.he).join(' + ') : '';
+    const {items}=await buildSequence(refs, false);
+    const total=items.length;
+    const done=items.filter(x=>isDone(x.track,x.key,x.chapter)).length;
+    const pct= total?Math.round(done/total*100):0;
+    html += '<div class="entry-card" data-track="'+tk+'">'+
+      '<div class="entry-top"><span class="entry-name">'+trackName(tk)+esc(srcNote)+'</span>'+
+      '<span class="entry-count">'+total+' הלכות</span></div>'+
+      '<div class="progress-wrap"><div class="progress-top"><span class="progress-label">ההתקדמות שלך</span>'+
+      '<span class="progress-pct">'+done+' מתוך '+total+'</span></div>'+
+      '<div class="progress-bar"><div class="progress-fill'+(pct>=100?' full':'')+'" style="width:'+pct+'%"></div></div></div>'+
+      '<button class="entry-btn" data-track="'+tk+'">'+(done>0?"המשך ללמוד ›":"התחל ללמוד ›")+'</button>'+
+      '</div>';
+  }
+  document.getElementById("wContent").innerHTML=html;
+  wireFestivalCards(scheds);
+  [...document.querySelectorAll("#wContent .entry-btn:not(.fest-btn)")].forEach(btn=>{
+    btn.addEventListener("click", async ()=>{
+      const tk=btn.dataset.track;
+      const keys=rec.tracks[tk].map(k=>({track:k.track||tk,key:k.key}));
+      lastHome="week";
+      await openReader(keys, (rec.title_he||"פרשת השבוע")+" · "+trackName(tk), {startAt:"first-unread"});
+    });
+  });
+}
+
+// ---------- TOPICS HOME ----------
+// Each topic is a flat, curated list of the SPECIFIC halachot (from any parasha, either
+// track) that are actually about that subject — not every halacha in a "themed" parasha.
+
+// The 30 topics are bucketed into eight families so the screen opens as eight short grids
+// instead of one 30-row scroll. Membership is by slug; anything not listed here (a topic
+// added to topics.json later) falls into the trailing "נושאים נוספים" family rather than
+// disappearing, so the screen can never silently drop a subject.
+const TOPIC_ICONS={
+  yomyom:'<svg viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="12" rx="3"/><path d="M9 8V6a3 3 0 0 1 6 0v2M12 12.5v3"/></svg>',
+  kashrut:'<svg viewBox="0 0 24 24"><path d="M6 3v7a2.5 2.5 0 0 0 5 0V3M8.5 12.5V21"/><path d="M17.5 3c-1.6 1.4-2 3.4-2 5.5s.6 3 2 3.5V21"/></svg>',
+  moadim:'<svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>',
+  shabbat:'<svg viewBox="0 0 24 24"><path d="M12 3v3M7.5 5.5l1.5 2M16.5 5.5L15 7.5"/><path d="M6 20h12M8 20v-6a4 4 0 0 1 8 0v6"/></svg>',
+  guf:'<svg viewBox="0 0 24 24"><path d="M12 3.5 5 6.5v5.8c0 4.2 3 7 7 8.2 4-1.2 7-4 7-8.2V6.5Z"/><path d="M9.5 12h5M12 9.5v5"/></svg>',
+  bein:'<svg viewBox="0 0 24 24"><path d="M12 20s-7-4.2-7-9a3.8 3.8 0 0 1 7-2 3.8 3.8 0 0 1 7 2c0 4.8-7 9-7 9Z"/></svg>',
+  bayit:'<svg viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5V19a1.6 1.6 0 0 1-1.6 1.6H5.6A1.6 1.6 0 0 1 4 19Z"/><path d="M9.5 20.5v-6h5v6"/></svg>',
+  kabbalah:'<svg viewBox="0 0 24 24"><path d="M12 3.5 4.8 16h14.4Z"/><path d="M12 20.5 4.8 8h14.4Z"/></svg>',
+  other:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2"/></svg>',
+};
+const TOPIC_GROUPS=[
+  {id:"yomyom",  he:"סדר היום והמצוות שבגוף", tint:"#3F848A",
+   slugs:["tefillah","tefillin","seder_hayom","tzitzit","mezuzah"]},
+  {id:"kashrut", he:"כשרות, ברכות ומאכלות", tint:"#8A6A1E",
+   slugs:["birkot_hanehenin","kashrut_dam","kashrut_taarovet","kashrut_basar_bechalav","kashrut_treifot","tevilat_kelim"]},
+  {id:"moadim",  he:"מועדים וזמנים", tint:"#BF9530",
+   slugs:["moadim","bein_hametzarim","taanit","rosh_chodesh"]},
+  {id:"shabbat", he:"שבת", tint:"#1C537A",
+   slugs:["shabbat_melachot_ochel","shabbat_tefillot_seudot","shabbat_muktzeh_ohel","shabbat_amira_kesher_boneh"]},
+  {id:"guf",     he:"הנהגות ושמירת הגוף", tint:"#2C6D73",
+   slugs:["nedarim","refuah_choli","maakeh_shmira","avodah_zarah"]},
+  {id:"bein",    he:"בין אדם לחברו וממונות", tint:"#3F848A",
+   slugs:["ribit","mamonot","tzedakah","kibud_horim_rav"]},
+  {id:"bayit",   he:"בית ומשפחה", tint:"#8A6A1E",
+   slugs:["nidda","nesuin"]},
+  {id:"kabbalah",he:"קבלה וטעמי המצוות", tint:"#1C537A",
+   slugs:["kabbalah_taamim"]},
+];
+// Topic names carry a "כותרת — פירוט" shape. On a half-width tile the shared head repeated
+// five times ("כשרות", "כשרות", …) tells you nothing, so the tail becomes the title.
+function topicHead(he){ return he.split(" — ")[0].replace(/ \(.*\)$/,""); }
+function topicTail(he){ return (he.split(" — ")[1]||"").replace(/ \(.*\)$/,""); }
+
+// Builds a reader-ready item list from the favorites map: groups the saved pKeys by
+// parasha so each source file is only fetched once, then pulls out just those chapters.
+async function buildFavoriteItems(){
+  const map=loadFavMap();
+  const byParasha={};
+  for(const k of Object.keys(map)){
+    const [track,key,chapter]=k.split("::");
+    const pk=track+"::"+key;
+    (byParasha[pk]=byParasha[pk]||{track,key,chapters:[]}).chapters.push(chapter);
+  }
+  const items=[];
+  for(const {track,key,chapters} of Object.values(byParasha)){
+    const pr=await loadParasha(track,key,false);
+    if(!pr) continue;
+    const wantIntro=chapters.includes("intro");
+    if(wantIntro && pr.intro && pr.intro.paragraphs && pr.intro.paragraphs.length){
+      items.push({track,key,he:pr.parasha_he,chapter:"intro",isIntro:true,
+        paragraphs:pr.intro.paragraphs, clarification:pr.intro.clarification});
+    }
+    for(const h of (pr.halachot||[])){
+      if(chapters.includes(String(h.chapter))){
+        items.push({track,key,he:pr.parasha_he,chapter:h.chapter,isIntro:false,
+          paragraphs:h.paragraphs, clarification:h.clarification});
+      }
+    }
+  }
+  return items;
+}
+
+async function showTopics(){
+  if(!topicsIdx) topicsIdx=await getJson("content/topics.json",true);
+  const rows=((topicsIdx&&topicsIdx.topics)||[]).filter(t=>t.count>0)
+    .sort((a,b)=>(a.he||"").localeCompare(b.he||"","he"));
+  const favCount=Object.keys(loadFavMap()).length;
+  const favRow='<div class="prow" id="favRow" style="background:linear-gradient(180deg,#E7F5FA,#FAEFD2);border-color:var(--gold-soft);">'+
+    '<div><div class="nm">★ המועדפים שלי</div>'+
+    // With nothing saved, "0 הלכות שסימנת" is a dead end — say what the row is FOR instead,
+    // so it reads as an invitation rather than an empty counter.
+    '<div class="meta"><span class="dot '+(favCount?'full':'none')+'"></span>'+
+      (favCount===0 ? 'סמנו הלכה בכוכב ★ והיא תישמר כאן'
+       : favCount===1 ? 'הלכה אחת שסימנת'
+       : favCount+' הלכות שסימנת')+'</div></div>'+
+    '<span class="chev">‹</span></div>';
+  // One read of the progress map for the whole screen — isDone() re-parses localStorage on
+  // every call, and there are ~1000 items across the topics.
+  const pmap=loadProgressMap();
+  const doneOf=t=>t.items.reduce((s,it)=>s+(pmap[pKey(it.track,it.key,it.chapter)]?1:0),0);
+  const bySlug={}; rows.forEach(t=>{ bySlug[t.slug]=t; });
+
+  const fams=TOPIC_GROUPS.map(g=>({
+    ...g, topics:g.slugs.map(s=>bySlug[s]).filter(Boolean).sort((a,b)=>b.count-a.count)
+  }));
+  const claimed=new Set(TOPIC_GROUPS.flatMap(g=>g.slugs));
+  const orphans=rows.filter(t=>!claimed.has(t.slug)).sort((a,b)=>b.count-a.count);
+  if(orphans.length) fams.push({id:"other",he:"נושאים נוספים",tint:"#8C7D59",topics:orphans});
+
+  // A finished topic switches its tint to the app's "good" teal, so the tile, its progress
+  // bar and its ✓ all go the same colour at 100%.
+  const tile=(t,g,wide)=>{
+    const total=t.count, done=doneOf(t), pct=total?Math.round(done/total*100):0;
+    const head=topicHead(t.he), tail=topicTail(t.he);
+    const meta = done===0 ? 'טרם התחלת · '+total+' הלכות'
+      : done>=total ? '<span class="tdone">✓</span> הושלם · '+total+' הלכות'
+      : '<b>'+done+'</b> מתוך '+total+' הלכות';
+    return '<div class="ttile'+(done>=total?' full':'')+(done===0?' untouched':'')+
+        (wide?' wide':'')+'" data-slug="'+esc(t.slug)+'"'+
+        ' style="--tint:'+(done>=total?'var(--good)':g.tint)+'">'+
+      '<div class="tico">'+TOPIC_ICONS[g.id]+'</div>'+
+      '<div class="ttxt">'+
+        (tail?'<div class="tk">'+esc(head)+'</div>':'')+
+        '<div class="tn">'+esc(tail||head)+'</div>'+
+        '<div class="tm">'+meta+'</div>'+
+      '</div>'+
+      '<div class="tbar"><i style="width:'+pct+'%"></i></div>'+
+    '</div>';
+  };
+
+  let allDone=0, allTotal=0;
+  const body=fams.filter(g=>g.topics.length).map(g=>{
+    const gT=g.topics.reduce((s,t)=>s+t.count,0), gD=g.topics.reduce((s,t)=>s+doneOf(t),0);
+    allDone+=gD; allTotal+=gT;
+    const wide=g.topics.length===1;   // a lone topic looks orphaned in a half-width tile
+    return '<div class="tsec"><h3>'+esc(g.he)+'</h3>'+
+        '<span class="gpct">'+(gT?Math.round(gD/gT*100):0)+'%</span>'+
+        '<span class="gcnt">'+gD+'/'+gT+'</span><div class="ln"></div></div>'+
+      '<div class="tgrid">'+g.topics.map(t=>tile(t,g,wide)).join('')+'</div>';
+  }).join('');
+  document.getElementById("topicsPlist").innerHTML = favRow + body;
+  document.getElementById("topicsProg").innerHTML =
+    'למדת <b>'+allDone+'</b> מתוך '+allTotal+' ההלכות שבנושאים · '+
+    (allTotal?Math.round(allDone/allTotal*100):0)+'%';
+  document.getElementById("favRow").addEventListener("click", async ()=>{
+    const items=await buildFavoriteItems();
+    if(!items.length){ showToast("עדיין אין הלכות במועדפים"); return; }
+    lastHome="topics";
+    openReaderWithItems(items, "★ המועדפים שלי", {startAt:0});
+  });
+  [...document.querySelectorAll("#topicsPlist .ttile[data-slug]")].forEach(el=>{
+    el.addEventListener("click", ()=>{
+      const topic=rows.find(t=>t.slug===el.dataset.slug);
+      if(!topic) return;
+      lastHome="topics";
+      openReaderWithItems(topic.items, topic.he, {startAt:"first-unread"});
+    });
+  });
+}
+
+// ---------- PICKER HOME ----------
+// The parshiyot are first grouped into the five חומשים; the user picks a book, then its parshiyot.
+// Each parasha key is mapped to its book by canonical membership; anything not listed (e.g. the
+// special "Chanukah" entry) carries forward into the current book. year2 is missing some parshiyot
+// entirely — books with no parshiyot in the active track are simply not shown.
+const SEFARIM=[
+  {he:"בראשית",keys:["Bereshit","Noach","Lech Lecha","Vayera","Chayei Sara","Toldot","Vayetzei","Vayishlach","Vayeshev","Miketz","Vayigash","Vayechi"]},
+  {he:"שמות",keys:["Shemot","Vaera","Bo","Beshalach","Yitro","Mishpatim","Terumah","Tetzaveh","Ki Tisa","Vayakhel","Pekudei"]},
+  {he:"ויקרא",keys:["Vayikra","Tzav","Shmini","Tazria","Metzora","Achrei Mot","Kedoshim","Emor","Behar","Bechukotai"]},
+  {he:"במדבר",keys:["Bamidbar","Nasso","Beha'alotcha","Sh'lach","Korach","Chukat","Balak","Pinchas","Matot","Masei"]},
+  {he:"דברים",keys:["Devarim","Vaetchanan","Eikev","Re'eh","Shoftim","Ki Teitzei","Ki Tavo","Nitzavim","Vayeilech","Ha'Azinu","V'Zot HaBerachah"]},
+];
+const _keyBook={}; SEFARIM.forEach((s,i)=>s.keys.forEach(k=>{_keyBook[k]=i;}));
+function groupByBook(rows){
+  const groups=SEFARIM.map(s=>({he:s.he,rows:[]}));
+  let cur=0;
+  rows.forEach(r=>{ if(_keyBook[r.key]!=null) cur=_keyBook[r.key]; groups[cur].rows.push(r); });
+  return groups;
+}
+async function showPicker(){
+  if(!master) master=await getJson("content/parashot.json",true);
+  pickerBook=null;
+  renderPList();
+}
+
+// ---------- picker progress ----------
+// Counted over the NUMBERED chapters only, because "N הלכות" on a tile is r.chapters — an
+// intro that was marked read must not push a parasha to 12/11.
+function parashaDone(pmap, track, key, chapters){
+  let d=0;
+  for(let c=1;c<=chapters;c++) if(pmap[pKey(track,key,c)]) d++;
+  return d;
+}
+const _pcnt=(d,n)=>n?Math.round(d/n*100):0;
+function tileState(d,n){ return (d>=n?" full":"")+(d===0?" untouched":""); }
+function tileMeta(d,n){
+  return d===0 ? "טרם התחלת · "+n+" הלכות"
+       : d>=n  ? '<span class="tdone">✓</span> הושלם · '+n+" הלכות"
+               : "<b>"+d+"</b> מתוך "+n+" הלכות";
+}
+function progBar(d,n){ return '<div class="tbar"><i style="width:'+_pcnt(d,n)+'%"></i></div>'; }
+function totalBanner(label, d, n, foot){
+  return '<div class="tot-banner">'+
+    '<div class="tb-lbl">סך הכל · '+esc(label)+'</div>'+
+    '<div class="tb-num">'+d+' <span>מתוך '+n+' הלכות</span></div>'+
+    '<div class="tb-track"><i style="width:'+_pcnt(d,n)+'%"></i></div>'+
+    '<div class="tb-foot"><span>'+esc(foot)+'</span><span>'+_pcnt(d,n)+'% הושלמו</span></div>'+
+  '</div>';
+}
+
+function renderPList(){
+  document.getElementById("tabY1").classList.toggle("active",pickerTrack==="year1");
+  document.getElementById("tabY2").classList.toggle("active",pickerTrack==="year2");
+  const rows=(master&&master[pickerTrack])||[];
+  const plist=document.getElementById("plist");
+  const tabs=document.getElementById("pickerTabs");
+  // one read of localStorage for the whole screen (isDone re-parses on every call)
+  const pmap=loadProgressMap();
+  const doneOf=r=>parashaDone(pmap,pickerTrack,r.key,r.chapters||0);
+  const sumOf=rs=>({n:rs.reduce((s,r)=>s+(r.chapters||0),0), d:rs.reduce((s,r)=>s+doneOf(r),0)});
+  if(pickerBook===null){
+    // ----- level 1: the five books -----
+    tabs.classList.remove("hidden");
+    const ORD=["א׳","ב׳","ג׳","ד׳","ה׳"];
+    const groups=groupByBook(rows).map((g,i)=>({g,i})).filter(x=>x.g.rows.length);
+    const t=sumOf(rows);
+    plist.innerHTML=
+      totalBanner(trackName(pickerTrack), t.d, t.n,
+                  rows.length+" פרשיות · "+groups.length+" חומשים")+
+      '<div class="bgrid books">'+groups.map(({g,i})=>{
+        const s=sumOf(g.rows);
+        return '<div class="btile'+tileState(s.d,s.n)+'" data-book="'+i+'">'+
+          '<div class="ord">'+ORD[i]+'</div>'+
+          '<div class="btxt"><div class="bn">'+esc(g.he)+'</div>'+
+          '<div class="bm">'+g.rows.length+' פרשיות · '+tileMeta(s.d,s.n)+'</div></div>'+
+          '<span class="bpct'+(s.d===0?' zero':'')+'">'+_pcnt(s.d,s.n)+'%</span>'+
+          progBar(s.d,s.n)+'</div>';
+      }).join('')+'</div>';
+    [...plist.querySelectorAll(".btile[data-book]")].forEach(el=>{
+      el.addEventListener("click",()=>{ pickerBook=+el.dataset.book; window.scrollTo(0,0); renderPList(); });
+    });
+    return;
+  }
+  // ----- level 2: the parshiyot inside the chosen book -----
+  tabs.classList.add("hidden");
+  const group=groupByBook(rows)[pickerBook];
+  const bookSum=sumOf(group.rows);
+  plist.innerHTML=
+    '<div class="book-head">'+
+      // ▶ (pointing right = "back" in RTL) matches the reader's back button; the old ‹
+      // pointed left, i.e. deeper in, which is the opposite of what it does.
+      // The book name lives in the banner right below, so a separate <h2> would just say it twice.
+      '<button class="book-back" id="pickerBack">▶ כל החומשים</button></div>'+
+    totalBanner("חומש "+group.he, bookSum.d, bookSum.n, group.rows.length+" פרשיות")+
+    '<div class="bgrid">'+group.rows.map((r,ri)=>{
+      const d=doneOf(r), n=r.chapters||0;
+      return '<div class="btile'+tileState(d,n)+'" data-key="'+esc(r.key)+'">'+
+        '<div class="ord">'+_hePunct(_heNum(ri+1))+'</div>'+
+        '<div class="btxt"><div class="bn">'+esc(r.he||r.key)+'</div>'+
+        '<div class="bm">'+tileMeta(d,n)+'</div></div>'+
+        progBar(d,n)+'</div>';
+    }).join('')+'</div>';
+  document.getElementById("pickerBack").addEventListener("click",()=>{ pickerBook=null; window.scrollTo(0,0); renderPList(); });
+  [...plist.querySelectorAll(".btile[data-key]")].forEach(el=>{
+    el.addEventListener("click", async ()=>{
+      lastHome="picker";
+      const pr = group.rows.find(r=>r.key===el.dataset.key);
+      await openReader([{track:pickerTrack,key:el.dataset.key}], "פרשת "+(pr?pr.he:el.dataset.key)+" · "+trackName(pickerTrack), {startAt:"first-unread"});
+    });
+  });
+}
+
+// ---------- SEARCH ----------
+let searchIdx=null, searchLoading=null;
+
+// The corpus mixes Hebrew and ASCII quote marks for the SAME word (״ 6138 times vs " 15723),
+// so `בס״ד` typed on a Hebrew keyboard used to return 0 results for a phrase that occurs 113
+// times, and `האר"י` / `האר״י` returned two different partial result sets.
+// This mapping is deliberately LENGTH-PRESERVING (one char in, one char out, no deletions):
+// every offset found in the normalised text still points at the same character in the
+// original, which is what keeps the snippet and the <mark> highlight on the right words.
+const SEARCH_CHAR_MAP={"״":'"', "׳":"'", "־":"-"};
+function searchNorm(s){ return s.replace(/[״׳־]/g, c=>SEARCH_CHAR_MAP[c]).toLowerCase(); }
+function reEsc(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"); }
+
+// Occurrences of `term` inside hay[from..to). Ranges let one normalised haystack per item
+// serve all four fields, instead of keeping four extra normalised copies in memory.
+function countIn(hay, term, from, to){
+  if(!term) return 0;
+  let c=0, i=hay.indexOf(term, from);
+  while(i>=0 && i+term.length<=to){ c++; i=hay.indexOf(term, i+term.length); }
+  return c;
+}
+
+// "ברכת המזון" and "המזון ברכת" must find the same halachot, and a stray double space must
+// not zero the query — so a query is a SET of terms, not one rigid string. Every term must
+// appear somewhere in the item, which keeps this a strict superset of the old exact-substring
+// behaviour: anything that used to match still matches.
+function parseSearchQuery(q){
+  const n=searchNorm(q||"").trim();
+  const terms=n.split(/\s+/).filter(t=>t.length>0);
+  // a multi-word query still rewards the words appearing together, in order
+  const phraseRe = terms.length>1 ? new RegExp(terms.map(reEsc).join("\\s+")) : null;
+  return {terms, phraseRe};
+}
+
+// Relevance. Today results come back in FILE order: searching תפילה showed 57 of its first 60
+// results as halachot where the word never appears in the halacha itself — it was only in the
+// ביאור. Weighting by where and how often a word actually occurs fixes that.
+function searchScore(it, terms, phraseRe){
+  const n=it._n, b=it._b;   // b = [end of parasha name, end of source, end of explanation]
+  let s=0;
+  for(const t of terms){
+    if(countIn(n,t,0,b[0]))    s+=100;                    // the parasha is named that
+    s += 12*countIn(n,t,b[0]+1,b[1]);                     // in the halacha ITSELF
+    s +=  6*countIn(n,t,b[2]+1,n.length);                 // in the practical takeaways
+    s +=  2*countIn(n,t,b[1]+1,b[2]);                     // explained only in the ביאור
+  }
+  if(phraseRe){
+    const m=phraseRe.exec(n);
+    if(m) s += (m.index>=b[0] && m.index<b[1]) ? 200 : 60; // whole phrase, source beats ביאור
+  }
+  return s;
+}
+
+async function ensureSearchIndex(){
+  if(searchIdx) return searchIdx;
+  if(!searchLoading){
+    document.getElementById("searchStatus").textContent="טוען את מפתח החיפוש (פעם ראשונה בלבד)…";
+    searchLoading=getJson("content/search_index.json", false).then(d=>{
+      searchIdx=(d&&d.items)||[];
+      // Normalise once here rather than lowercasing 2.7M characters on every keystroke, and
+      // record the field boundaries inside it.s (built as he + " " + source + " " +
+      // explanation + " " + takeaways — verified to hold for all 2100 records).
+      searchIdx.forEach(it=>{
+        const c=it.clarification||{};
+        const heL=(it.he||"").length;
+        const srcL=((it.paragraphs||[]).join(" ")).length;
+        const expL=(c.explanation||"").length;
+        it._n=searchNorm(it.s||"");
+        it._b=[heL, heL+1+srcL, heL+1+srcL+1+expL];
+      });
+      return searchIdx;
+    });
+  }
+  return searchLoading;
+}
+
+// Highlights EVERY query term in the snippet (the old version marked only the first match of
+// the raw query string). Safe because searchNorm preserves offsets.
+function hiTerms(text, terms){
+  if(!terms || !terms.length) return esc(text);
+  const n=searchNorm(text), spans=[];
+  for(const t of terms){
+    let i=n.indexOf(t);
+    while(i>=0){ spans.push([i,i+t.length]); i=n.indexOf(t,i+t.length); }
+  }
+  if(!spans.length) return esc(text);
+  spans.sort((a,b)=>a[0]-b[0]);
+  const merged=[];
+  for(const sp of spans){
+    const last=merged[merged.length-1];
+    if(last && sp[0]<=last[1]) last[1]=Math.max(last[1],sp[1]);
+    else merged.push([sp[0],sp[1]]);
+  }
+  let out="", pos=0;
+  for(const [a,b] of merged){
+    out += esc(text.slice(pos,a))+"<mark>"+esc(text.slice(a,b))+"</mark>";
+    pos=b;
+  }
+  return out+esc(text.slice(pos));
+}
+
+// Show the passage from the most meaningful field that actually contains a query term.
+function searchSnippet(it, terms){
+  const c=it.clarification||{};
+  const fields=[(it.paragraphs||[]).join(" "),
+                ((c.takeaways)||[]).join(" "),
+                c.explanation||""];
+  for(const f of fields){
+    if(!f) continue;
+    const nf=searchNorm(f);
+    let at=-1;
+    for(const t of terms){
+      const i=nf.indexOf(t);
+      if(i>=0 && (at<0 || i<at)) at=i;
+    }
+    if(at>=0){
+      const start=Math.max(0, at-40);
+      return (start>0?"…":"")+f.slice(start, at+60+40)+"…";
+    }
+  }
+  return (fields[0]||"").slice(0,100)+"…";
+}
+const SEARCH_PAGE=60;
+let searchShown=SEARCH_PAGE;
+function runSearch(q, keepShown){
+  const resEl=document.getElementById("searchResults");
+  const statusEl=document.getElementById("searchStatus");
+  if(!keepShown) searchShown=SEARCH_PAGE;
+  if(!q || q.trim().length<2){
+    resEl.innerHTML="";
+    statusEl.textContent=searchIdx?"הקלידו לפחות 2 תווים לחיפוש":"טוען…";
+    return;
+  }
+  const {terms, phraseRe}=parseSearchQuery(q);
+  if(!terms.length){ resEl.innerHTML=""; statusEl.textContent="הקלידו לפחות 2 תווים לחיפוש"; return; }
+  const allHits=searchIdx
+    .filter(it=>terms.every(t=>it._n.indexOf(t)>=0))
+    .map(it=>({it, sc:searchScore(it,terms,phraseRe)}))
+    // ties resolved by a fixed key so the order is deterministic between identical searches
+    .sort((a,b)=> b.sc-a.sc
+      || (a.it.track<b.it.track?-1:a.it.track>b.it.track?1:0)
+      || (a.it.key<b.it.key?-1:a.it.key>b.it.key?1:0)
+      || (String(a.it.chapter)<String(b.it.chapter)?-1:1))
+    .map(r=>r.it);
+  const hits=allHits.slice(0,searchShown);
+  statusEl.textContent = !hits.length ? "לא נמצאו תוצאות"
+    : allHits.length>hits.length ? ("מוצגות "+hits.length+" מתוך "+allHits.length+" תוצאות")
+    : ("נמצאו "+hits.length+" תוצאות");
+  resEl.innerHTML=hits.map((it,i)=>{
+    const label = it.isIntro ? "פתיחה" : "הלכה "+heNum(it.chapter);
+    return '<div class="prow" data-i="'+i+'" style="display:block;"><div class="nm">'+esc(it.he)+' · '+label+'</div>'+
+      '<div class="search-hit">'+hiTerms(searchSnippet(it,terms), terms)+'</div></div>';
+  }).join('') + (allHits.length>hits.length
+    ? '<button class="tool-btn" id="searchLoadMore" style="width:100%;justify-content:center;margin:10px 0;">טען עוד תוצאות ('+(allHits.length-hits.length)+' נותרו)</button>'
+    : '');
+  [...resEl.querySelectorAll('.prow')].forEach(el=>{
+    el.addEventListener("click", ()=>{
+      lastHome="search";
+      openReaderWithItems(hits, "תוצאות חיפוש", {startAt: parseInt(el.dataset.i,10)});
+    });
+  });
+  const moreBtn=document.getElementById("searchLoadMore");
+  if(moreBtn) moreBtn.addEventListener("click", ()=>{
+    searchShown += SEARCH_PAGE;
+    runSearch(q, true);
+  });
+}
+async function showSearch(){
+  document.getElementById("searchStatus").textContent="טוען את מפתח החיפוש (פעם ראשונה בלבד)…";
+  await ensureSearchIndex();
+  const q=document.getElementById("searchInput").value;
+  runSearch(q);
+}
+let searchDebounce=null;
+document.getElementById("searchInput").addEventListener("input",(e)=>{
+  clearTimeout(searchDebounce);
+  const v=e.target.value;
+  searchDebounce=setTimeout(()=>{ if(searchIdx) runSearch(v); }, 150);
+});
+
+// ---------- wiring ----------
+function hideAllViews(){
+  ["weekView","topicsView","pickerView","searchView","readerView"].forEach(id=>
+    document.getElementById(id).classList.add("hidden"));
+  document.body.classList.remove("reading");   // leaving the reader — full hero comes back
+  window.scrollTo(0,0);   // every tab switch / view change starts at the top
+  // We're back at the top, so restore the tab bar immediately rather than waiting for the
+  // scroll event — otherwise the new screen paints for a frame with the bar still tucked.
+  document.body.classList.remove("navdown");
+}
+function setActiveTab(id){
+  ["segWeek","segTopics","segPicker","segSearch"].forEach(x=>document.getElementById(x).classList.toggle("active",x===id));
+}
+document.getElementById("segWeek").addEventListener("click",()=>{
+  setActiveTab("segWeek"); hideAllViews();
+  document.getElementById("weekView").classList.remove("hidden");
+  refreshWeekProgress();   // the other tabs call showTopics/showPicker/showSearch here
+});
+document.getElementById("segTopics").addEventListener("click",()=>{
+  setActiveTab("segTopics"); hideAllViews();
+  document.getElementById("topicsView").classList.remove("hidden");
+  showTopics();
+});
+document.getElementById("segPicker").addEventListener("click",()=>{
+  setActiveTab("segPicker"); hideAllViews();
+  document.getElementById("pickerView").classList.remove("hidden");
+  showPicker();
+});
+document.getElementById("segSearch").addEventListener("click",()=>{
+  setActiveTab("segSearch"); hideAllViews();
+  document.getElementById("searchView").classList.remove("hidden");
+  showSearch();
+});
+document.getElementById("tabY1").addEventListener("click",()=>{pickerTrack="year1";pickerBook=null;renderPList();});
+document.getElementById("tabY2").addEventListener("click",()=>{pickerTrack="year2";pickerBook=null;renderPList();});
+
+// ---------- bottom bar gets out of the way while reading ----------
+// Scrolling DOWN tucks the tab bar toward the bottom edge; scrolling UP (or reaching the
+// top) brings it back. Direction-based rather than position-based so it returns the moment
+// the user reverses, without having to scroll all the way up.
+// The 6px dead zone stops the bar twitching on the tiny sub-pixel scroll deltas iOS emits
+// during rubber-band/momentum scrolling; below 60px we always show it, so the bar can never
+// be left hidden at the top of a screen.
+(function(){
+  let ticking=false, lastY=0;
+  function apply(){
+    ticking=false;
+    const y=Math.max(0, window.scrollY||document.documentElement.scrollTop||0);
+    const cl=document.body.classList;
+    const dy=y-lastY;
+    if(y<60)            cl.remove("navdown");
+    else if(dy>6)       cl.add("navdown");      // heading down the page
+    else if(dy<-6)      cl.remove("navdown");   // user reversed — bring it right back
+    lastY=y;
+  }
+  window.addEventListener("scroll", ()=>{
+    if(!ticking){ ticking=true; requestAnimationFrame(apply); }
+  }, {passive:true});
+})();
+
+// Installed as a PWA, iOS freezes the page instead of reloading it, so coming back to the
+// app hours later would redisplay whatever the week card said when it was frozen. Redraw
+// the counts on resume (only when the week screen is the one actually showing).
+document.addEventListener("visibilitychange", ()=>{
+  if(document.visibilityState==="visible" &&
+     !document.getElementById("weekView").classList.contains("hidden")){
+    refreshWeekProgress();
+  }
+});
+
+// The version this page was built with. The deploy script keeps it identical to sw.js's
+// CACHE_VERSION, so a running page can tell whether it is old code vs. what is live now.
+const APP_VERSION = "v251";
+// Show the running version in the footer so "am I on the latest?" is answerable at a glance.
+(function(){ const set=()=>{ const e=document.getElementById("verLabel"); if(e) e.textContent="גרסה "+APP_VERSION; };
+  if(document.readyState!=="loading") set(); else document.addEventListener("DOMContentLoaded",set); })();
+
+// Self-healing update: on every load, compare the running version to the one that is actually
+// live on the server. If this page is running OLD code and the normal service-worker swap
+// doesn't take over on its own, forcibly unregister the (stuck) worker, clear caches and
+// reload — a guaranteed clean escape so no user can ever get stranded on a stale version.
+// Loop-safe via sessionStorage: the hard escape only fires after one normal cycle failed.
+async function ensureFresh(){
+  let netVer;
+  try{
+    netVer = await fetch("sw.js?v="+Date.now(),{cache:"no-store"})
+      .then(r=>r.text()).then(t=>(t.match(/CACHE_VERSION = "(v\d+)"/)||[])[1]);
+  }catch(e){ return; }                              // offline — keep what we have
+  if(!netVer || netVer===APP_VERSION) return;       // already current
+  const reg = await navigator.serviceWorker.getRegistration().catch(()=>null);
+  if(reg) reg.update().catch(()=>{});               // pull the new worker (it self-activates)
+  if(sessionStorage.getItem("hy_stale_seen")===netVer){
+    // We already gave the normal swap a full cycle this session and we're STILL on old code:
+    // the worker is stuck. Hard-escape.
+    try{ if(reg) await reg.unregister(); }catch(e){}
+    try{ if(window.caches){ const ks=await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); } }catch(e){}
+    location.reload();
+    return;
+  }
+  sessionStorage.setItem("hy_stale_seen", netVer);
+  // Give the service worker's own controllerchange→reload a few seconds; if it doesn't fire
+  // (a stuck worker), force a reload so the next pass hits the hard-escape branch above.
+  setTimeout(()=>location.reload(), 7000);
+}
+
+// ---------- offline (service worker precache of the entire corpus) ----------
+function initOffline(){
+  if(!("serviceWorker" in navigator)) return;
+  // Ask the browser to mark this site's storage as "persistent" — without this, browsers are
+  // allowed to silently evict the offline cache under disk-space pressure (LRU eviction of
+  // regular/"best-effort" origin storage). Persistent storage is exempt from that eviction,
+  // which is what makes the one-time download actually permanent rather than "usually" permanent.
+  if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{});
+  navigator.serviceWorker.addEventListener("message",(e)=>{
+    const msg=e.data||{};
+    const banner=document.getElementById("offlineBanner");
+    if(msg.type==="offline-progress"){
+      banner.classList.remove("hidden");
+      const pct=msg.total?Math.round(msg.done/msg.total*100):0;
+      document.getElementById("offlineFill").style.width=pct+"%";
+      document.getElementById("offlineText").textContent="מוריד תוכן לשימוש אופליין… "+msg.done+" מתוך "+msg.total;
+    }else if(msg.type==="offline-ready"){
+      document.getElementById("offlineText").textContent="כל התוכן זמין כעת גם ללא אינטרנט ✓";
+      document.getElementById("offlineFill").style.width="100%";
+      setTimeout(()=>banner.classList.add("hidden"), 3500);
+    }
+  });
+  // When a newer service worker takes over (a content/design update was deployed), reload
+  // once automatically so the user sees the new version without a manual refresh — guarded
+  // so a single controllerchange never causes a reload loop.
+  let reloadedForUpdate=false;
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{
+    if(reloadedForUpdate) return;
+    reloadedForUpdate=true;
+    if(navigator.serviceWorker.controller) location.reload();
+  });
+  // updateViaCache:"none" forces the browser to fetch sw.js (and its imports) straight from
+  // the network on every update check, never from the HTTP cache — so a fresh deploy is seen
+  // immediately even if some proxy/CDN in front of surge tried to cache the worker script.
+  navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then((reg)=>{
+    // Don't rely solely on the browser's own (sometimes slow/lazy) periodic check for a new
+    // sw.js — actively ask on every app open, and again whenever the tab regains focus after
+    // being backgrounded. This is what makes a fresh deploy actually reach someone who already
+    // has the app installed, instead of leaving them stuck on whatever was cached at install time.
+    reg.update().catch(()=>{});
+    ensureFresh();
+    document.addEventListener("visibilitychange",()=>{
+      if(document.visibilityState==="visible"){ reg.update().catch(()=>{}); ensureFresh(); }
+    });
+    // And for someone who leaves the app open for a long stretch without ever backgrounding it,
+    // poll for a new version every 30 minutes so a deploy still reaches them on its own.
+    setInterval(()=>{ reg.update().catch(()=>{}); ensureFresh(); }, 30*60*1000);
+  }).catch(()=>{});
+}
+
+// ---------- settings modal: font size, progress stats, backup/restore ----------
+// One progress ring: an SVG circle whose dash offset encodes the percentage, with the raw
+// count in the middle. `size` is the outer box in px, `stroke` the ring thickness.
+function statRing(label, done, total, size, stroke){
+  const pct   = total ? Math.min(100, Math.round(done/total*100)) : 0;
+  const r     = (size - stroke) / 2;
+  const circ  = 2 * Math.PI * r;
+  // A 0% ring must draw NOTHING, but a round linecap on a 0-length dash still paints a dot,
+  // so special-case it rather than letting "nothing done" look like "something done".
+  const dash  = done>0 ? circ * (pct/100) : 0;
+  const numSz = size>100 ? 30 : 21;
+  return '<div class="ring-wrap">'+
+    '<div class="ring-box">'+
+      '<svg class="ring" width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'" aria-hidden="true">'+
+        '<circle class="ring-bg" cx="'+(size/2)+'" cy="'+(size/2)+'" r="'+r.toFixed(2)+'" stroke-width="'+stroke+'"/>'+
+        '<circle class="ring-fg" cx="'+(size/2)+'" cy="'+(size/2)+'" r="'+r.toFixed(2)+'" stroke-width="'+stroke+'" '+
+          'stroke-dasharray="'+dash.toFixed(2)+' '+circ.toFixed(2)+'"/>'+
+      '</svg>'+
+      '<div class="ring-mid">'+
+        '<span class="ring-done" style="font-size:'+numSz+'px">'+done+'</span>'+
+        '<span class="ring-of">מתוך '+total+'</span>'+
+      '</div>'+
+    '</div>'+
+    '<div class="ring-lbl">'+esc(label)+'</div>'+
+    // Rounding 5-of-2100 down to a flat "0%" right under a "5" reads as a contradiction
+    // (and as failure). Say "less than a percent" instead — same truth, no false zero.
+    '<div class="ring-pct">'+(done>0 && pct===0 ? 'פחות מאחוז' : pct+'%')+'</div>'+
+  '</div>';
+}
+async function renderStats(){
+  const body=document.getElementById("statsBody");
+  if(!master) master=await getJson("content/parashot.json",true);
+  // topics.json is no longer needed here (the per-topic breakdown was removed), so opening
+  // this panel no longer pulls that index at all — showTopics() still loads it on demand.
+  const map=loadProgressMap();
+  let html="";
+
+  let grandTotal=0, grandDone=0;
+  for(const tk of ["year1","year2"]){
+    const rows=(master&&master[tk])||[];
+    let total=0;
+    for(const r of rows) total += r.chapters + (r.has_intro?1:0);
+    // count intro presence isn't tracked on master rows reliably, so approximate with chapters only
+    // and count done entries whose key starts with this track prefix instead, for an honest ratio.
+    let done=0;
+    for(const k of Object.keys(map)){ if(k.startsWith(tk+"::")) done++; }
+    total = Math.max(total, done);
+    grandTotal+=total; grandDone+=done;
+    const pct= total?Math.round(done/total*100):0;
+    html += statRing(trackName(tk), done, total, 78, 8);
+  }
+
+  const grandPct = grandTotal?Math.round(grandDone/grandTotal*100):0;
+  html = '<div class="stats-hero">'+statRing("סה״כ", grandDone, grandTotal, 118, 11)+'</div>'
+    + '<div class="rings-row">' + html + '</div>'
+    + (grandDone===0
+        ? '<div class="note" style="margin-top:12px;">עוד לא סימנת הלכות כנלמדות. כל הלכה שתסמן תופיע כאן.</div>'
+        : '');
+
+  // The panel deliberately shows ONLY the three rings — no per-topic breakdown. That list
+  // only ever included topics you'd already started, so it read as a stray half-empty stub
+  // under the rings rather than as information.
+  body.innerHTML=html;
+}
+
+// ---------- theme (auto / light / dark) ----------
+const THEME_KEY="hy_theme";
+function getTheme(){ try{ return localStorage.getItem(THEME_KEY)||"light"; }catch(e){ return "light"; } }
+function systemPrefersDark(){
+  return !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+}
+function applyTheme(pref){
+  const dark = pref==="dark" || (pref==="auto" && systemPrefersDark());
+  document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+  const m=document.querySelector('meta[name="theme-color"]');
+  if(m) m.setAttribute("content", dark ? "#10161A" : "#E3F1F2");
+  [...document.querySelectorAll("#themeSeg button")].forEach(b=>
+    b.classList.toggle("on", b.dataset.themeChoice===pref));
+}
+function setTheme(pref){
+  try{ localStorage.setItem(THEME_KEY, pref); }catch(e){}
+  applyTheme(pref);
+}
+document.getElementById("themeSeg").addEventListener("click",(e)=>{
+  const b=e.target.closest("button[data-theme-choice]");
+  if(b) setTheme(b.dataset.themeChoice);
+});
+// follow the device while the user is on "auto" — flips live at sunset without a reload
+if(window.matchMedia){
+  const mq=window.matchMedia("(prefers-color-scheme: dark)");
+  const onChange=()=>{ if(getTheme()==="auto") applyTheme("auto"); };
+  mq.addEventListener ? mq.addEventListener("change",onChange) : mq.addListener(onChange);
+}
+applyTheme(getTheme());
+
+function openSettings(){
+  document.getElementById("settingsOverlay").classList.remove("hidden");
+  applyFsz(getFszIdx());
+  applyTheme(getTheme());       // reflect the current choice in the segmented control
+}
+function closeSettings(){ document.getElementById("settingsOverlay").classList.add("hidden"); }
+document.getElementById("openSettings").addEventListener("click", openSettings);
+document.getElementById("closeSettings").addEventListener("click", closeSettings);
+document.getElementById("settingsOverlay").addEventListener("click",(e)=>{
+  if(e.target.id==="settingsOverlay") closeSettings();
+});
+
+document.getElementById("fszDown").addEventListener("click",()=>applyFsz(getFszIdx()-1));
+document.getElementById("fszUp").addEventListener("click",()=>applyFsz(getFszIdx()+1));
+
+function openStats(){
+  document.getElementById("statsOverlay").classList.remove("hidden");
+  renderStats();
+}
+function closeStats(){ document.getElementById("statsOverlay").classList.add("hidden"); }
+document.getElementById("openStats").addEventListener("click", openStats);
+document.getElementById("closeStats").addEventListener("click", closeStats);
+document.getElementById("statsOverlay").addEventListener("click",(e)=>{
+  if(e.target.id==="statsOverlay") closeStats();
+});
+
+(async function init(){
+  applyFsz(getFszIdx());
+  initOffline();
+  // Load the vocalized-source map in the background; when it arrives, re-render the open
+  // reader so the nikud appears (it's precached, so this is instant after the first visit).
+  getJson("content/nikud.json",true).then(m=>{ nikudMap=m;
+    if(R && R.items && R.items.length && !document.getElementById("readerView").classList.contains("hidden")) renderReaderCard();
+  }).catch(()=>{});
+  getJson("content/glossary.json",true).then(m=>{ glossMap=m;
+    phraseMap={}; for(const k in m){ if(k.indexOf(" ")>=0) phraseMap[k]=m[k]; }
+    if(R && R.items && R.items.length && !document.getElementById("readerView").classList.contains("hidden")) renderReaderCard();
+  }).catch(()=>{});
+  getJson("content/ctxgloss.json",true).then(m=>{ ctxGloss=m||{};
+    if(R && R.items && R.items.length && !document.getElementById("readerView").classList.contains("hidden")) renderReaderCard();
+  }).catch(()=>{});
+  getJson("content/ambig.json",true).then(m=>{ ambig=m||{};
+    if(R && R.items && R.items.length && !document.getElementById("readerView").classList.contains("hidden")) renderReaderCard();
+  }).catch(()=>{});
+  getJson("content/sefaria_refs.json",true).then(m=>{ sefariaRefs=m||{};
+    if(R && R.items && R.items.length && !document.getElementById("readerView").classList.contains("hidden")) renderReaderCard();
+  }).catch(()=>{});
+  await probeApi();
+  await showWeek();
+})();
+</script>
+
+<script>
+/* Native shell integration (iOS/Android app build only — no-op on the plain website).
+   Adds the one piece of real native functionality the App Store wants to see beyond a
+   bare WebView: a daily local notification reminding the user that today's halacha is
+   ready, scheduled once and left to repeat — no server, no push infra, fully offline. */
+(function(){
+  function whenCapacitorReady(cb){
+    if(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) cb();
+    else document.addEventListener("DOMContentLoaded", ()=>{
+      if(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) cb();
+    });
+  }
+  whenCapacitorReady(async function(){
+    try{
+      const { LocalNotifications } = window.Capacitor.Plugins;
+      if(!LocalNotifications) return;
+      const perm = await LocalNotifications.checkPermissions();
+      if(perm.display !== "granted"){
+        const req = await LocalNotifications.requestPermissions();
+        if(req.display !== "granted") return;
+      }
+      // Fixed id -> rescheduling on every launch just overwrites the same notification,
+      // so this is safe to call unconditionally instead of tracking a "did we already
+      // schedule this" flag in storage.
+      await LocalNotifications.schedule({
+        notifications: [{
+          id: 1,
+          title: "הלכה יומית",
+          body: "ההלכה של היום מוכנה — לחצו לקריאה",
+          schedule: { on: { hour: 7, minute: 30 }, repeats: true, allowWhileIdle: true }
+        }]
+      });
+    }catch(e){ /* permission denied or plugin unavailable — app works fine without it */ }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,802 @@
+{
+  "year1": [
+    {
+      "key": "Bereshit",
+      "slug": "Bereshit",
+      "he": "בראשית",
+      "chapters": 10,
+      "has_intro": true,
+      "clarified": 10
+    },
+    {
+      "key": "Noach",
+      "slug": "Noach",
+      "he": "נח",
+      "chapters": 18,
+      "has_intro": true,
+      "clarified": 18
+    },
+    {
+      "key": "Lech Lecha",
+      "slug": "Lech_Lecha",
+      "he": "לך לך",
+      "chapters": 21,
+      "has_intro": true,
+      "clarified": 21
+    },
+    {
+      "key": "Vayera",
+      "slug": "Vayera",
+      "he": "וירא",
+      "chapters": 26,
+      "has_intro": true,
+      "clarified": 26
+    },
+    {
+      "key": "Chayei Sara",
+      "slug": "Chayei_Sara",
+      "he": "חיי שרה",
+      "chapters": 19,
+      "has_intro": true,
+      "clarified": 19
+    },
+    {
+      "key": "Toldot",
+      "slug": "Toldot",
+      "he": "תולדות",
+      "chapters": 17,
+      "has_intro": true,
+      "clarified": 17
+    },
+    {
+      "key": "Vayetzei",
+      "slug": "Vayetzei",
+      "he": "ויצא",
+      "chapters": 16,
+      "has_intro": true,
+      "clarified": 16
+    },
+    {
+      "key": "Vayishlach",
+      "slug": "Vayishlach",
+      "he": "וישלח",
+      "chapters": 19,
+      "has_intro": true,
+      "clarified": 19
+    },
+    {
+      "key": "Vayeshev",
+      "slug": "Vayeshev",
+      "he": "וישב",
+      "chapters": 15,
+      "has_intro": true,
+      "clarified": 15
+    },
+    {
+      "key": "Chanukah",
+      "slug": "Chanukah",
+      "he": "הלכות חנוכה",
+      "chapters": 28,
+      "has_intro": true,
+      "clarified": 28
+    },
+    {
+      "key": "Miketz",
+      "slug": "Miketz",
+      "he": "מקץ",
+      "chapters": 15,
+      "has_intro": true,
+      "clarified": 15
+    },
+    {
+      "key": "Vayigash",
+      "slug": "Vayigash",
+      "he": "ויגש",
+      "chapters": 18,
+      "has_intro": true,
+      "clarified": 18
+    },
+    {
+      "key": "Vayechi",
+      "slug": "Vayechi",
+      "he": "ויחי",
+      "chapters": 16,
+      "has_intro": true,
+      "clarified": 16
+    },
+    {
+      "key": "Shemot",
+      "slug": "Shemot",
+      "he": "שמות",
+      "chapters": 9,
+      "has_intro": true,
+      "clarified": 9
+    },
+    {
+      "key": "Vaera",
+      "slug": "Vaera",
+      "he": "וארא",
+      "chapters": 22,
+      "has_intro": true,
+      "clarified": 22
+    },
+    {
+      "key": "Bo",
+      "slug": "Bo",
+      "he": "בא",
+      "chapters": 28,
+      "has_intro": true,
+      "clarified": 28
+    },
+    {
+      "key": "Beshalach",
+      "slug": "Beshalach",
+      "he": "בשלח",
+      "chapters": 24,
+      "has_intro": true,
+      "clarified": 24
+    },
+    {
+      "key": "Yitro",
+      "slug": "Yitro",
+      "he": "יתרו",
+      "chapters": 19,
+      "has_intro": true,
+      "clarified": 19
+    },
+    {
+      "key": "Mishpatim",
+      "slug": "Mishpatim",
+      "he": "משפטים",
+      "chapters": 22,
+      "has_intro": true,
+      "clarified": 22
+    },
+    {
+      "key": "Terumah",
+      "slug": "Terumah",
+      "he": "תרומה",
+      "chapters": 16,
+      "has_intro": true,
+      "clarified": 16
+    },
+    {
+      "key": "Tetzaveh",
+      "slug": "Tetzaveh",
+      "he": "תצוה",
+      "chapters": 46,
+      "has_intro": true,
+      "clarified": 46
+    },
+    {
+      "key": "Ki Tisa",
+      "slug": "Ki_Tisa",
+      "he": "כי תשא",
+      "chapters": 18,
+      "has_intro": true,
+      "clarified": 18
+    },
+    {
+      "key": "Vayakhel",
+      "slug": "Vayakhel",
+      "he": "ויקהל",
+      "chapters": 13,
+      "has_intro": true,
+      "clarified": 13
+    },
+    {
+      "key": "Pekudei",
+      "slug": "Pekudei",
+      "he": "פקודי",
+      "chapters": 15,
+      "has_intro": true,
+      "clarified": 15
+    },
+    {
+      "key": "Vayikra",
+      "slug": "Vayikra",
+      "he": "ויקרא",
+      "chapters": 17,
+      "has_intro": true,
+      "clarified": 17
+    },
+    {
+      "key": "Tzav",
+      "slug": "Tzav",
+      "he": "צו",
+      "chapters": 58,
+      "has_intro": true,
+      "clarified": 58
+    },
+    {
+      "key": "Shmini",
+      "slug": "Shmini",
+      "he": "שמיני",
+      "chapters": 19,
+      "has_intro": true,
+      "clarified": 19
+    },
+    {
+      "key": "Tazria Metzora",
+      "slug": "Tazria_Metzora",
+      "he": "תזריע",
+      "chapters": 20,
+      "has_intro": true,
+      "clarified": 20
+    },
+    {
+      "key": "Achrei Mot Kedoshim",
+      "slug": "Achrei_Mot_Kedoshim",
+      "he": "אחרי קדושים",
+      "chapters": 26,
+      "has_intro": true,
+      "clarified": 26
+    },
+    {
+      "key": "Emor",
+      "slug": "Emor",
+      "he": "אמור",
+      "chapters": 17,
+      "has_intro": true,
+      "clarified": 17
+    },
+    {
+      "key": "Behar Bechukotai",
+      "slug": "Behar_Bechukotai",
+      "he": "בהר בחוקותי",
+      "chapters": 17,
+      "has_intro": true,
+      "clarified": 17
+    },
+    {
+      "key": "Bamidbar",
+      "slug": "Bamidbar",
+      "he": "במדבר",
+      "chapters": 30,
+      "has_intro": true,
+      "clarified": 30
+    },
+    {
+      "key": "Nasso",
+      "slug": "Nasso",
+      "he": "נשא",
+      "chapters": 12,
+      "has_intro": true,
+      "clarified": 12
+    },
+    {
+      "key": "Beha'alotcha",
+      "slug": "Beha_alotcha",
+      "he": "בהעלותך",
+      "chapters": 12,
+      "has_intro": true,
+      "clarified": 12
+    },
+    {
+      "key": "Sh'lach",
+      "slug": "Sh_lach",
+      "he": "שלח",
+      "chapters": 24,
+      "has_intro": true,
+      "clarified": 24
+    },
+    {
+      "key": "Korach",
+      "slug": "Korach",
+      "he": "קרח",
+      "chapters": 14,
+      "has_intro": true,
+      "clarified": 14
+    },
+    {
+      "key": "Chukat",
+      "slug": "Chukat",
+      "he": "חקת",
+      "chapters": 22,
+      "has_intro": true,
+      "clarified": 22
+    },
+    {
+      "key": "Balak",
+      "slug": "Balak",
+      "he": "בלק",
+      "chapters": 13,
+      "has_intro": true,
+      "clarified": 13
+    },
+    {
+      "key": "Pinchas",
+      "slug": "Pinchas",
+      "he": "פנחס",
+      "chapters": 22,
+      "has_intro": true,
+      "clarified": 22
+    },
+    {
+      "key": "Matot",
+      "slug": "Matot",
+      "he": "מטות",
+      "chapters": 16,
+      "has_intro": true,
+      "clarified": 16
+    },
+    {
+      "key": "Masei",
+      "slug": "Masei",
+      "he": "מסעי",
+      "chapters": 16,
+      "has_intro": true,
+      "clarified": 16
+    },
+    {
+      "key": "Devarim",
+      "slug": "Devarim",
+      "he": "דברים",
+      "chapters": 28,
+      "has_intro": true,
+      "clarified": 28
+    },
+    {
+      "key": "Vaetchanan",
+      "slug": "Vaetchanan",
+      "he": "ואתחנן",
+      "chapters": 15,
+      "has_intro": true,
+      "clarified": 15
+    },
+    {
+      "key": "Eikev",
+      "slug": "Eikev",
+      "he": "עקב",
+      "chapters": 19,
+      "has_intro": true,
+      "clarified": 19
+    },
+    {
+      "key": "Re'eh",
+      "slug": "Re_eh",
+      "he": "ראה",
+      "chapters": 17,
+      "has_intro": true,
+      "clarified": 17
+    },
+    {
+      "key": "Shoftim",
+      "slug": "Shoftim",
+      "he": "שופטים",
+      "chapters": 28,
+      "has_intro": true,
+      "clarified": 28
+    },
+    {
+      "key": "Ki Teitzei",
+      "slug": "Ki_Teitzei",
+      "he": "כי תצא",
+      "chapters": 15,
+      "has_intro": true,
+      "clarified": 15
+    },
+    {
+      "key": "Ki Tavo",
+      "slug": "Ki_Tavo",
+      "he": "כי תבוא",
+      "chapters": 26,
+      "has_intro": true,
+      "clarified": 26
+    },
+    {
+      "key": "Nitzavim",
+      "slug": "Nitzavim",
+      "he": "נצבים",
+      "chapters": 25,
+      "has_intro": true,
+      "clarified": 25
+    },
+    {
+      "key": "Vayeilech",
+      "slug": "Vayeilech",
+      "he": "וילך",
+      "chapters": 23,
+      "has_intro": true,
+      "clarified": 23
+    },
+    {
+      "key": "Ha'Azinu",
+      "slug": "Ha_Azinu",
+      "he": "האזינו",
+      "chapters": 15,
+      "has_intro": true,
+      "clarified": 15
+    },
+    {
+      "key": "V'Zot HaBerachah",
+      "slug": "V_Zot_HaBerachah",
+      "he": "וזאת הברכה",
+      "chapters": 18,
+      "has_intro": true,
+      "clarified": 18
+    }
+  ],
+  "year2": [
+    {
+      "key": "Bereshit",
+      "slug": "Bereshit",
+      "he": "בראשית",
+      "chapters": 32,
+      "has_intro": true,
+      "clarified": 32
+    },
+    {
+      "key": "Noach",
+      "slug": "Noach",
+      "he": "נח",
+      "chapters": 21,
+      "has_intro": true,
+      "clarified": 21
+    },
+    {
+      "key": "Lech Lecha",
+      "slug": "Lech_Lecha",
+      "he": "לך לך",
+      "chapters": 23,
+      "has_intro": true,
+      "clarified": 23
+    },
+    {
+      "key": "Vayera",
+      "slug": "Vayera",
+      "he": "וירא",
+      "chapters": 26,
+      "has_intro": true,
+      "clarified": 26
+    },
+    {
+      "key": "Chayei Sara",
+      "slug": "Chayei_Sara",
+      "he": "חיי שרה",
+      "chapters": 14,
+      "has_intro": true,
+      "clarified": 14
+    },
+    {
+      "key": "Toldot",
+      "slug": "Toldot",
+      "he": "תולדות",
+      "chapters": 23,
+      "has_intro": true,
+      "clarified": 23
+    },
+    {
+      "key": "Vayetzei",
+      "slug": "Vayetzei",
+      "he": "ויצא",
+      "chapters": 27,
+      "has_intro": true,
+      "clarified": 27
+    },
+    {
+      "key": "Vayishlach",
+      "slug": "Vayishlach",
+      "he": "וישלח",
+      "chapters": 19,
+      "has_intro": true,
+      "clarified": 19
+    },
+    {
+      "key": "Vayeshev",
+      "slug": "Vayeshev",
+      "he": "וישב",
+      "chapters": 1,
+      "has_intro": false,
+      "clarified": 1
+    },
+    {
+      "key": "Miketz",
+      "slug": "Miketz",
+      "he": "מקץ",
+      "chapters": 16,
+      "has_intro": true,
+      "clarified": 16
+    },
+    {
+      "key": "Vayigash",
+      "slug": "Vayigash",
+      "he": "ויגש",
+      "chapters": 13,
+      "has_intro": true,
+      "clarified": 13
+    },
+    {
+      "key": "Vayechi",
+      "slug": "Vayechi",
+      "he": "ויחי",
+      "chapters": 19,
+      "has_intro": true,
+      "clarified": 19
+    },
+    {
+      "key": "Shemot",
+      "slug": "Shemot",
+      "he": "שמות",
+      "chapters": 12,
+      "has_intro": true,
+      "clarified": 12
+    },
+    {
+      "key": "Vaera",
+      "slug": "Vaera",
+      "he": "וארא",
+      "chapters": 16,
+      "has_intro": true,
+      "clarified": 16
+    },
+    {
+      "key": "Bo",
+      "slug": "Bo",
+      "he": "בא",
+      "chapters": 20,
+      "has_intro": true,
+      "clarified": 20
+    },
+    {
+      "key": "Beshalach",
+      "slug": "Beshalach",
+      "he": "בשלח",
+      "chapters": 20,
+      "has_intro": true,
+      "clarified": 20
+    },
+    {
+      "key": "Yitro",
+      "slug": "Yitro",
+      "he": "יתרו",
+      "chapters": 17,
+      "has_intro": true,
+      "clarified": 17
+    },
+    {
+      "key": "Mishpatim",
+      "slug": "Mishpatim",
+      "he": "משפטים",
+      "chapters": 19,
+      "has_intro": true,
+      "clarified": 19
+    },
+    {
+      "key": "Terumah",
+      "slug": "Terumah",
+      "he": "תרומה",
+      "chapters": 17,
+      "has_intro": true,
+      "clarified": 17
+    },
+    {
+      "key": "Tetzaveh",
+      "slug": "Tetzaveh",
+      "he": "תצוה",
+      "chapters": 16,
+      "has_intro": true,
+      "clarified": 16
+    },
+    {
+      "key": "Ki Tisa",
+      "slug": "Ki_Tisa",
+      "he": "כי תשא",
+      "chapters": 16,
+      "has_intro": true,
+      "clarified": 16
+    },
+    {
+      "key": "Vayakhel",
+      "slug": "Vayakhel",
+      "he": "ויקהל",
+      "chapters": 14,
+      "has_intro": true,
+      "clarified": 14
+    },
+    {
+      "key": "Pekudei",
+      "slug": "Pekudei",
+      "he": "פקודי",
+      "chapters": 15,
+      "has_intro": true,
+      "clarified": 15
+    },
+    {
+      "key": "Vayikra",
+      "slug": "Vayikra",
+      "he": "ויקרא",
+      "chapters": 28,
+      "has_intro": true,
+      "clarified": 28
+    },
+    {
+      "key": "Tzav",
+      "slug": "Tzav",
+      "he": "צו",
+      "chapters": 25,
+      "has_intro": true,
+      "clarified": 25
+    },
+    {
+      "key": "Shmini",
+      "slug": "Shmini",
+      "he": "שמיני",
+      "chapters": 26,
+      "has_intro": true,
+      "clarified": 26
+    },
+    {
+      "key": "Tazria",
+      "slug": "Tazria",
+      "he": "תזריע",
+      "chapters": 20,
+      "has_intro": true,
+      "clarified": 20
+    },
+    {
+      "key": "Metzora",
+      "slug": "Metzora",
+      "he": "מצורע",
+      "chapters": 23,
+      "has_intro": true,
+      "clarified": 23
+    },
+    {
+      "key": "Achrei Mot",
+      "slug": "Achrei_Mot",
+      "he": "אחרי מות",
+      "chapters": 22,
+      "has_intro": true,
+      "clarified": 22
+    },
+    {
+      "key": "Kedoshim",
+      "slug": "Kedoshim",
+      "he": "קדושים",
+      "chapters": 19,
+      "has_intro": true,
+      "clarified": 19
+    },
+    {
+      "key": "Emor",
+      "slug": "Emor",
+      "he": "אמור",
+      "chapters": 18,
+      "has_intro": true,
+      "clarified": 18
+    },
+    {
+      "key": "Behar Bechukotai",
+      "slug": "Behar_Bechukotai",
+      "he": "בהר בחוקותי",
+      "chapters": 13,
+      "has_intro": true,
+      "clarified": 13
+    },
+    {
+      "key": "Nasso",
+      "slug": "Nasso",
+      "he": "נשא",
+      "chapters": 21,
+      "has_intro": true,
+      "clarified": 21
+    },
+    {
+      "key": "Beha'alotcha",
+      "slug": "Beha_alotcha",
+      "he": "בהעלותך",
+      "chapters": 19,
+      "has_intro": true,
+      "clarified": 19
+    },
+    {
+      "key": "Sh'lach",
+      "slug": "Sh_lach",
+      "he": "שלח",
+      "chapters": 17,
+      "has_intro": true,
+      "clarified": 17
+    },
+    {
+      "key": "Korach",
+      "slug": "Korach",
+      "he": "קרח",
+      "chapters": 19,
+      "has_intro": true,
+      "clarified": 19
+    },
+    {
+      "key": "Chukat",
+      "slug": "Chukat",
+      "he": "חקת",
+      "chapters": 26,
+      "has_intro": true,
+      "clarified": 26
+    },
+    {
+      "key": "Balak",
+      "slug": "Balak",
+      "he": "בלק",
+      "chapters": 19,
+      "has_intro": true,
+      "clarified": 19
+    },
+    {
+      "key": "Pinchas",
+      "slug": "Pinchas",
+      "he": "פנחס",
+      "chapters": 18,
+      "has_intro": true,
+      "clarified": 18
+    },
+    {
+      "key": "Matot",
+      "slug": "Matot",
+      "he": "מטות",
+      "chapters": 19,
+      "has_intro": true,
+      "clarified": 19
+    },
+    {
+      "key": "Masei",
+      "slug": "Masei",
+      "he": "מסעי",
+      "chapters": 16,
+      "has_intro": true,
+      "clarified": 16
+    },
+    {
+      "key": "Vaetchanan",
+      "slug": "Vaetchanan",
+      "he": "ואתחנן",
+      "chapters": 27,
+      "has_intro": true,
+      "clarified": 27
+    },
+    {
+      "key": "Eikev",
+      "slug": "Eikev",
+      "he": "עקב",
+      "chapters": 19,
+      "has_intro": true,
+      "clarified": 19
+    },
+    {
+      "key": "Re'eh",
+      "slug": "Re_eh",
+      "he": "ראה",
+      "chapters": 40,
+      "has_intro": true,
+      "clarified": 40
+    },
+    {
+      "key": "Shoftim",
+      "slug": "Shoftim",
+      "he": "שופטים",
+      "chapters": 30,
+      "has_intro": true,
+      "clarified": 30
+    },
+    {
+      "key": "Ki Teitzei",
+      "slug": "Ki_Teitzei",
+      "he": "כי תצא",
+      "chapters": 25,
+      "has_intro": true,
+      "clarified": 25
+    },
+    {
+      "key": "Ki Tavo",
+      "slug": "Ki_Tavo",
+      "he": "כי תבוא",
+      "chapters": 23,
+      "has_intro": true,
+      "clarified": 23
+    }
+  ],
+  "track_he": {
+    "year1": "שנה א׳",
+    "year2": "שנה ב׳"
+  }
+}
