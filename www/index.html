@@ -2409,6 +2409,169 @@ function wireFestivalCards(scheds){
     });
   }
 }
+// ---------- period card ("הלכה לתקופה") ----------
+// A quieter sibling of the festival card, for the stretches of the year that are NOT a festival
+// window: the Three Weeks, the days around a public fast, Rosh Chodesh, and — the rest of the
+// year — Thursday and Friday before Shabbat. It only ever appears when no festival card is
+// showing (festivals win). The halachot come from the existing topic lists (topics.json), so the
+// content is already vetted; nothing new is written. Everything is computed on the device from
+// its Hebrew calendar, so it works offline and rolls at nightfall like the festival card.
+//  * Three Weeks / fasts / Rosh Chodesh: the topic's halachot are split evenly over the learning
+//    days of the window (Shabbat and Yom Tov removed), same as the festival card.
+//  * Before Shabbat: ONE halacha per day, drawn from all four Shabbat topics in a fixed
+//    pseudo-random order (seeded, so every device agrees) that advances every Thursday/Friday
+//    — about 45 weeks before the first one repeats — and skips halachot already marked learned.
+const PERIOD_SHABBAT=["shabbat_tefillot_seudot","shabbat_melachot_ochel","shabbat_muktzeh_ohel","shabbat_amira_kesher_boneh"];
+function _mulberry32(a){
+  return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a);
+    t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; };
+}
+// The civil date of a Hebrew month/day nearest to `today` (±range days), or null.
+function _findHebMD(today, md, range){
+  for(let off=0; off<=range; off++){
+    for(const s of (off?[off,-off]:[0])){
+      const d=_addDays(today,s);
+      if(_sameMD(md,_hebMD(d))) return d;
+    }
+  }
+  return null;
+}
+// A fast that would fall on Shabbat moves to Sunday (17 Tammuz, 9 Av, 3 Tishri).
+function _fastDate(today, md){
+  const d=_findHebMD(today, md, 400);
+  return d && d.getDay()===6 ? _addDays(d,1) : d;
+}
+function _sameDay(a,b){ return a.toDateString()===b.toDateString(); }
+// The learning days of [start..end] (inclusive): no Shabbat, no Yom Tov.
+function _periodDays(start, end, diaspora){
+  const yt = diaspora ? YOM_TOV_DIA : YOM_TOV_IL, out=[];
+  for(let d=new Date(start); d<=end; d=_addDays(d,1)){
+    if(d.getDay()!==6 && !yt.some(md=>_sameMD(md,_hebMD(d)))) out.push(d);
+  }
+  return out;
+}
+function _periodWindow(today, diaspora){
+  const dow=today.getDay(), md=_hebMD(today);
+  if(!md || dow===6) return null;
+  const at=(days,extra)=>{ const idx=days.findIndex(x=>_sameDay(x,today)); return idx<0?null:Object.assign({days,idx},extra); };
+  // 1. The Three Weeks: 17 Tammuz through the day before Tisha B'Av. On Tisha B'Av itself
+  // (a day of restricted Torah study) no card is shown at all.
+  const tam=_fastDate(today,["Tamuz",17]), av=_fastDate(today,["Av",9]);
+  if(av && _sameDay(av,today)) return null;
+  if(tam && av && tam<av && today>=tam && today<av){
+    const w=at(_periodDays(tam,_addDays(av,-1),diaspora),
+      {id:"bm", slugs:["bein_hametzarim"], title:"בין המצרים", why:"מפני שאנחנו בשלושת השבועות, הנה ההלכות של הבן איש חי לימים אלו — מחולקות בין ימי החול שעד תשעה באב."});
+    if(w) return w;
+  }
+  // 2. Around a public fast (17 Tammuz / 9 Av are inside the Three Weeks above): the day before and the day of.
+  for(const [fmd,name] of [[["Tishri",3],"צום גדליה"],[["Tevet",10],"עשרה בטבת"]]){
+    const f=_fastDate(today,fmd); if(!f) continue;
+    const days=_periodDays(_addDays(f,-2),f,diaspora);
+    if(days.length && _sameDay(days[days.length-1],f)){
+      const w=at(days,{id:"fast", slugs:["taanit"], title:"הלכות תעניות", fastName:name,
+        why:"לקראת "+name+" — הלכות התעניות וימי הצום מתוך הבן איש חי, מחולקות בין הימים שלפני הצום."});
+      if(w) return w;
+    }
+  }
+  // 3. Rosh Chodesh: day 29 (its eve), 30 and 1 are consecutive; every Hebrew month has one of these runs.
+  if([29,30,1].includes(md[1])){
+    const run=[]; let s=today;
+    while([29,30,1].includes((_hebMD(_addDays(s,-1))||[0,0])[1]) && run.length<3) s=_addDays(s,-1);
+    for(let d=s; run.length<3 && [29,30,1].includes((_hebMD(d)||[0,0])[1]); d=_addDays(d,1)) run.push(d);
+    const days=_periodDays(run[0],run[run.length-1],diaspora);
+    const w=at(days,{id:"rc", slugs:["rosh_chodesh"], title:"הלכות ראש חודש",
+      why:"ערב ראש חודש וראש חודש — ההלכות מתוך הבן איש חי, מחולקות בין הימים."});
+    if(w) return w;
+  }
+  // 4. Thursday / Friday: one halacha for Shabbat.
+  if(dow===4 || dow===5)
+    return {id:"shab", slugs:PERIOD_SHABBAT, title:"הלכה לפני שבת", days:[today], idx:0};
+  return null;
+}
+async function _periodItems(slugs){
+  if(!topicsIdx) topicsIdx=await getJson("content/topics.json");
+  const tp=(topicsIdx&&topicsIdx.topics)||[];
+  const out=[];
+  for(const s of slugs){ const t=tp.find(x=>x.slug===s); if(t) for(const it of t.items) out.push(Object.assign({},it,{he:it.he,_topic:t})); }
+  return out;
+}
+// Today's single Shabbat halacha: the seeded order, advanced one step per Thursday/Friday.
+function _shabbatPick(pool, today){
+  const n=pool.length; if(!n) return null;
+  const order=pool.map((_,i)=>i), rnd=_mulberry32(0x5A17B0);
+  for(let i=n-1;i>0;i--){ const j=Math.floor(rnd()*(i+1)); [order[i],order[j]]=[order[j],order[i]]; }
+  const days=Math.floor(Date.UTC(today.getFullYear(),today.getMonth(),today.getDate())/86400000);
+  const start=(Math.floor((days+4)/7)*2 + (today.getDay()===5?1:0)) % n;
+  const pmap=loadProgressMap();
+  for(let k=0;k<n;k++){
+    const it=pool[order[(start+k)%n]];
+    if(!pmap[pKey(it.track,it.key,it.chapter)]) return it;
+  }
+  return pool[order[start]];
+}
+function _previewText(it){
+  const txt=srcParas(it).join(" ").replace(/\s+/g," ").trim();
+  if(txt.length<=150) return txt;
+  const cut=txt.slice(0,150), sp=cut.lastIndexOf(" ");
+  return (sp>80?cut.slice(0,sp):cut)+"…";
+}
+async function renderPeriodCard(){
+  const today=(await jewishReckoningDate()).date;
+  const diaspora=(Intl.DateTimeFormat().resolvedOptions().timeZone!=="Asia/Jerusalem");
+  const w=_periodWindow(today, diaspora); if(!w) return null;
+  const items=await _periodItems(w.slugs); if(!items.length) return null;
+  if(w.id==="shab"){
+    const it=_shabbatPick(items, today); if(!it) return null;
+    const label=it.isIntro?"פתיחת פרשת "+it.he:"הלכה "+heNum(it.chapter)+" · פרשת "+it.he;
+    const mins=Math.max(1,Math.round(srcParas(it).join(" ").split(/\s+/).length/150));
+    const done=isDone(it.track,it.key,it.chapter);
+    const html='<div class="fest-card" data-period="shab">'+
+      '<div class="fest-top"><span class="fest-tag">✦ לקראת שבת</span><span class="fest-count">'+(today.getDay()===5?"יום שישי":"יום חמישי")+'</span></div>'+
+      '<div class="fest-title">הלכה לפני שבת</div>'+
+      '<div class="fest-day">'+esc(it._topic.he)+' · '+esc(label)+'</div>'+
+      '<div class="fest-why">'+esc(_previewText(it))+'</div>'+
+      '<div class="fest-day" style="margin:0 0 8px;font-size:13px;">'+(mins===1?'דקה אחת לקריאה':mins+' דקות קריאה')+(done?' · ✓ למדת':'')+'</div>'+
+      '<button class="entry-btn fest-btn" data-act="one">'+(done?"לקרוא שוב ›":"לקרוא עכשיו ›")+'</button>'+
+      '<button class="fest-all" data-act="topic">עוד מהנושא: '+esc(it._topic.he)+'</button>'+
+      '</div>';
+    return {html, wire(card){
+      card.querySelector('[data-act="one"]').addEventListener("click",()=>{
+        lastHome="week"; openReaderWithItems([it],"הלכה לפני שבת",{startAt:0});
+      });
+      card.querySelector('[data-act="topic"]').addEventListener("click",()=>{
+        lastHome="week"; openReaderWithItems(it._topic.items,it._topic.he,{startAt:"first-unread"});
+      });
+    }};
+  }
+  const portion=festivalPortion(items, w.idx, w.days.length);
+  const done=portion.filter(x=>isDone(x.track,x.key,x.chapter)).length;
+  const pct=portion.length?Math.round(done/portion.length*100):0;
+  const first=portion[0], last=portion[portion.length-1];
+  const pn=he=>he.startsWith("הלכות")?he:"פרשת "+he;
+  const range=first.he!==last.he
+    ? _itemLabel(first)+" ("+pn(first.he)+") – "+_itemLabel(last)+" ("+pn(last.he)+")"
+    : (portion.length===1?"הלכה "+_itemLabel(first):"הלכות "+_itemLabel(first)+"–"+_itemLabel(last))+" ("+pn(first.he)+")";
+  const dayLbl="יום "+heNum(w.idx+1)+" מתוך "+heNum(w.days.length);
+  const html='<div class="fest-card" data-period="'+w.id+'">'+
+    '<div class="fest-top"><span class="fest-tag">✦ הלכה לתקופה</span><span class="fest-count">'+portion.length+' מתוך '+items.length+'</span></div>'+
+    '<div class="fest-title">'+esc(w.title)+'</div>'+
+    '<div class="fest-day">'+esc(dayLbl)+' · '+esc(range)+'</div>'+
+    '<div class="fest-why">'+esc(w.why)+'</div>'+
+    '<div class="progress-wrap"><div class="progress-top"><span class="progress-label">המנה של היום</span>'+
+      '<span class="progress-pct">'+done+' מתוך '+portion.length+'</span></div>'+
+      '<div class="progress-bar"><div class="progress-fill'+(pct>=100?' full':'')+'" style="width:'+pct+'%"></div></div></div>'+
+    '<button class="entry-btn fest-btn" data-act="today">'+(done>0?"המשך בהלכות היום ›":"ללימוד ההלכות של היום ›")+'</button>'+
+    '<button class="fest-all" data-act="all">'+(w.title.startsWith("הלכות")?"כל ":"כל הלכות ")+esc(w.title)+' ('+items.length+')</button>'+
+    '</div>';
+  return {html, wire(card){
+    card.querySelector('[data-act="today"]').addEventListener("click",()=>{
+      lastHome="week"; openReaderWithItems(portion,w.title+" · "+dayLbl,{startAt:"first-unread"});
+    });
+    card.querySelector('[data-act="all"]').addEventListener("click",()=>{
+      lastHome="week"; openReaderWithItems(items,w.title,{startAt:"first-unread"});
+    });
+  }};
+}
 function shabbatFestivalHe(rec){
   const n=rec.parasha_en||"";
   if(n.startsWith("Rosh Hashana")) return "ראש השנה";
@@ -2451,6 +2614,8 @@ async function renderWeek(rec){
   let html="";
   const scheds=await activeFestivals();
   for(const sch of scheds) html+=await renderFestivalCard(sch);
+  let period=null;
+  if(!scheds.length){ try{ period=await renderPeriodCard(); }catch(e){ period=null; } if(period) html+=period.html; }
   // A festival Shabbat has no parasha: say so, and say where this week's halachot come from.
   const festNodeShown = scheds.length>0 && rec.tracks.year1 &&
     rec.tracks.year1.some(k=>scheds.some(sch=>sch.f.keys.includes(k.key)));
@@ -2483,6 +2648,7 @@ async function renderWeek(rec){
   }
   document.getElementById("wContent").innerHTML=html;
   wireFestivalCards(scheds);
+  if(period){ const pc=document.querySelector('#wContent .fest-card[data-period]'); if(pc) period.wire(pc); }
   [...document.querySelectorAll("#wContent .entry-btn:not(.fest-btn)")].forEach(btn=>{
     btn.addEventListener("click", async ()=>{
       const tk=btn.dataset.track;
@@ -3006,7 +3172,7 @@ document.addEventListener("visibilitychange", ()=>{
 
 // The version this page was built with. The deploy script keeps it identical to sw.js's
 // CACHE_VERSION, so a running page can tell whether it is old code vs. what is live now.
-const APP_VERSION = "v263";
+const APP_VERSION = "v264";
 // Show the running version in the footer so "am I on the latest?" is answerable at a glance.
 (function(){ const set=()=>{ const e=document.getElementById("verLabel"); if(e) e.textContent="גרסה "+APP_VERSION; };
   if(document.readyState!=="loading") set(); else document.addEventListener("DOMContentLoaded",set); })();
