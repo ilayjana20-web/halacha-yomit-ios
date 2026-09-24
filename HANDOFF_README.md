@@ -8,8 +8,18 @@ native אמיתית אחת: **התראה יומית מקומית** (07:30, "הה
 
 ## אם קיבלת את הפרויקט דרך GitHub (clone) ולא דרך הזיפ
 
-`node_modules/` לא נשמר ב-git. אחרי ה-clone, בתיקיית הפרויקט (דורש Node.js): `npm install` — ואז לפתוח
-`ios/App/App.xcodeproj`. (בלי זה Xcode ייכשל עם "Missing package product".)
+`node_modules/` לא נשמר ב-git, וגם לא `ios/App/App/public`, `ios/App/App/capacitor.config.json`
+ו-`ios/App/App/config.xml` (מתועלמים ב-`ios/.gitignore` — אלה קבצים מחוללים, בדיוק כמו
+`node_modules/`). אחרי ה-clone, בתיקיית הפרויקט (דורש Node.js):
+
+```bash
+npm install
+npx cap sync ios
+```
+
+ואז לפתוח `ios/App/App.xcodeproj`. בלי `npm install` Xcode ייכשל עם "Missing package product";
+בלי `npx cap sync ios` ה-build ייכשל עם "Command Ld failed" ו-"couldn't be opened because there
+is no such file" על `public`, `capacitor.config.json` ו-`config.xml`.
 
 ## מה כבר מוכן
 
