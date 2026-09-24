@@ -2531,6 +2531,7 @@ function _periodDays(start, end, diaspora){
 function _periodWindow(today, diaspora){
   const dow=today.getDay(), md=_hebMD(today);
   if(!md || dow===6) return null;
+  if((diaspora ? YOM_TOV_DIA : YOM_TOV_IL).some(m=>_sameMD(m,md))) return null;   // nobody learns on Yom Tov
   const at=(days,extra)=>{ const idx=days.findIndex(x=>_sameDay(x,today)); return idx<0?null:Object.assign({days,idx},extra); };
   // 1. The Three Weeks: 17 Tammuz through the day before Tisha B'Av. On Tisha B'Av itself
   // (a day of restricted Torah study) no card is shown at all.
@@ -3300,7 +3301,7 @@ document.addEventListener("visibilitychange", ()=>{
 
 // The version this page was built with. The deploy script keeps it identical to sw.js's
 // CACHE_VERSION, so a running page can tell whether it is old code vs. what is live now.
-const APP_VERSION = "v267";
+const APP_VERSION = "v268";
 // Show the running version in the footer so "am I on the latest?" is answerable at a glance.
 (function(){ const set=()=>{ const e=document.getElementById("verLabel"); if(e) e.textContent="גרסה "+APP_VERSION; };
   if(document.readyState!=="loading") set(); else document.addEventListener("DOMContentLoaded",set); })();
