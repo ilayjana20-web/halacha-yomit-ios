@@ -10,7 +10,7 @@
 //                 JSON indexes) are NETWORK-FIRST when online, so an online user always sees
 //                 the latest immediately; the cache is a fallback for offline. Everything else
 //                 (per-parasha text, icons) is cache-first for instant, fully-offline loads.
-const CACHE_VERSION = "v262";
+const CACHE_VERSION = "v263";
 const CACHE_PREFIX = "hy-cache-";
 const CACHE_NAME = CACHE_PREFIX + CACHE_VERSION;
 

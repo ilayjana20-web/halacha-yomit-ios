@@ -3006,7 +3006,7 @@ document.addEventListener("visibilitychange", ()=>{
 
 // The version this page was built with. The deploy script keeps it identical to sw.js's
 // CACHE_VERSION, so a running page can tell whether it is old code vs. what is live now.
-const APP_VERSION = "v262";
+const APP_VERSION = "v263";
 // Show the running version in the footer so "am I on the latest?" is answerable at a glance.
 (function(){ const set=()=>{ const e=document.getElementById("verLabel"); if(e) e.textContent="גרסה "+APP_VERSION; };
   if(document.readyState!=="loading") set(); else document.addEventListener("DOMContentLoaded",set); })();
