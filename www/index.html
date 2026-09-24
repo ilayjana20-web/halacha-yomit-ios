@@ -345,10 +345,12 @@
   html[data-theme="dark"] .entry-btn.fest-btn{background:linear-gradient(145deg,var(--gold-deep),var(--gold));color:#1A1608;}
   .loaves{max-width:250px;margin:12px auto 16px;padding:0 34px;}
   .lrow{position:relative;height:50px;}
-  .lp{position:absolute;top:4px;display:flex;flex-direction:column;transform:translateX(-50%);}
-  .lf{display:block;width:54px;height:20px;line-height:15px;text-align:center;font:800 13px var(--sans);font-style:normal;color:var(--ink);
-    border:2.5px solid var(--gold-deep);border-radius:50%;background:var(--gold-light);box-sizing:border-box;}
-  .lf.lo{margin-top:-3px;background:var(--gold-soft);}
+  .lrow.mid{height:84px;}
+  .lp{position:absolute;top:4px;display:flex;flex-direction:column;align-items:center;transform:translateX(-50%);}
+  .lf{display:block;width:54px;height:20px;border:2.5px solid var(--gold-deep);border-radius:50%;box-sizing:border-box;
+    background:repeating-linear-gradient(115deg,var(--gold-light) 0 5px,rgba(138,106,30,.45) 5px 6.5px);}
+  .lf.lo{margin-top:-3px;background:repeating-linear-gradient(115deg,var(--gold-soft) 0 5px,rgba(138,106,30,.45) 5px 6.5px);}
+  .ll{display:block;height:20px;line-height:20px;font:800 19px var(--serif);color:var(--ink);}
   /* slim strip (compact festival / period card) — a one-line gold bar; the big .fest-card stays for layout "card" */
   .pstrip{display:flex;align-items:center;gap:6px;margin:10px 0;padding:6px 8px 6px 6px;border-radius:20px;
     background:linear-gradient(150deg,var(--gold-light),var(--gold-soft));box-shadow:var(--clay-sm);
@@ -1752,13 +1754,14 @@ function _splitParaText(p){
 function loavesHtml(rows){
   const pos=rows.map(r=>{ const a=[]; [...r].forEach((c,i)=>{ if(c==="◯") a.push(i); }); return a; });
   const span=Math.max(1, Math.max(...rows.map(r=>r.length))-1);
-  // The text names the loaves of the MIDDLE row: on the right stack the upper loaf is the yud and the lower a hei,
-  // on the left stack the upper is the vav and the lower a hei ("ה״א ראשונה תחת יו״ד שבצד ימין, ואחרונה תחת וא״ו שבצד שמאל").
-  const letters=(ri,ci,n)=> rows.length===3 && ri===1 && n===2 ? (ci===1?["י","ה"]:["ו","ה"]) : ["",""];
+  // As in the printed edition: each circle is a stack of two loaves; the middle row is lettered — above the right stack the
+  // yud, above the left the vav, and a hei under each ("הימנית כנגד י׳ והשמאלית כנגד ו׳ ... ה׳ ראשונה ואות ה׳ אחרונה").
+  const mid=ri=>rows.length===3 && ri===1 && pos[ri].length===2;
   return '<div class="loaves" dir="ltr" role="img" aria-label="סידור שתים עשרה הככרות: ששה זוגות (ערימות של שתי ככרות) בשלוש שורות">'+
     pos.map((a,ri)=>{ const c=(Math.min(...a)+Math.max(...a))/2;
-      return '<div class="lrow">'+a.map((x,ci)=>{ const L=letters(ri,ci,a.length);
-        return '<span class="lp" style="left:'+(50+(x-c)/span*100).toFixed(1)+'%"><i class="lf">'+L[0]+'</i><i class="lf lo">'+L[1]+'</i></span>'; }).join('')+'</div>'; }).join('')+'</div>';
+      return '<div class="lrow'+(mid(ri)?' mid':'')+'">'+a.map((x,ci)=>{
+        const up=mid(ri)?(ci===1?"י":"ו"):"", dn=mid(ri)?"ה":"";
+        return '<span class="lp" style="left:'+(50+(x-c)/span*100).toFixed(1)+'%">'+(mid(ri)?'<b class="ll">'+up+'</b>':'')+'<i class="lf"></i><i class="lf lo"></i>'+(mid(ri)?'<b class="ll">'+dn+'</b>':'')+'</span>'; }).join('')+'</div>'; }).join('')+'</div>';
 }
 function srcParaHtml(p, textFn){
   if(p.indexOf("<br>")<0) return '<p>'+textFn(p)+'</p>';
@@ -3339,7 +3342,7 @@ document.addEventListener("visibilitychange", ()=>{
 
 // The version this page was built with. The deploy script keeps it identical to sw.js's
 // CACHE_VERSION, so a running page can tell whether it is old code vs. what is live now.
-const APP_VERSION = "v271";
+const APP_VERSION = "v272";
 // Show the running version in the footer so "am I on the latest?" is answerable at a glance.
 (function(){ const set=()=>{ const e=document.getElementById("verLabel"); if(e) e.textContent="גרסה "+APP_VERSION; };
   if(document.readyState!=="loading") set(); else document.addEventListener("DOMContentLoaded",set); })();
