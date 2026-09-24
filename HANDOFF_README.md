@@ -6,6 +6,11 @@ native אמיתית אחת: **התראה יומית מקומית** (07:30, "הה
 ערך אמיתי למשתמש, וגם עונה על דרישת אפל שאפליקציה לא תהיה רק "עטיפת WebView" ריקה
 (הנחיה 4.2.6 של App Review).
 
+## אם קיבלת את הפרויקט דרך GitHub (clone) ולא דרך הזיפ
+
+`node_modules/` לא נשמר ב-git. אחרי ה-clone, בתיקיית הפרויקט (דורש Node.js): `npm install` — ואז לפתוח
+`ios/App/App.xcodeproj`. (בלי זה Xcode ייכשל עם "Missing package product".)
+
 ## מה כבר מוכן
 
 - [x] פרויקט Capacitor מלא ב-`ios/App/App.xcodeproj` — SPM בלבד, בלי Podfile, אז אין
