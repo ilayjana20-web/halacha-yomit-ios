@@ -343,6 +343,60 @@
   html[data-theme="dark"] .fest-card .progress-label,html[data-theme="dark"] .fest-card .progress-pct{color:#F3E4B6;}
   html[data-theme="dark"] .fest-card .progress-bar{background:rgba(0,0,0,.42);}
   html[data-theme="dark"] .entry-btn.fest-btn{background:linear-gradient(145deg,var(--gold-deep),var(--gold));color:#1A1608;}
+  /* slim strip (compact festival / period card) — a one-line gold bar; the big .fest-card stays for layout "card" */
+  .pstrip{display:flex;align-items:center;gap:6px;margin:10px 0;padding:6px 8px 6px 6px;border-radius:20px;
+    background:linear-gradient(150deg,var(--gold-light),var(--gold-soft));box-shadow:var(--clay-sm);
+    animation:cardIn .45s cubic-bezier(.2,.8,.2,1) backwards;}
+  .ps-main{flex:1;min-width:0;display:flex;align-items:center;gap:10px;background:none;border:none;padding:4px 6px;
+    cursor:pointer;text-align:start;font-family:var(--sans);color:inherit;}
+  .ps-ic{flex:none;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(145deg,var(--gold-deep),var(--gold));color:#fff;font-size:16px;}
+  .ps-t{min-width:0;}
+  .ps-tag{font-size:11.5px;font-weight:800;color:var(--gold-deep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ps-title{font-family:var(--serif);font-weight:900;font-size:17px;color:var(--navy);line-height:1.2;}
+  .ps-all{flex:none;border:1.5px solid var(--gold-deep);color:var(--gold-deep);background:transparent;border-radius:999px;
+    padding:7px 12px;font-family:var(--sans);font-weight:800;font-size:12.5px;cursor:pointer;}
+  .ps-done .ps-ic{background:linear-gradient(145deg,var(--good),var(--good-deep));}
+  html[data-theme="dark"] .pstrip{background:linear-gradient(150deg,#3A3220,#26210F);box-shadow:0 8px 20px rgba(0,0,0,.45);}
+  html[data-theme="dark"] .ps-title{color:#F3E4B6;}
+  .ps-chev{flex:none;font-size:22px;color:var(--gold-deep);line-height:1;}
+  #readerView.notice-solo .reader-head,#readerView.notice-solo #rJump,#readerView.notice-solo .reader > .progress-wrap{display:none;}
+  #readerView.has-notice .reader-title{font-size:20px !important;}
+  /* explanation card shown above the halacha when the reader was opened from a slim strip */
+  .nhead{position:relative;border-radius:26px;padding:16px 18px 15px;margin:0 0 14px;
+    background:linear-gradient(150deg,var(--gold-light),var(--gold-soft));box-shadow:var(--clay);}
+  .nhead .fest-title{font-size:26px;}
+  .nchips{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 10px;}
+  .nchip{font-size:12px;font-weight:800;color:var(--gold-deep);background:rgba(255,255,255,.5);padding:5px 11px;border-radius:999px;}
+  .nhead .fest-why{font-size:14.5px;line-height:1.75;opacity:1;margin-bottom:12px;}
+  .nhead .progress-label,.nhead .progress-pct{color:var(--navy);}
+  .nhead .progress-bar{background:rgba(255,255,255,.55);}
+  html[data-theme="dark"] .nhead{background:linear-gradient(150deg,#3A3220,#26210F);box-shadow:0 12px 30px rgba(0,0,0,.5);}
+  html[data-theme="dark"] .nhead .fest-title{color:#F3E4B6;}
+  html[data-theme="dark"] .nhead .fest-why{color:#E8DCB4;}
+  html[data-theme="dark"] .nchip{background:rgba(0,0,0,.35);}
+  html[data-theme="dark"] .nhead .progress-label,html[data-theme="dark"] .nhead .progress-pct{color:#F3E4B6;}
+  /* preview card: fills the room the slim strip frees, with the first lines of today's halacha (layout "strip2") */
+  .pprev{margin:10px 0;padding:14px 16px 12px;border-radius:22px;background:var(--card);box-shadow:var(--clay-sm);
+    animation:cardIn .45s cubic-bezier(.2,.8,.2,1) backwards;}
+  .pp-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}
+  .pp-tag{font-size:12px;font-weight:800;color:var(--gold-deep);}
+  .pp-ref{font-size:12px;font-weight:700;color:var(--muted);}
+  .pp-txt{font-family:var(--serif);font-weight:500;font-size:16px;line-height:1.85;color:var(--ink);
+    display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;}
+  .pp-btn{display:block;width:100%;margin-top:10px;padding:10px;border:none;border-radius:999px;cursor:pointer;
+    background:linear-gradient(145deg,var(--gold-deep),var(--gold));color:#fff;font-family:var(--sans);font-weight:800;font-size:14px;}
+  html[data-theme="dark"] .pp-btn{color:#1A1608;}
+  /* the two track cards side by side, only while a strip is showing (layout "strip2") */
+  .entry-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0;}
+  .entry-grid .entry-card{margin:0;padding:12px 13px 12px;border-radius:22px;}
+  .entry-grid .entry-top{flex-direction:column;align-items:flex-start;gap:5px;margin-bottom:9px;}
+  .entry-grid .entry-name{font-size:17px;}
+  .entry-grid .entry-count{padding:3px 9px;font-size:11px;}
+  .entry-grid .progress-top{margin-bottom:5px;}
+  .entry-grid .progress-label{display:none;}
+  .entry-grid .progress-bar{height:8px;}
+  .entry-grid .entry-btn{margin-top:9px;padding:9px;font-size:13px;}
   .entry-card{position:relative;background:var(--card);
     border:none;border-radius:26px;
     padding:16px 18px 15px;margin:10px 0;
@@ -1958,7 +2012,7 @@ function openReaderWithItems(rawItems, title, opts){
   let idx=0;
   if(opts.startAt==="first-unread") idx=firstUnread(items);
   else if(typeof opts.startAt==="number") idx=opts.startAt;
-  R={items, idx, title, pending:[]};
+  R={items, idx, title, pending:[], notice:opts.notice||null};
   renderReaderCard();
 }
 // recenter=false when only refreshing the pills' done-state (e.g. after marking learned) so the
@@ -2065,8 +2119,13 @@ function renderReaderCard(navigated){
   const fav=isFav(it.track,it.key,it.chapter);
   // The card now ends with the biur; the mark/fav/share controls live in the seal-zone
   // ornament below it (see the static markup), so the text closes clean like a printed page.
-  document.getElementById("rCard").innerHTML =
+  const rv=document.getElementById("readerView");
+  rv.classList.toggle("has-notice", !!R.notice);
+  rv.classList.toggle("notice-solo", !!R.notice && n===1);   // one halacha: the notice card already says everything the title/position/pills would
+  document.getElementById("rCard").innerHTML = (R.notice?noticeHeadHtml(R.notice):'')+
     '<div class="halacha'+(it.isIntro?' intro':'')+(done?' done':'')+'">'+badge+'<div class="source">'+paras+'</div>'+biur+'</div>';
+  const nhAll=document.getElementById("nhAll");
+  if(nhAll){ const nn=R.notice; nhAll.addEventListener("click",()=>{ lastHome="week"; openReaderWithItems(nn.all, nn.allTitle||nn.title, {startAt:"first-unread"}); }); }
 
   // ---- seal-zone: the wax seal (mark control), its caption, and the quiet minor actions ----
   document.getElementById("sealSlot").innerHTML =
@@ -2368,6 +2427,16 @@ function festivalPortion(items, dayIndex, days){
   return b>a ? items.slice(a,b) : items;
 }
 function _itemLabel(it){ return it.isIntro ? "פתיחה" : heNum(it.chapter); }
+// Layout of the festival / period notice (default "strip2"): "card" = the full gold card, "strip" = one slim bar,
+// "strip2" = the slim bar plus the two track cards side by side. ?pl= overrides (for previews).
+const PERIOD_LAYOUT=(()=>{ try{ const v=new URLSearchParams(location.search).get("pl"); if(["card","strip","strip2"].includes(v)) return v; }catch(e){} return "strip2"; })();
+let _notices={};   // id -> {title,label,why,portion,all,topic}: what each slim strip opens (see openNoticePage)
+function _strip(id, tag, title, sub, done){
+  return '<div class="pstrip'+(done?' ps-done':'')+'" data-nid="'+esc(id)+'">'+
+    '<button class="ps-main"><span class="ps-ic">'+(done?'✓':'✦')+'</span>'+
+      '<span class="ps-t"><div class="ps-tag">'+esc(tag)+(sub?' · '+esc(sub):'')+'</div><div class="ps-title">'+esc(title)+'</div></span>'+
+      '<span class="ps-chev">‹</span></button></div>';
+}
 async function renderFestivalCard(sch){
   const {f, days, idx, label}=sch;
   const items=await festivalItems(f);
@@ -2380,6 +2449,14 @@ async function renderFestivalCard(sch){
   const range = first.he!==last.he
     ? _itemLabel(first)+" ("+pn(first.he)+") – "+_itemLabel(last)+" ("+pn(last.he)+")"
     : (portion.length===1 ? "הלכה "+_itemLabel(first) : "הלכות "+_itemLabel(first)+"–"+_itemLabel(last))+" ("+pn(first.he)+")";
+  const whyTxt='הלכות מיוחדות ל'+f.name+', מתוך מה שכתב הבן איש חי ב'+srcHe+' (שנה ראשונה) — לא פרשת השבוע. '+
+    'ההלכות מחולקות באופן שווה בין '+heNum(days.length)+' ימי החול של השבוע שלפני החג'+(days.some(d=>!d.pre)?' וימי חול המועד':'')+
+    ', כי ביום טוב ובשבת לא לומדים בטלפון.';
+  if(PERIOD_LAYOUT!=="card"){
+    _notices["fest-"+f.id]={tag:"הלכות החג", title:"הלכות "+f.name, label:label+" · "+range, why:whyTxt, portion, all:items,
+      chips:[items.length+" הלכות", days.length+" ימי לימוד", "בלי שבת ויום טוב"]};
+    return _strip("fest-"+f.id, label, "הלכות "+f.name, portion.length>1?(done+'/'+portion.length):'', done>=portion.length);
+  }
   return '<div class="fest-card" data-fest="'+esc(f.id)+'">'+
     '<div class="fest-top"><span class="fest-tag">✦ הלכות החג</span><span class="fest-count">'+portion.length+' מתוך '+items.length+'</span></div>'+
     '<div class="fest-title">'+esc(f.name)+'</div>'+
@@ -2395,8 +2472,9 @@ async function renderFestivalCard(sch){
     '</div>';
 }
 function wireFestivalCards(scheds){
+  if(PERIOD_LAYOUT!=="card") return;   // the slim strips are wired in renderWeek (they open the notice page)
   for(const sch of scheds){
-    const card=document.querySelector('.fest-card[data-fest="'+sch.f.id+'"]'); if(!card) continue;
+    const card=document.querySelector('#wContent [data-fest="'+sch.f.id+'"]'); if(!card) continue;
     card.querySelector('[data-act="today"]').addEventListener("click", async ()=>{
       const items=await festivalItems(sch.f);
       lastHome="week";
@@ -2509,11 +2587,12 @@ function _shabbatPick(pool, today){
   }
   return pool[order[start]];
 }
-function _previewText(it){
+function _previewText(it, max){
+  max=max||150;
   const txt=srcParas(it).join(" ").replace(/\s+/g," ").trim();
-  if(txt.length<=150) return txt;
-  const cut=txt.slice(0,150), sp=cut.lastIndexOf(" ");
-  return (sp>80?cut.slice(0,sp):cut)+"…";
+  if(txt.length<=max) return txt;
+  const cut=txt.slice(0,max), sp=cut.lastIndexOf(" ");
+  return (sp>max*0.55?cut.slice(0,sp):cut)+"…";
 }
 async function renderPeriodCard(){
   const today=(await jewishReckoningDate()).date;
@@ -2525,7 +2604,15 @@ async function renderPeriodCard(){
     const label=it.isIntro?"פתיחת פרשת "+it.he:"הלכה "+heNum(it.chapter)+" · פרשת "+it.he;
     const mins=Math.max(1,Math.round(srcParas(it).join(" ").split(/\s+/).length/150));
     const done=isDone(it.track,it.key,it.chapter);
-    const html='<div class="fest-card" data-period="shab">'+
+    if(PERIOD_LAYOUT!=="card") _notices.shab={tag:"לקראת שבת", title:"הלכה לפני שבת", label:it._topic.he+" · "+label,
+      why:"בכל יום חמישי ושישי מוצגת כאן הלכה אחת לקראת שבת, מתוך ארבעת נושאי שבת בספר הבן איש חי: כניסת השבת ותפילות, "+
+        "מלאכות ואוכל, מוקצה ואוהל, ואמירה לנכרי ורפואה. בכל שבוע מגיעה הלכה אחרת, בלי לחזור על עצמה — המחזור נמשך כמעט שנה "+
+        "עד שהראשונה חוזרת. הלכה שכבר סימנת \"למדתי\" מדולגת, ותקבל את הבאה בתור. קוראים, מסמנים, וחוזרים.",
+      portion:[it], all:it._topic.items, allTitle:it._topic.he,
+      chips:[items.length+" הלכות במחזור", "הלכה אחת ביום", "חמישי ושישי"]};
+    const html = PERIOD_LAYOUT!=="card"
+      ? _strip("shab", "לקראת שבת", "הלכה לפני שבת", (mins===1?"דקה אחת":mins+" דקות"), done)
+      : '<div class="fest-card" data-period="shab">'+
       '<div class="fest-top"><span class="fest-tag">✦ לקראת שבת</span><span class="fest-count">'+(today.getDay()===5?"יום שישי":"יום חמישי")+'</span></div>'+
       '<div class="fest-title">הלכה לפני שבת</div>'+
       '<div class="fest-day">'+esc(it._topic.he)+' · '+esc(label)+'</div>'+
@@ -2552,7 +2639,11 @@ async function renderPeriodCard(){
     ? _itemLabel(first)+" ("+pn(first.he)+") – "+_itemLabel(last)+" ("+pn(last.he)+")"
     : (portion.length===1?"הלכה "+_itemLabel(first):"הלכות "+_itemLabel(first)+"–"+_itemLabel(last))+" ("+pn(first.he)+")";
   const dayLbl="יום "+heNum(w.idx+1)+" מתוך "+heNum(w.days.length);
-  const html='<div class="fest-card" data-period="'+w.id+'">'+
+  if(PERIOD_LAYOUT!=="card") _notices[w.id]={tag:"הלכה לתקופה", title:w.title, label:dayLbl+" · "+range, why:w.why, portion, all:items,
+    chips:[items.length+" הלכות", w.days.length+" ימי לימוד", "בלי שבת ויום טוב"]};
+  const html = PERIOD_LAYOUT!=="card"
+    ? _strip(w.id, dayLbl, w.title, portion.length>1?(done+'/'+portion.length):'', done>=portion.length)
+    : '<div class="fest-card" data-period="'+w.id+'">'+
     '<div class="fest-top"><span class="fest-tag">✦ הלכה לתקופה</span><span class="fest-count">'+portion.length+' מתוך '+items.length+'</span></div>'+
     '<div class="fest-title">'+esc(w.title)+'</div>'+
     '<div class="fest-day">'+esc(dayLbl)+' · '+esc(range)+'</div>'+
@@ -2571,6 +2662,28 @@ async function renderPeriodCard(){
       lastHome="week"; openReaderWithItems(items,w.title,{startAt:"first-unread"});
     });
   }};
+}
+// What a slim strip opens: the reader (full halacha + biur, mark/favourite/share, back to the week
+// screen) with an explanation card on top saying what this notice is and why it is shown.
+function openNoticePage(id){
+  const n=_notices[id]; if(!n) return;
+  lastHome="week";
+  openReaderWithItems(n.portion, n.title, {startAt:"first-unread", notice:n});
+}
+function noticeHeadHtml(n){
+  const done=n.portion.filter(x=>isDone(x.track,x.key,x.chapter)).length;
+  const pct=n.portion.length?Math.round(done/n.portion.length*100):0;
+  return '<div class="nhead">'+
+    '<div class="fest-top"><span class="fest-tag">✦ '+esc(n.tag||"הלכה לתקופה")+'</span></div>'+
+    '<div class="fest-title">'+esc(n.title)+'</div>'+
+    '<div class="fest-day">'+esc(n.label)+'</div>'+
+    (n.chips&&n.chips.length?'<div class="nchips">'+n.chips.map(c=>'<span class="nchip">'+esc(c)+'</span>').join('')+'</div>':'')+
+    '<div class="fest-why">'+esc(n.why)+'</div>'+
+    (n.portion.length>1?'<div class="progress-wrap"><div class="progress-top"><span class="progress-label">המנה של היום</span>'+
+      '<span class="progress-pct">'+done+' מתוך '+n.portion.length+'</span></div>'+
+      '<div class="progress-bar"><div class="progress-fill'+(pct>=100?' full':'')+'" style="width:'+pct+'%"></div></div></div>':'')+
+    '<button class="fest-all" id="nhAll">'+(n.allTitle?'עוד מהנושא: '+esc(n.allTitle):'כל '+(n.title.startsWith("הלכות")?'':'הלכות ')+esc(n.title))+' ('+n.all.length+')</button>'+
+    '</div>';
 }
 function shabbatFestivalHe(rec){
   const n=rec.parasha_en||"";
@@ -2612,6 +2725,7 @@ async function renderWeek(rec){
     return;
   }
   let html="";
+  _notices={};
   const scheds=await activeFestivals();
   for(const sch of scheds) html+=await renderFestivalCard(sch);
   let period=null;
@@ -2646,9 +2760,23 @@ async function renderWeek(rec){
       '<button class="entry-btn" data-track="'+tk+'">'+(done>0?"המשך ללמוד ›":"התחל ללמוד ›")+'</button>'+
       '</div>';
   }
+  if(PERIOD_LAYOUT==="strip2" && (scheds.length||period)){
+    const i=html.indexOf('<div class="entry-card"');
+    if(i>=0) html=html.slice(0,i)+'<div class="entry-grid">'+html.slice(i)+'</div>';
+    // The room the strip frees is filled with the first lines of today's halacha, not left empty.
+    const nid=Object.keys(_notices)[0], np=nid&&_notices[nid], first=np&&(np.portion.find(x=>!isDone(x.track,x.key,x.chapter))||np.portion[0]);
+    if(first){
+      const txt=srcParas(first).join(" ").replace(/\s+/g," ").trim();
+      const ref=first.isIntro?"פתיחת פרשת "+first.he:"הלכה "+heNum(first.chapter)+" · "+(first.he.startsWith("הלכות")?first.he:"פרשת "+first.he);
+      html+='<div class="pprev" data-nid="'+esc(nid)+'"><div class="pp-top"><span class="pp-tag">ההלכה של היום</span><span class="pp-ref">'+esc(ref)+'</span></div>'+
+        '<div class="pp-txt">'+esc(txt)+'</div><button class="pp-btn">לפתיחת הדף ›</button></div>';
+    }
+  }
   document.getElementById("wContent").innerHTML=html;
   wireFestivalCards(scheds);
-  if(period){ const pc=document.querySelector('#wContent .fest-card[data-period]'); if(pc) period.wire(pc); }
+  if(period && PERIOD_LAYOUT==="card"){ const pc=document.querySelector('#wContent [data-period]'); if(pc) period.wire(pc); }
+  [...document.querySelectorAll("#wContent .pstrip .ps-main, #wContent .pprev .pp-btn")].forEach(b=>
+    b.addEventListener("click",()=>openNoticePage(b.closest("[data-nid]").dataset.nid)));
   [...document.querySelectorAll("#wContent .entry-btn:not(.fest-btn)")].forEach(btn=>{
     btn.addEventListener("click", async ()=>{
       const tk=btn.dataset.track;
@@ -3172,7 +3300,7 @@ document.addEventListener("visibilitychange", ()=>{
 
 // The version this page was built with. The deploy script keeps it identical to sw.js's
 // CACHE_VERSION, so a running page can tell whether it is old code vs. what is live now.
-const APP_VERSION = "v264";
+const APP_VERSION = "v265";
 // Show the running version in the footer so "am I on the latest?" is answerable at a glance.
 (function(){ const set=()=>{ const e=document.getElementById("verLabel"); if(e) e.textContent="גרסה "+APP_VERSION; };
   if(document.readyState!=="loading") set(); else document.addEventListener("DOMContentLoaded",set); })();
