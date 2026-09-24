@@ -2735,7 +2735,7 @@ async function renderWeek(rec){
     rec.tracks.year1.some(k=>scheds.some(sch=>sch.f.keys.includes(k.key)));
   if(rec.holiday){
     html+='<div class="note week-note">השבת חלה ב'+esc(shabbatFestivalHe(rec))+' ואין פרשת שבוע. '+
-      (festNodeShown ? 'הלכות החג מחולקות לימי החול שסביב החג, בכרטיס למעלה.'
+      (festNodeShown ? 'הלכות החג מחולקות לימי החול שסביב החג, '+(PERIOD_LAYOUT==='card'?'בכרטיס למעלה.':'בפס למעלה.')
                      : 'לכן השבוע נלמדות הלכות החג, מתוך הפרשה שבה כתב אותן הבן איש חי (שנה ראשונה).')+'</div>';
   }
   for(const tk of ["year1","year2"]){
@@ -3300,7 +3300,7 @@ document.addEventListener("visibilitychange", ()=>{
 
 // The version this page was built with. The deploy script keeps it identical to sw.js's
 // CACHE_VERSION, so a running page can tell whether it is old code vs. what is live now.
-const APP_VERSION = "v266";
+const APP_VERSION = "v267";
 // Show the running version in the footer so "am I on the latest?" is answerable at a glance.
 (function(){ const set=()=>{ const e=document.getElementById("verLabel"); if(e) e.textContent="גרסה "+APP_VERSION; };
   if(document.readyState!=="loading") set(); else document.addEventListener("DOMContentLoaded",set); })();
