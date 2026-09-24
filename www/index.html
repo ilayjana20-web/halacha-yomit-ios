@@ -361,7 +361,7 @@
   html[data-theme="dark"] .ps-title{color:#F3E4B6;}
   .ps-chev{flex:none;font-size:22px;color:var(--gold-deep);line-height:1;}
   #readerView.notice-solo .reader-head,#readerView.notice-solo #rJump,#readerView.notice-solo .reader > .progress-wrap{display:none;}
-  #readerView.has-notice .reader-title{font-size:20px !important;}
+  #readerView.has-notice .reader-title{display:none;}   /* the notice card above already carries the title */
   /* explanation card shown above the halacha when the reader was opened from a slim strip */
   .nhead{position:relative;border-radius:26px;padding:16px 18px 15px;margin:0 0 14px;
     background:linear-gradient(150deg,var(--gold-light),var(--gold-soft));box-shadow:var(--clay);}
@@ -3300,7 +3300,7 @@ document.addEventListener("visibilitychange", ()=>{
 
 // The version this page was built with. The deploy script keeps it identical to sw.js's
 // CACHE_VERSION, so a running page can tell whether it is old code vs. what is live now.
-const APP_VERSION = "v265";
+const APP_VERSION = "v266";
 // Show the running version in the footer so "am I on the latest?" is answerable at a glance.
 (function(){ const set=()=>{ const e=document.getElementById("verLabel"); if(e) e.textContent="גרסה "+APP_VERSION; };
   if(document.readyState!=="loading") set(); else document.addEventListener("DOMContentLoaded",set); })();
