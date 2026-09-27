@@ -11,8 +11,10 @@ What differs from the website (and WHY — see HANDOFF_README.md):
      counted together with the website. The website's code switches them off on localhost
      (dev copies inflated the counters); the native app's origin is capacitor://localhost,
      so the guard is widened to let a real Capacitor build through.
-  3. A native-shell block is appended: the daily local notification (07:30) via
-     @capacitor/local-notifications — the one real native feature of the app.
+  3. A native-shell block is appended: the daily 07:30 local notification, plus a
+     "don't lose your streak" evening reminder that only fires if today's halacha is
+     still unmarked — both via @capacitor/local-notifications, the real native feature
+     of the app (see the streak feature in index.html: learnedToday()/currentStreak()).
 Everything else (content, CSS, versions) is byte-identical to the site, so a content update
 is: deploy the site, run this script, bump CFBundleVersion in Xcode, archive.
 """
@@ -30,9 +32,14 @@ DST = os.path.join(HERE, "www")
 NATIVE_BLOCK = r'''
 <script>
 /* Native shell integration (iOS/Android app build only — no-op on the plain website).
-   Adds the one piece of real native functionality the App Store wants to see beyond a
-   bare WebView: a daily local notification reminding the user that today's halacha is
-   ready, scheduled once and left to repeat — no server, no push infra, fully offline. */
+   Two real native features the App Store wants to see beyond a bare WebView, both fully
+   offline (no server, no push infra):
+   1. A fixed daily 07:30 notification that today's halacha is ready — scheduled once with a
+      fixed id, so rescheduling on every launch just overwrites the same notification.
+   2. A "don't lose your streak" evening reminder (id 2), rescheduled fresh on every launch:
+      cancelled outright if today's learning is already logged (see learnedToday() in the page
+      itself — index.html's streak feature), otherwise scheduled for this evening (or a few
+      minutes from now if it's already past that time), worded from the current streak length. */
 (function(){
   function whenCapacitorReady(cb){
     if(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) cb();
@@ -49,9 +56,6 @@ NATIVE_BLOCK = r'''
         const req = await LocalNotifications.requestPermissions();
         if(req.display !== "granted") return;
       }
-      // Fixed id -> rescheduling on every launch just overwrites the same notification,
-      // so this is safe to call unconditionally instead of tracking a "did we already
-      // schedule this" flag in storage.
       await LocalNotifications.schedule({
         notifications: [{
           id: 1,
@@ -60,6 +64,22 @@ NATIVE_BLOCK = r'''
           schedule: { on: { hour: 7, minute: 30 }, repeats: true, allowWhileIdle: true }
         }]
       });
+
+      await LocalNotifications.cancel({ notifications: [{ id: 2 }] });
+      const alreadyLearnedToday = typeof learnedToday === "function" && learnedToday();
+      if(!alreadyLearnedToday){
+        const now = new Date();
+        let at = new Date(); at.setHours(20, 30, 0, 0);
+        if(at <= now) at = new Date(now.getTime() + 5 * 60 * 1000);   // already past 20:30 — nudge shortly instead
+        const streak = typeof currentStreak === "function" ? currentStreak() : 0;
+        const title = streak > 0 ? "🔥 אל תפסידו את הרצף" : "הלכה יומית";
+        const body = streak > 0
+          ? streak + " ימים ברצף — היום עוד לא למדתם! לחצו לשמור על הרצף"
+          : "ההלכה של היום מחכה לכם — לחצו לקריאה";
+        await LocalNotifications.schedule({
+          notifications: [{ id: 2, title, body, schedule: { at, allowWhileIdle: true } }]
+        });
+      }
     }catch(e){ /* permission denied or plugin unavailable — app works fine without it */ }
   });
 })();

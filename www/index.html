@@ -979,7 +979,7 @@
   /* Settings gear + modal */
   .hero-icons{position:relative;z-index:5;order:2;flex:0 0 auto;
     display:flex;flex-direction:column;gap:7px;}
-  .gear-btn{width:36px;height:36px;border-radius:50%;border:none;cursor:pointer;
+  .gear-btn{position:relative;width:36px;height:36px;border-radius:50%;border:none;cursor:pointer;
     background:var(--good);display:flex;align-items:center;justify-content:center;
     box-shadow:3px 3px 8px rgba(63,132,138,.35), -3px -3px 8px rgba(255,255,255,.8);
     transition:.2s;}
@@ -1036,6 +1036,18 @@
   .rings-row{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;}
   .stats-hero{display:flex;flex-direction:column;align-items:center;gap:4px;
     padding:4px 0 14px;border-bottom:1.5px solid var(--line2);margin-bottom:4px;}
+  /* learning-streak flame: a small badge on the header icon (always-visible nudge), and a
+     fuller card at the top of the progress panel (detail + personal best). */
+  .streakBadge{position:absolute;top:-5px;right:-6px;direction:ltr;
+    background:linear-gradient(145deg,var(--gold-deep),var(--gold));color:#fff;
+    font:800 10px var(--sans);border-radius:999px;padding:1.5px 6px;line-height:1.5;
+    box-shadow:0 1px 4px rgba(0,0,0,.3);white-space:nowrap;}
+  .flamebox{background:linear-gradient(150deg,var(--gold-light),var(--gold-soft));
+    border-radius:20px;padding:14px 16px;text-align:center;margin-bottom:14px;}
+  .flame-n{font-family:var(--serif);font-weight:900;font-size:26px;color:var(--gold-deep);}
+  .flame-l{font-size:12.5px;font-weight:700;color:var(--gold-deep);margin-top:2px;}
+  html[data-theme="dark"] .flamebox{background:linear-gradient(150deg,#3A3220,#26210F);}
+  html[data-theme="dark"] .flame-n,html[data-theme="dark"] .flame-l{color:#E8CF7A;}
   .toast{position:fixed;bottom:calc(110px + env(safe-area-inset-bottom));left:50%;
     transform:translateX(-50%) translateZ(0);-webkit-backface-visibility:hidden;
     z-index:90;background:var(--navy3);color:#DFF2FB;font-size:14px;
@@ -1067,6 +1079,7 @@
   <div class="hero-icons">
     <button class="gear-btn" id="openStats" aria-label="ההתקדמות שלי">
       <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M11 20V4M18 20v-7"/></svg>
+      <span class="streakBadge hidden" id="streakBadge"></span>
     </button>
     <button class="gear-btn" id="openSettings" aria-label="הגדרות">
       <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
@@ -1479,6 +1492,39 @@ function setDone(track,key,ch,val){
   const m=loadProgressMap(); const k=pKey(track,key,ch);
   if(val) m[k]=true; else delete m[k];
   saveProgressMap(m);
+}
+
+// ---------- learning streak (local; a "day" is credited once you mark >=1 halacha done that
+// day, using the same nightfall-aware learning day as the rest of the app). Unmarking a halacha
+// never breaks the streak — only marking one (bumpStreak) ever advances it. ----------
+const STREAK_KEY="hy_streak_v1";
+function _dayStr(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function todayLearningDay(){ return _dayStr(jewishReckoningDate().date); }
+function _daysBetween(a,b){ return Math.round((new Date(b+"T12:00:00")-new Date(a+"T12:00:00"))/86400000); }
+function loadStreak(){ try{ return JSON.parse(localStorage.getItem(STREAK_KEY)||"null")||{last:null,count:0,best:0}; }catch(e){ return {last:null,count:0,best:0}; } }
+function saveStreak(s){ try{ localStorage.setItem(STREAK_KEY,JSON.stringify(s)); }catch(e){} }
+// Whether today already has a stamp (used by the native shell to decide the evening reminder).
+function learnedToday(){ return loadStreak().last===todayLearningDay(); }
+// The streak to DISPLAY: 0 once a full day has been missed, even before today's first mark.
+function currentStreak(){
+  const s=loadStreak(); if(!s.last) return 0;
+  return _daysBetween(s.last, todayLearningDay())<=1 ? s.count : 0;
+}
+function bestStreak(){ return loadStreak().best||0; }
+const STREAK_MILESTONES=[7,30,100,180,365];
+function bumpStreak(){
+  const s=loadStreak(); const today=todayLearningDay();
+  if(s.last===today) return {count:s.count, justHitMilestone:false};
+  s.count = (s.last && _daysBetween(s.last,today)===1) ? s.count+1 : 1;
+  s.last=today; s.best=Math.max(s.best||0, s.count);
+  saveStreak(s);
+  return {count:s.count, justHitMilestone:STREAK_MILESTONES.includes(s.count)};
+}
+function renderStreakBadge(){
+  const b=document.getElementById("streakBadge"); if(!b) return;
+  const n=currentStreak();
+  b.classList.toggle("hidden", n<=0);
+  if(n>0) b.textContent="🔥"+n;
 }
 
 // ---------- favorites (separate bookmark, independent of "done") ----------
@@ -2189,6 +2235,11 @@ function renderReaderCard(navigated){
 
   document.getElementById("rChk").addEventListener("change", (e)=>{
     setDone(it.track,it.key,it.chapter, e.target.checked);
+    if(e.target.checked){
+      const st=bumpStreak();
+      renderStreakBadge();
+      if(st.justHitMilestone) setTimeout(()=>showToast("🔥 "+st.count+" ימים ברצף! כל הכבוד"), 650);
+    }
     document.querySelector("#rCard .halacha").classList.toggle("done", e.target.checked);
     const sealEl=document.querySelector("#sealSlot .seal");
     sealEl.classList.toggle("on", e.target.checked);
@@ -3352,7 +3403,7 @@ document.addEventListener("visibilitychange", ()=>{
 
 // The version this page was built with. The deploy script keeps it identical to sw.js's
 // CACHE_VERSION, so a running page can tell whether it is old code vs. what is live now.
-const APP_VERSION = "v273";
+const APP_VERSION = "v274";
 // Show the running version in the footer so "am I on the latest?" is answerable at a glance.
 (function(){ const set=()=>{ const e=document.getElementById("verLabel"); if(e) e.textContent="גרסה "+APP_VERSION; };
   if(document.readyState!=="loading") set(); else document.addEventListener("DOMContentLoaded",set); })();
@@ -3488,7 +3539,10 @@ async function renderStats(){
   }
 
   const grandPct = grandTotal?Math.round(grandDone/grandTotal*100):0;
-  html = '<div class="stats-hero">'+statRing("סה״כ", grandDone, grandTotal, 118, 11)+'</div>'
+  const streak=currentStreak(), best=bestStreak();
+  const flame = '<div class="flamebox"><div class="flame-n">🔥 '+streak+'</div>'+
+    '<div class="flame-l">'+(streak>0?'ימים ברצף'+(best>streak?' · השיא שלך '+best:''):'עוד לא התחלתם רצף — סמנו הלכה כ״למדתי״ היום')+'</div></div>';
+  html = flame + '<div class="stats-hero">'+statRing("סה״כ", grandDone, grandTotal, 118, 11)+'</div>'
     + '<div class="rings-row">' + html + '</div>'
     + (grandDone===0
         ? '<div class="note" style="margin-top:12px;">עוד לא סימנת הלכות כנלמדות. כל הלכה שתסמן תופיע כאן.</div>'
@@ -3558,6 +3612,7 @@ document.getElementById("statsOverlay").addEventListener("click",(e)=>{
 
 (async function init(){
   applyFsz(getFszIdx());
+  renderStreakBadge();
   initOffline();
   // Load the vocalized-source map in the background; when it arrives, re-render the open
   // reader so the nikud appears (it's precached, so this is instant after the first visit).
@@ -3584,9 +3639,14 @@ document.getElementById("statsOverlay").addEventListener("click",(e)=>{
 
 <script>
 /* Native shell integration (iOS/Android app build only — no-op on the plain website).
-   Adds the one piece of real native functionality the App Store wants to see beyond a
-   bare WebView: a daily local notification reminding the user that today's halacha is
-   ready, scheduled once and left to repeat — no server, no push infra, fully offline. */
+   Two real native features the App Store wants to see beyond a bare WebView, both fully
+   offline (no server, no push infra):
+   1. A fixed daily 07:30 notification that today's halacha is ready — scheduled once with a
+      fixed id, so rescheduling on every launch just overwrites the same notification.
+   2. A "don't lose your streak" evening reminder (id 2), rescheduled fresh on every launch:
+      cancelled outright if today's learning is already logged (see learnedToday() in the page
+      itself — index.html's streak feature), otherwise scheduled for this evening (or a few
+      minutes from now if it's already past that time), worded from the current streak length. */
 (function(){
   function whenCapacitorReady(cb){
     if(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) cb();
@@ -3603,9 +3663,6 @@ document.getElementById("statsOverlay").addEventListener("click",(e)=>{
         const req = await LocalNotifications.requestPermissions();
         if(req.display !== "granted") return;
       }
-      // Fixed id -> rescheduling on every launch just overwrites the same notification,
-      // so this is safe to call unconditionally instead of tracking a "did we already
-      // schedule this" flag in storage.
       await LocalNotifications.schedule({
         notifications: [{
           id: 1,
@@ -3614,6 +3671,22 @@ document.getElementById("statsOverlay").addEventListener("click",(e)=>{
           schedule: { on: { hour: 7, minute: 30 }, repeats: true, allowWhileIdle: true }
         }]
       });
+
+      await LocalNotifications.cancel({ notifications: [{ id: 2 }] });
+      const alreadyLearnedToday = typeof learnedToday === "function" && learnedToday();
+      if(!alreadyLearnedToday){
+        const now = new Date();
+        let at = new Date(); at.setHours(20, 30, 0, 0);
+        if(at <= now) at = new Date(now.getTime() + 5 * 60 * 1000);   // already past 20:30 — nudge shortly instead
+        const streak = typeof currentStreak === "function" ? currentStreak() : 0;
+        const title = streak > 0 ? "🔥 אל תפסידו את הרצף" : "הלכה יומית";
+        const body = streak > 0
+          ? streak + " ימים ברצף — היום עוד לא למדתם! לחצו לשמור על הרצף"
+          : "ההלכה של היום מחכה לכם — לחצו לקריאה";
+        await LocalNotifications.schedule({
+          notifications: [{ id: 2, title, body, schedule: { at, allowWhileIdle: true } }]
+        });
+      }
     }catch(e){ /* permission denied or plugin unavailable — app works fine without it */ }
   });
 })();
