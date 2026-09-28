@@ -166,10 +166,26 @@
     background:radial-gradient(ellipse at top,#FCF8EC,#F5EEDA 65%);color:#2B2A1A;}
 
   /* theme picker in Settings */
-  .seg{display:flex;gap:6px;background:var(--paper2);border-radius:999px;padding:5px;}
-  .seg button{flex:1;border:none;background:none;font-family:var(--sans);font-weight:800;font-size:13px;
-    color:var(--muted);padding:9px 6px;border-radius:999px;cursor:pointer;transition:.18s;}
-  .seg button.on{background:var(--card);color:var(--good-deep);box-shadow:var(--clay-sm);}
+  .seg{position:relative;display:flex;gap:6px;background:var(--paper2);border-radius:999px;padding:5px;}
+  .seg button{position:relative;z-index:1;flex:1;border:none;background:none;font-family:var(--sans);
+    font-weight:800;font-size:13px;color:var(--muted);padding:9px 6px;border-radius:999px;cursor:pointer;
+    transition:color .22s;}
+  .seg button.on{color:var(--good-deep);}
+  /* one pill glides to the chosen option (JS: moveSegPill) instead of each button's own
+     background snapping on/off — the same "animate the thing that moves" idea as the seal's
+     cross-fade layer above, just for a control with 3+ positions instead of 2. */
+  .seg-pill{position:absolute;top:5px;bottom:5px;left:5px;width:0;border-radius:999px;
+    background:var(--card);box-shadow:var(--clay-sm);z-index:0;
+    transition:transform .32s cubic-bezier(.34,1.4,.64,1), width .32s cubic-bezier(.34,1.4,.64,1);}
+  @media (prefers-reduced-motion: reduce){ .seg-pill{transition:none;} }
+  /* the five top-level screens fade + rise into place instead of hard-cutting in; the OUTGOING
+     screen still just disappears (display:none), which reads fine since attention is already
+     moving to what's arriving. */
+  #weekView.wrap,#topicsView.wrap,#pickerView.wrap,#searchView.wrap,#readerView.wrap{
+    animation:viewIn .32s cubic-bezier(.2,.8,.2,1);}
+  @keyframes viewIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+  @media (prefers-reduced-motion: reduce){
+    #weekView.wrap,#topicsView.wrap,#pickerView.wrap,#searchView.wrap,#readerView.wrap{animation:none;}}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html{scroll-behavior:smooth;}
   html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-weight:700;}
@@ -1107,6 +1123,7 @@
       <section class="settings-sec">
         <h3>מראה</h3>
         <div class="seg" id="themeSeg">
+          <span class="seg-pill" id="themeSegPill" aria-hidden="true"></span>
           <button data-theme-choice="auto">אוטומטי</button>
           <button data-theme-choice="light">בהיר</button>
           <button data-theme-choice="dark">כהה</button>
@@ -3403,7 +3420,7 @@ document.addEventListener("visibilitychange", ()=>{
 
 // The version this page was built with. The deploy script keeps it identical to sw.js's
 // CACHE_VERSION, so a running page can tell whether it is old code vs. what is live now.
-const APP_VERSION = "v274";
+const APP_VERSION = "v275";
 // Show the running version in the footer so "am I on the latest?" is answerable at a glance.
 (function(){ const set=()=>{ const e=document.getElementById("verLabel"); if(e) e.textContent="גרסה "+APP_VERSION; };
   if(document.readyState!=="loading") set(); else document.addEventListener("DOMContentLoaded",set); })();
@@ -3497,12 +3514,18 @@ function statRing(label, done, total, size, stroke){
   // so special-case it rather than letting "nothing done" look like "something done".
   const dash  = done>0 ? circ * (pct/100) : 0;
   const numSz = size>100 ? 30 : 21;
+  // The ring FILLS IN on every render instead of appearing already-drawn: stroke-dasharray is
+  // fixed at the full circumference (so the fg circle is always a complete, static ring shape),
+  // and stroke-dashoffset carries the "how much is hidden" amount. It starts at the full
+  // circumference (fully hidden) via an inline style, then a tiny script right after insertion
+  // flips it to the real offset — the change is what the .ring-fg transition animates, the same
+  // trick the seal/tab-bar bounces use elsewhere (set start state, force reflow, set end state).
   return '<div class="ring-wrap">'+
     '<div class="ring-box">'+
       '<svg class="ring" width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'" aria-hidden="true">'+
         '<circle class="ring-bg" cx="'+(size/2)+'" cy="'+(size/2)+'" r="'+r.toFixed(2)+'" stroke-width="'+stroke+'"/>'+
         '<circle class="ring-fg" cx="'+(size/2)+'" cy="'+(size/2)+'" r="'+r.toFixed(2)+'" stroke-width="'+stroke+'" '+
-          'stroke-dasharray="'+dash.toFixed(2)+' '+circ.toFixed(2)+'"/>'+
+          'stroke-dasharray="'+circ.toFixed(2)+'" stroke-dashoffset="'+circ.toFixed(2)+'" data-fill="'+(circ-dash).toFixed(2)+'"/>'+
       '</svg>'+
       '<div class="ring-mid">'+
         '<span class="ring-done" style="font-size:'+numSz+'px">'+done+'</span>'+
@@ -3552,6 +3575,13 @@ async function renderStats(){
   // only ever included topics you'd already started, so it read as a stray half-empty stub
   // under the rings rather than as information.
   body.innerHTML=html;
+  // Force one frame with the rings still fully hidden (the inline stroke-dashoffset set above)
+  // before revealing the true fill, so the CSS transition on .ring-fg has a "before" to animate
+  // FROM — an innerHTML insert has no such thing on its own, so without this every ring would
+  // just appear already at its final position instead of drawing in.
+  const ringEls=[...body.querySelectorAll(".ring-fg")];
+  void body.offsetWidth;
+  ringEls.forEach(c=>{ c.style.strokeDashoffset=c.dataset.fill; });
 }
 
 // ---------- theme (auto / light / dark) ----------
@@ -3567,7 +3597,19 @@ function applyTheme(pref){
   if(m) m.setAttribute("content", dark ? "#10161A" : "#E3F1F2");
   [...document.querySelectorAll("#themeSeg button")].forEach(b=>
     b.classList.toggle("on", b.dataset.themeChoice===pref));
+  moveSegPill();
 }
+// Slides #themeSegPill behind whichever button is .on. Physical-pixel rect math, so it needs no
+// separate RTL handling: the button's own true on-screen position already accounts for it.
+function moveSegPill(){
+  const seg=document.getElementById("themeSeg"), pill=document.getElementById("themeSegPill");
+  const btn=seg && seg.querySelector("button.on");
+  if(!seg || !pill || !btn) return;
+  const segR=seg.getBoundingClientRect(), btnR=btn.getBoundingClientRect();
+  pill.style.width=btnR.width+"px";
+  pill.style.transform="translateX("+(btnR.left-segR.left-5)+"px)";
+}
+window.addEventListener("resize", ()=>{ if(!document.getElementById("settingsOverlay").classList.contains("hidden")) moveSegPill(); });
 function setTheme(pref){
   try{ localStorage.setItem(THEME_KEY, pref); }catch(e){}
   applyTheme(pref);
