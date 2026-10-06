@@ -23,13 +23,14 @@ What differs from the website (and WHY — see HANDOFF_README.md):
      injection, which the app instead avoids by escaping everywhere user/content text is
      inserted (see esc()/hiTerms() in index.html).
   5. iOS-only native chrome bridge (CHROME_HEAD_BLOCK): on iOS (not Android, not the website),
-     the HTML bottom tab bar and the reader's back/share buttons are hidden in favor of
-     native UIKit bars (Liquid Glass on iOS 26+, a UIBlurEffect fallback below that) added
-     by ios/App/App/LiquidGlassChrome.swift. index.html calls a tiny notifyNativeChrome()
-     helper (defined in this block, safe to call unconditionally — no-ops on web/Android)
-     from 4 existing spots (setActiveTab, enterReaderView, the #rBack handler, applyTheme)
-     so the native bars stay in sync with tab/reader/theme state. See LiquidGlassChrome.swift
-     for the native side and the message protocol it expects.
+     the HTML bottom tab bar, the reader's back/share buttons, and the search box are hidden
+     in favor of native UIKit controls (Liquid Glass on iOS 26+, standard bar material on
+     15-25) added by ios/App/App/LiquidGlassChrome.swift. index.html calls a tiny
+     notifyNativeChrome() helper (defined in this block, safe to call unconditionally —
+     no-ops on web/Android) from 5 existing spots (setActiveTab, enterReaderView, the #rBack
+     handler, applyTheme, and the #rChk "mark as learned" handler) so the native bars/haptics
+     stay in sync with tab/reader/theme state and fire on the right moments. See
+     LiquidGlassChrome.swift for the native side and the message protocol it expects.
 Everything else (content, CSS, versions) is byte-identical to the site, so a content update
 is: deploy the site, run this script, bump CFBundleVersion in Xcode, archive.
 """
@@ -134,7 +135,8 @@ CHROME_HEAD_BLOCK = r'''
 /* Liquid Glass native chrome (iOS app only) replaces these — see LiquidGlassChrome.swift. */
 html.ios-native-chrome .tabbar,
 html.ios-native-chrome #rBack,
-html.ios-native-chrome #rShareBtn{display:none !important;}
+html.ios-native-chrome #rShareBtn,
+html.ios-native-chrome .search-box{display:none !important;}
 </style>
 <script>
 (function(){
@@ -149,6 +151,13 @@ html.ios-native-chrome #rShareBtn{display:none !important;}
         window.webkit.messageHandlers.nativeChrome.postMessage(msg);
       }
     }catch(e){}
+  };
+  // The other direction: the native UISearchBar (search tab only, see LiquidGlassChrome.swift)
+  // drives the existing #searchInput + its debounced "input" listener, rather than
+  // duplicating the search-triggering logic natively.
+  window.nativeSetSearchQuery = function(q){
+    var el = document.getElementById("searchInput");
+    if(el){ el.value = q; el.dispatchEvent(new Event("input")); }
   };
 })();
 </script>
@@ -229,6 +238,15 @@ def main() -> int:
                         '  const dark = pref==="dark" || (pref==="auto" && systemPrefersDark());\n'
                         '  notifyNativeChrome({type:"theme", dark:dark});',
                         "index.html applyTheme bridge")
+    html = replace_once(html,
+                        '      const st=bumpStreak();\n'
+                        '      renderStreakBadge();\n'
+                        '      if(st.justHitMilestone) setTimeout(()=>showToast("🔥 "+st.count+" ימים ברצף! כל הכבוד"), 650);',
+                        '      const st=bumpStreak();\n'
+                        '      renderStreakBadge();\n'
+                        '      notifyNativeChrome({type:"haptic", style: st.justHitMilestone ? "success" : "light"});\n'
+                        '      if(st.justHitMilestone) setTimeout(()=>showToast("🔥 "+st.count+" ימים ברצף! כל הכבוד"), 650);',
+                        "index.html mark-as-learned haptic bridge")
     html = replace_once(html, "</body>", NATIVE_BLOCK + "</body>", "index.html </body>")
     open(p, "w", encoding="utf-8").write(html)
 

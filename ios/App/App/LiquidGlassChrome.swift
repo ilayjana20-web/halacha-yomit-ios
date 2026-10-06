@@ -1,3 +1,4 @@
+import Foundation
 import UIKit
 import WebKit
 import Capacitor
@@ -27,11 +28,13 @@ private final class WeakScriptMessageHandler: NSObject, WKScriptMessageHandler {
 /// `window.webkit.messageHandlers.nativeChrome` — see `userContentController(_:didReceive:)`
 /// below for the exact message shapes it sends. The website and a future Android build are
 /// untouched: that gating lives entirely in index.html, keyed off `Capacitor.getPlatform()`.
-final class MainContainerViewController: UIViewController, WKScriptMessageHandler, UITabBarDelegate {
+final class MainContainerViewController: UIViewController, WKScriptMessageHandler, UITabBarDelegate, UISearchBarDelegate {
 
     private let capVC = CAPBridgeViewController()
     private let tabBar = UITabBar()
     private let navBar = UINavigationBar()
+    private let searchBar = UISearchBar()
+    private var searchDebounce: DispatchWorkItem?
 
     // Order and ids match index.html's #segWeek/#segTopics/#segPicker/#segSearch exactly —
     // each tap below just clicks the corresponding existing web button, reusing all of its
@@ -42,6 +45,7 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
         ("segPicker", "כל הפרשיות", "books.vertical"),
         ("segSearch", "חיפוש",      "magnifyingglass"),
     ]
+    private let searchTabId = "segSearch"
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -65,6 +69,7 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
 
         setupTabBar()
         setupNavBar()
+        setupSearchBar()
     }
 
     private func setupTabBar() {
@@ -103,8 +108,33 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
         ])
     }
 
+    private func setupSearchBar() {
+        searchBar.delegate = self
+        searchBar.placeholder = "חפשו מילה, נושא או ביטוי…"
+        searchBar.searchBarStyle = .minimal   // lets the bar's own background show through, not a boxed field
+        searchBar.isHidden = true             // only the search tab shows it — see the "tab" message below
+
+        view.addSubview(searchBar)
+        searchBar.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            searchBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+        ])
+    }
+
     private func runJS(_ js: String) {
         capVC.webView?.evaluateJavaScript(js, completionHandler: nil)
+    }
+
+    /// Safely embeds an arbitrary string (Hebrew text, quotes, anything) as a JS string literal
+    /// by round-tripping it through JSON encoding rather than hand-escaping characters: encode
+    /// [s] as JSON (always valid JS, hence valid as a snippet of a larger JS expression too),
+    /// then strip the wrapping "[" / "]" to get just the string literal itself.
+    private func jsStringLiteral(_ s: String) -> String {
+        guard let data = try? JSONSerialization.data(withJSONObject: [s]),
+              let json = String(data: data, encoding: .utf8), json.count >= 2 else { return "\"\"" }
+        return String(json.dropFirst().dropLast())
     }
 
     @objc private func backTapped() {
@@ -122,11 +152,33 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
         runJS("var b=document.getElementById('\(id)'); if(b) b.click();")
     }
 
+    // MARK: UISearchBarDelegate — drives the existing #searchInput + its debounced "input"
+    // listener through nativeSetSearchQuery (CHROME_HEAD_BLOCK in make_www.py) rather than
+    // duplicating the search logic natively. Debounced the same way the web side already
+    // debounces its own typing, so this isn't firing evaluateJavaScript on every keystroke.
+
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        searchDebounce?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            self.runJS("if(window.nativeSetSearchQuery) window.nativeSetSearchQuery(\(self.jsStringLiteral(searchText)));")
+        }
+        searchDebounce = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15, execute: work)
+    }
+
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.resignFirstResponder()
+    }
+
     // MARK: WKScriptMessageHandler — the JS side is CHROME_HEAD_BLOCK in make_www.py.
     // Message shapes:
     //   {type:"tab", id:"segWeek"|"segTopics"|"segPicker"|"segSearch"}
     //   {type:"reader", open:true, title:"..."} / {type:"reader", open:false}
     //   {type:"theme", dark:true|false}
+    //   {type:"haptic", style:"light"|"success"}
+
+    private var isReaderOpen = false
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         guard let body = message.body as? [String: Any], let type = body["type"] as? String else { return }
@@ -134,14 +186,26 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
         case "tab":
             guard let id = body["id"] as? String, let index = tabs.firstIndex(where: { $0.id == id }) else { return }
             tabBar.selectedItem = tabBar.items?[index]
+            if !isReaderOpen {
+                let showSearch = (id == searchTabId)
+                searchBar.isHidden = !showSearch
+                if !showSearch { searchBar.resignFirstResponder() }
+            }
         case "reader":
             let open = (body["open"] as? Bool) ?? false
+            isReaderOpen = open
             navBar.items?.first?.title = (body["title"] as? String) ?? ""
             // The reader is a full-screen drill-in, not a tab destination, so it swaps the tab
-            // bar for the nav bar rather than showing both at once.
+            // bar (and the search bar, if that's where the reader was opened from) for the nav
+            // bar rather than showing any of them at once.
             UIView.animate(withDuration: 0.22) {
                 self.navBar.isHidden = !open
                 self.tabBar.isHidden = open
+                if open {
+                    self.searchBar.isHidden = true
+                } else if let tag = self.tabBar.selectedItem?.tag, self.tabs[tag].id == self.searchTabId {
+                    self.searchBar.isHidden = false
+                }
             }
         case "theme":
             // UITabBar/UINavigationBar already track light/dark automatically via the system
@@ -150,6 +214,13 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
             // setting, vs. "auto" which just follows it), so force it to match here.
             let dark = (body["dark"] as? Bool) ?? false
             overrideUserInterfaceStyle = dark ? .dark : .light
+        case "haptic":
+            let style = (body["style"] as? String) ?? "light"
+            if style == "success" {
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
+            } else {
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            }
         default:
             break
         }

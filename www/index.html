@@ -27,7 +27,8 @@
 /* Liquid Glass native chrome (iOS app only) replaces these — see LiquidGlassChrome.swift. */
 html.ios-native-chrome .tabbar,
 html.ios-native-chrome #rBack,
-html.ios-native-chrome #rShareBtn{display:none !important;}
+html.ios-native-chrome #rShareBtn,
+html.ios-native-chrome .search-box{display:none !important;}
 </style>
 <script>
 (function(){
@@ -42,6 +43,13 @@ html.ios-native-chrome #rShareBtn{display:none !important;}
         window.webkit.messageHandlers.nativeChrome.postMessage(msg);
       }
     }catch(e){}
+  };
+  // The other direction: the native UISearchBar (search tab only, see LiquidGlassChrome.swift)
+  // drives the existing #searchInput + its debounced "input" listener, rather than
+  // duplicating the search-triggering logic natively.
+  window.nativeSetSearchQuery = function(q){
+    var el = document.getElementById("searchInput");
+    if(el){ el.value = q; el.dispatchEvent(new Event("input")); }
   };
 })();
 </script>
@@ -2280,6 +2288,7 @@ function renderReaderCard(navigated){
     if(e.target.checked){
       const st=bumpStreak();
       renderStreakBadge();
+      notifyNativeChrome({type:"haptic", style: st.justHitMilestone ? "success" : "light"});
       if(st.justHitMilestone) setTimeout(()=>showToast("🔥 "+st.count+" ימים ברצף! כל הכבוד"), 650);
     }
     document.querySelector("#rCard .halacha").classList.toggle("done", e.target.checked);
