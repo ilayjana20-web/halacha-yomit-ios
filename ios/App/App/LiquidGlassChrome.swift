@@ -1,6 +1,7 @@
 import Foundation
 import UIKit
 import WebKit
+import StoreKit
 import Capacitor
 
 /// `WKUserContentController.add(_:name:)` always retains its handler strongly. The "real"
@@ -70,6 +71,8 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
         setupTabBar()
         setupNavBar()
         setupSearchBar()
+
+        UpdateCheck.checkAndPromptIfNeeded(from: self)
     }
 
     private func setupTabBar() {
@@ -218,6 +221,13 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
             let style = (body["style"] as? String) ?? "light"
             if style == "success" {
                 UINotificationFeedbackGenerator().notificationOccurred(.success)
+                // A streak milestone (the only thing that sends "success", not every mark-as-
+                // learned tap) is a good, infrequent, genuinely-happy moment to ask for a
+                // review — StoreKit itself throttles how often this can actually show (a system
+                // limit, a few times a year), so there's no need to track that here too.
+                if let scene = view.window?.windowScene {
+                    SKStoreReviewController.requestReview(in: scene)
+                }
             } else {
                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
             }
