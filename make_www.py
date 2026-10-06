@@ -167,6 +167,26 @@ html.ios-native-chrome .search-box{display:none !important;}
     var el = document.getElementById("searchInput");
     if(el){ el.value = q; el.dispatchEvent(new Event("input")); }
   };
+  // Pushes the streak + today's parasha into the HalachaWidget's shared App Group storage
+  // (see ios/App/App/HalachaWidgetBridge.swift) so the home-screen widget reflects the
+  // learner's real state. No-ops on web/Android or before the native target exists. Called
+  // from the streak badge, the theme switcher and the weekly-home render (see their call
+  // sites below) — never from here, so it always runs after the real DOM/localStorage state
+  // it reads is already up to date.
+  window.syncWidgetData = function(){
+    try{
+      var plugin = isIOSNative && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.HalachaWidgetBridge;
+      if(!plugin) return;
+      var titleEl = document.getElementById("wParasha");
+      plugin.updateSharedData({
+        streakCount: typeof currentStreak === "function" ? currentStreak() : 0,
+        streakBest: typeof bestStreak === "function" ? bestStreak() : 0,
+        learnedToday: typeof learnedToday === "function" ? learnedToday() : false,
+        theme: (typeof getTheme === "function" && getTheme() === "auto") ? (systemPrefersDark() ? "dark" : "light") : getTheme(),
+        parashaHe: titleEl ? titleEl.textContent : ""
+      });
+    }catch(e){}
+  };
 })();
 </script>
 '''
@@ -377,6 +397,38 @@ def main() -> int:
                         '\n'
                         '<div class="modal-overlay hidden" id="statsOverlay">',
                         "index.html share settings section")
+    html = replace_once(html,
+                        '  [...document.querySelectorAll("#themeSeg button")].forEach(b=>\n'
+                        '    b.classList.toggle("on", b.dataset.themeChoice===pref));\n'
+                        '  moveSegPill();\n'
+                        '}',
+                        '  [...document.querySelectorAll("#themeSeg button")].forEach(b=>\n'
+                        '    b.classList.toggle("on", b.dataset.themeChoice===pref));\n'
+                        '  moveSegPill();\n'
+                        '  syncWidgetData();\n'
+                        '}', "index.html applyTheme widget sync")
+    html = replace_once(html,
+                        '  const n=currentStreak();\n'
+                        '  b.classList.toggle("hidden", n<=0);\n'
+                        '  if(n>0) b.textContent="🔥"+n;\n'
+                        '}',
+                        '  const n=currentStreak();\n'
+                        '  b.classList.toggle("hidden", n<=0);\n'
+                        '  if(n>0) b.textContent="🔥"+n;\n'
+                        '  syncWidgetData();\n'
+                        '}', "index.html renderStreakBadge widget sync")
+    html = replace_once(html,
+                        '      lastHome="week";\n'
+                        '      await openReader(keys, (rec.title_he||"פרשת השבוע")+" · "+trackName(tk), {startAt:"first-unread"});\n'
+                        '    });\n'
+                        '  });\n'
+                        '}',
+                        '      lastHome="week";\n'
+                        '      await openReader(keys, (rec.title_he||"פרשת השבוע")+" · "+trackName(tk), {startAt:"first-unread"});\n'
+                        '    });\n'
+                        '  });\n'
+                        '  syncWidgetData();\n'
+                        '}', "index.html renderWeek widget sync")
     html = replace_once(html, "</body>", NATIVE_BLOCK + SHARE_BLOCK + "</body>", "index.html </body>")
     open(p, "w", encoding="utf-8").write(html)
 
