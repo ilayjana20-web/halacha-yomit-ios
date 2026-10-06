@@ -2,6 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://www.gstatic.com https://www.sefaria.org https://*.firebaseio.com wss://*.firebaseio.com; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#E3F1F2">
 <title>הלכות הבן איש חי</title>
@@ -19,6 +20,29 @@
   if(dark) document.documentElement.setAttribute("data-theme","dark");
   var m=document.querySelector('meta[name="theme-color"]');
   if(m) m.setAttribute("content", dark ? "#10161A" : "#E3F1F2");
+})();
+</script>
+
+<style>
+/* Liquid Glass native chrome (iOS app only) replaces these — see LiquidGlassChrome.swift. */
+html.ios-native-chrome .tabbar,
+html.ios-native-chrome #rBack,
+html.ios-native-chrome #rShareBtn{display:none !important;}
+</style>
+<script>
+(function(){
+  var isIOSNative = !!(window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform()==="ios");
+  document.documentElement.classList.toggle("ios-native-chrome", isIOSNative);
+  // Safe to call from anywhere, anytime, including synchronously during the earliest page
+  // script — no-ops instantly on web/Android, or if the native side hasn't registered the
+  // message handler yet for any reason.
+  window.notifyNativeChrome = function(msg){
+    try{
+      if(isIOSNative && window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.nativeChrome){
+        window.webkit.messageHandlers.nativeChrome.postMessage(msg);
+      }
+    }catch(e){}
+  };
 })();
 </script>
 <link rel="manifest" href="manifest.json">
@@ -2085,6 +2109,7 @@ function scrollPageTop(){
 // scroll reset lived in only one — so opening a halacha from a scrolled-down parshiyot list
 // (or from the week screen) dropped you into the middle of the reader instead of at its top.
 function enterReaderView(title){
+  notifyNativeChrome({type:"reader", open:true, title:title||""});
   document.getElementById("weekView").classList.add("hidden");
   document.getElementById("topicsView").classList.add("hidden");
   document.getElementById("pickerView").classList.add("hidden");
@@ -2334,6 +2359,7 @@ document.getElementById("rSkipUnread").addEventListener("click", ()=>{
 });
 document.getElementById("rBack").addEventListener("click", ()=>{
   document.getElementById("readerView").classList.add("hidden");
+  notifyNativeChrome({type:"reader", open:false});
   document.body.classList.remove("reading");   // restore the full hero on the home screens
   if(lastHome==="topics"){ document.getElementById("topicsView").classList.remove("hidden"); }
   else if(lastHome==="picker"){ document.getElementById("pickerView").classList.remove("hidden"); }
@@ -3360,6 +3386,7 @@ function hideAllViews(){
 }
 function setActiveTab(id){
   ["segWeek","segTopics","segPicker","segSearch"].forEach(x=>document.getElementById(x).classList.toggle("active",x===id));
+  notifyNativeChrome({type:"tab", id:id});
 }
 document.getElementById("segWeek").addEventListener("click",()=>{
   setActiveTab("segWeek"); hideAllViews();
@@ -3592,6 +3619,7 @@ function systemPrefersDark(){
 }
 function applyTheme(pref){
   const dark = pref==="dark" || (pref==="auto" && systemPrefersDark());
+  notifyNativeChrome({type:"theme", dark:dark});
   document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
   const m=document.querySelector('meta[name="theme-color"]');
   if(m) m.setAttribute("content", dark ? "#10161A" : "#E3F1F2");

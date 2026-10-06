@@ -15,6 +15,21 @@ What differs from the website (and WHY — see HANDOFF_README.md):
      "don't lose your streak" evening reminder that only fires if today's halacha is
      still unmarked — both via @capacitor/local-notifications, the real native feature
      of the app (see the streak feature in index.html: learnedToday()/currentStreak()).
+  4. A Content-Security-Policy meta tag is added (app bundle only — the live site doesn't
+     get it from here). Defense-in-depth: the inline-script app still needs 'unsafe-inline'
+     for script-src/style-src (everything is one bundled file, no nonces), so this mainly
+     blocks exfiltration to new hosts and loading of any THIRD-PARTY script/host beyond the
+     ones the app actually uses (fonts, Firebase, html2canvas CDN, Sefaria API) — not inline
+     injection, which the app instead avoids by escaping everywhere user/content text is
+     inserted (see esc()/hiTerms() in index.html).
+  5. iOS-only native chrome bridge (CHROME_HEAD_BLOCK): on iOS (not Android, not the website),
+     the HTML bottom tab bar and the reader's back/share buttons are hidden in favor of
+     native UIKit bars (Liquid Glass on iOS 26+, a UIBlurEffect fallback below that) added
+     by ios/App/App/LiquidGlassChrome.swift. index.html calls a tiny notifyNativeChrome()
+     helper (defined in this block, safe to call unconditionally — no-ops on web/Android)
+     from 4 existing spots (setActiveTab, enterReaderView, the #rBack handler, applyTheme)
+     so the native bars stay in sync with tab/reader/theme state. See LiquidGlassChrome.swift
+     for the native side and the message protocol it expects.
 Everything else (content, CSS, versions) is byte-identical to the site, so a content update
 is: deploy the site, run this script, bump CFBundleVersion in Xcode, archive.
 """
@@ -86,6 +101,59 @@ NATIVE_BLOCK = r'''
 </script>
 '''
 
+# A fixed, hand-enumerated allowlist — every external host index.html actually fetches from
+# (checked against the live source each time this script runs the main() below, which will
+# start failing replace_once calls the day a new external host is added and this list isn't).
+# frame-ancestors is deliberately NOT included: it's a no-op (silently ignored by browsers,
+# with a console warning) on a meta-tag CSP — it only works as a real HTTP response header,
+# which a bundled static file never has — so it would be a false sense of protection.
+CSP_META = ('<meta http-equiv="Content-Security-Policy" content="'
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "font-src 'self' https://fonts.gstatic.com; "
+            "img-src 'self' data: blob:; "
+            "connect-src 'self' https://www.gstatic.com https://www.sefaria.org "
+            "https://*.firebaseio.com wss://*.firebaseio.com; "
+            "object-src 'none'; base-uri 'self'; form-action 'self'"
+            '">')
+
+# iOS-only: hides the HTML bottom tab bar + reader back/share buttons (native Swift bars take
+# over, see LiquidGlassChrome.swift) and bridges 4 existing JS call sites to the native side via
+# window.webkit.messageHandlers.nativeChrome. No-op on the website and on a future Android build
+# (gated on Capacitor.getPlatform()==="ios", not just isNativePlatform()).
+#
+# Injected right after the early theme-bootstrap script in <head> (NOT at the end of <body>,
+# where NATIVE_BLOCK lives): applyTheme(getTheme()) runs synchronously near the top of the
+# page's main script, well before </body>, and it calls notifyNativeChrome() — so the function
+# must already exist by then, or that's an uncaught "notifyNativeChrome is not defined" at
+# page load. Defining it this early costs nothing (it's a 3-line function) and sidesteps any
+# dependency on script execution order entirely.
+CHROME_HEAD_BLOCK = r'''
+<style>
+/* Liquid Glass native chrome (iOS app only) replaces these — see LiquidGlassChrome.swift. */
+html.ios-native-chrome .tabbar,
+html.ios-native-chrome #rBack,
+html.ios-native-chrome #rShareBtn{display:none !important;}
+</style>
+<script>
+(function(){
+  var isIOSNative = !!(window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform()==="ios");
+  document.documentElement.classList.toggle("ios-native-chrome", isIOSNative);
+  // Safe to call from anywhere, anytime, including synchronously during the earliest page
+  // script — no-ops instantly on web/Android, or if the native side hasn't registered the
+  // message handler yet for any reason.
+  window.notifyNativeChrome = function(msg){
+    try{
+      if(isIOSNative && window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.nativeChrome){
+        window.webkit.messageHandlers.nativeChrome.postMessage(msg);
+      }
+    }catch(e){}
+  };
+})();
+</script>
+'''
+
 
 def replace_once(text: str, old: str, new: str, what: str) -> str:
     n = text.count(old)
@@ -114,7 +182,8 @@ def main() -> int:
                       '    );', "sw.js cache delete")
     open(p, "w", encoding="utf-8").write(sw)
 
-    # 2. index.html — Firebase counters stay on inside the native app; 3. native block
+    # 2. index.html — Firebase counters stay on inside the native app; 3. native block;
+    #    4. CSP meta tag; 5. iOS native-chrome bridge (4 call sites + appended block)
     p = os.path.join(DST, "index.html")
     html = open(p, encoding="utf-8").read()
     html = replace_once(html, "  if(IS_LOCAL) return;                       // chips just stay at their \"–\" placeholder",
@@ -123,6 +192,43 @@ def main() -> int:
                         "  const IS_NATIVE_APP = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());\n"
                         "  if(IS_LOCAL && !IS_NATIVE_APP) return;     // chips just stay at their \"–\" placeholder",
                         "index.html IS_LOCAL guard")
+    html = replace_once(html, '<meta charset="UTF-8">',
+                        '<meta charset="UTF-8">\n' + CSP_META, "index.html CSP meta")
+    html = replace_once(html,
+                        '  if(m) m.setAttribute("content", dark ? "#10161A" : "#E3F1F2");\n'
+                        '})();\n'
+                        '</script>\n'
+                        '<link rel="manifest" href="manifest.json">',
+                        '  if(m) m.setAttribute("content", dark ? "#10161A" : "#E3F1F2");\n'
+                        '})();\n'
+                        '</script>\n'
+                        + CHROME_HEAD_BLOCK +
+                        '<link rel="manifest" href="manifest.json">',
+                        "index.html chrome head block")
+    html = replace_once(html,
+                        '  ["segWeek","segTopics","segPicker","segSearch"].forEach(x=>document.getElementById(x).classList.toggle("active",x===id));\n'
+                        '}',
+                        '  ["segWeek","segTopics","segPicker","segSearch"].forEach(x=>document.getElementById(x).classList.toggle("active",x===id));\n'
+                        '  notifyNativeChrome({type:"tab", id:id});\n'
+                        '}', "index.html setActiveTab bridge")
+    html = replace_once(html, "function enterReaderView(title){",
+                        "function enterReaderView(title){\n"
+                        '  notifyNativeChrome({type:"reader", open:true, title:title||""});',
+                        "index.html enterReaderView bridge")
+    html = replace_once(html,
+                        'document.getElementById("rBack").addEventListener("click", ()=>{\n'
+                        '  document.getElementById("readerView").classList.add("hidden");',
+                        'document.getElementById("rBack").addEventListener("click", ()=>{\n'
+                        '  document.getElementById("readerView").classList.add("hidden");\n'
+                        '  notifyNativeChrome({type:"reader", open:false});',
+                        "index.html rBack bridge")
+    html = replace_once(html,
+                        'function applyTheme(pref){\n'
+                        '  const dark = pref==="dark" || (pref==="auto" && systemPrefersDark());',
+                        'function applyTheme(pref){\n'
+                        '  const dark = pref==="dark" || (pref==="auto" && systemPrefersDark());\n'
+                        '  notifyNativeChrome({type:"theme", dark:dark});',
+                        "index.html applyTheme bridge")
     html = replace_once(html, "</body>", NATIVE_BLOCK + "</body>", "index.html </body>")
     open(p, "w", encoding="utf-8").write(html)
 
