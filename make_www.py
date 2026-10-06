@@ -31,6 +31,14 @@ What differs from the website (and WHY — see HANDOFF_README.md):
      handler, applyTheme, and the #rChk "mark as learned" handler) so the native bars/haptics
      stay in sync with tab/reader/theme state and fire on the right moments. See
      LiquidGlassChrome.swift for the native side and the message protocol it expects.
+  6. Share-the-app (SHARE_BLOCK), app-bundle only, NOT platform-gated (Web Share API + Canvas
+     work the same on web/iOS/Android): a "שיתוף" section in Settings with a plain text share
+     and a "share QR" that draws a branded PNG (app icon + title + QR code) entirely on
+     <canvas>, offline — vendor/qrcode.js (the MIT-licensed kazuhikoarase QR generator,
+     checked into this repo) is copied into www/ by this script, rather than fetching a QR
+     from an external image API like some other apps' web code does, which would silently
+     fail offline and isn't worth the CSP connect-src hole for an app this deliberately
+     offline-first. APP_STORE_URL below needs to be the app's real App Store link.
 Everything else (content, CSS, versions) is byte-identical to the site, so a content update
 is: deploy the site, run this script, bump CFBundleVersion in Xcode, archive.
 """
@@ -163,6 +171,103 @@ html.ios-native-chrome .search-box{display:none !important;}
 </script>
 '''
 
+# TODO(david): replace with the app's real App Store link before shipping this feature —
+# https://apps.apple.com/app/<slug>/id<numeric id>. Deliberately left as an obvious
+# placeholder (not a guess) so this is impossible to ship by accident.
+APP_STORE_URL = "https://apps.apple.com/app/REPLACE_WITH_REAL_SLUG/idREPLACE_WITH_REAL_ID"
+
+SHARE_SETTINGS_SECTION = '''      <section class="settings-sec">
+        <h3>שיתוף</h3>
+        <button class="tool-btn" id="shareAppBtn" style="width:100%;justify-content:center;margin-bottom:8px;">''' + \
+    '<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.7l7.4-4.2M8.3 13.3l7.4 4.2"/></svg>' + '''<span>שתפו את האפליקציה</span></button>
+        <button class="tool-btn" id="shareQrBtn" style="width:100%;justify-content:center;">''' + \
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3.5" y="3.5" width="6" height="6" rx="1"/><rect x="14.5" y="3.5" width="6" height="6" rx="1"/><rect x="3.5" y="14.5" width="6" height="6" rx="1"/><path d="M14.5 14.5h3v3h-3zM19.5 14.5v3M14.5 19.5h3M17.5 17.5h.01"/></svg>' + '''<span>שתפו קוד QR</span></button>
+      </section>
+'''
+
+# Appended before </body> alongside NATIVE_BLOCK. Not gated to any platform (Web Share API +
+# <canvas> work identically on web/iOS/Android) — see point 6 in the module docstring above.
+SHARE_BLOCK = r'''
+<script>
+const APP_STORE_URL = "''' + APP_STORE_URL + r'''";
+async function _ensureQrLib(){ if(!window.qrcode) await _loadScript("qrcode.js"); }
+function shareAppText(){
+  const text="📖 הלכות הבן איש חי — הלכה אחת ביום, בדיוק לפי הסדר של הבן איש חי\n"+APP_STORE_URL;
+  if(navigator.share){ navigator.share({title:"הלכות הבן איש חי", text}).catch(()=>{}); }
+  else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(()=>showToast("הקישור הועתק")).catch(()=>{}); }
+}
+// Fixed light/gold theme regardless of the viewer's in-app dark/light choice, so the shared
+// image always looks the same no matter who sent it or what mode they were in — same reasoning
+// Bet-El's app share image uses a fixed theme rather than tracking S.theme.
+async function buildAppQrImage(){
+  await _ensureQrLib();
+  if(document.fonts && document.fonts.ready) await document.fonts.ready;
+  const qr=qrcode(0,"M"); qr.addData(APP_STORE_URL); qr.make();
+
+  const W=1080,H=1400;
+  const cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+  const ctx=cv.getContext("2d");
+  const bg1="#F5EEDA",bg2="#FCF8EC",navy="#0F314D",gold="#BF9530",goldDeep="#8A6A1E",ink="#2B2A1A";
+  const g=ctx.createLinearGradient(0,0,W,H); g.addColorStop(0,bg2); g.addColorStop(1,bg1);
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle="rgba(191,149,48,.35)"; ctx.lineWidth=3; ctx.strokeRect(30,30,W-60,H-60);
+  ctx.strokeStyle="rgba(191,149,48,.18)"; ctx.lineWidth=1; ctx.strokeRect(44,44,W-88,H-88);
+
+  await new Promise(res=>{
+    const im=new Image();
+    im.onload=()=>{ const lw=200,lh=200; ctx.drawImage(im,(W-lw)/2,70,lw,lh); res(); };
+    im.onerror=res; im.src="icon-512.png";
+  });
+
+  ctx.textAlign="center";
+  ctx.fillStyle=navy; ctx.font='900 56px "Frank Ruhl Libre",serif';
+  ctx.fillText("הלכות הבן איש חי", W/2, 350);
+  ctx.fillStyle=ink; ctx.font='400 30px "Heebo",sans-serif';
+  ctx.fillText("הלכה אחת ביום", W/2, 395);
+
+  ctx.strokeStyle="rgba(191,149,48,.35)"; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(150,430); ctx.lineTo(W-150,430); ctx.stroke();
+  ctx.fillStyle=gold; ctx.font="30px serif"; ctx.fillText("✦", W/2, 440);
+
+  // The QR itself is drawn module-by-module straight onto the canvas (no image request at
+  // all) — fully offline, unlike a remote QR-image-generator API.
+  const qrSize=560, qrX=(W-qrSize)/2, qrY=490;
+  const count=qr.getModuleCount(), cell=qrSize/count;
+  ctx.fillStyle="#FFFFFF"; ctx.fillRect(qrX,qrY,qrSize,qrSize);
+  ctx.fillStyle=navy;
+  for(let r=0;r<count;r++) for(let c=0;c<count;c++)
+    if(qr.isDark(r,c)) ctx.fillRect(qrX+c*cell, qrY+r*cell, Math.ceil(cell), Math.ceil(cell));
+
+  ctx.fillStyle=ink; ctx.font='500 30px "Heebo",sans-serif';
+  ctx.fillText("סריקה תפתח את האפליקציה ב-App Store", W/2, qrY+qrSize+60);
+  ctx.fillStyle=goldDeep; ctx.font='700 32px "Frank Ruhl Libre",serif';
+  ctx.fillText("הלכות הבן איש חי", W/2, H-70);
+  return cv;
+}
+async function shareAppQR(){
+  showToast("מכין תמונה…");
+  try{
+    const cv=await buildAppQrImage();
+    cv.toBlob(async blob=>{
+      if(!blob){ showToast("שגיאה ביצירת תמונה"); return; }
+      const file=new File([blob],"halacha-yomit-qr.png",{type:"image/png"});
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        try{ await navigator.share({files:[file], text:APP_STORE_URL}); }catch(e){}
+      }else{
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement("a"); a.href=url; a.download="halacha-yomit-qr.png";
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),4000);
+        showToast("התמונה נשמרה, אפשר לשתף אותה מהמכשיר");
+      }
+    },"image/png");
+  }catch(e){ showToast("שגיאה ביצירת תמונה"); }
+}
+document.getElementById("shareAppBtn").addEventListener("click", shareAppText);
+document.getElementById("shareQrBtn").addEventListener("click", shareAppQR);
+</script>
+'''
+
 
 def replace_once(text: str, old: str, new: str, what: str) -> str:
     n = text.count(old)
@@ -247,8 +352,37 @@ def main() -> int:
                         '      notifyNativeChrome({type:"haptic", style: st.justHitMilestone ? "success" : "light"});\n'
                         '      if(st.justHitMilestone) setTimeout(()=>showToast("🔥 "+st.count+" ימים ברצף! כל הכבוד"), 650);',
                         "index.html mark-as-learned haptic bridge")
-    html = replace_once(html, "</body>", NATIVE_BLOCK + "</body>", "index.html </body>")
+    html = replace_once(html,
+                        '        <div class="fsz-row">\n'
+                        '          <button class="fsz-btn" id="fszDown">א־</button>\n'
+                        '          <div class="fsz-label" id="fszLabel">רגיל</div>\n'
+                        '          <button class="fsz-btn" id="fszUp">א+</button>\n'
+                        '        </div>\n'
+                        '      </section>\n'
+                        '    </div>\n'
+                        '  </div>\n'
+                        '</div>\n'
+                        '\n'
+                        '<div class="modal-overlay hidden" id="statsOverlay">',
+                        '        <div class="fsz-row">\n'
+                        '          <button class="fsz-btn" id="fszDown">א־</button>\n'
+                        '          <div class="fsz-label" id="fszLabel">רגיל</div>\n'
+                        '          <button class="fsz-btn" id="fszUp">א+</button>\n'
+                        '        </div>\n'
+                        '      </section>\n'
+                        + SHARE_SETTINGS_SECTION +
+                        '    </div>\n'
+                        '  </div>\n'
+                        '</div>\n'
+                        '\n'
+                        '<div class="modal-overlay hidden" id="statsOverlay">',
+                        "index.html share settings section")
+    html = replace_once(html, "</body>", NATIVE_BLOCK + SHARE_BLOCK + "</body>", "index.html </body>")
     open(p, "w", encoding="utf-8").write(html)
+
+    # 6. qrcode.js — the offline QR-code generator the share-QR feature above needs (see
+    #    SHARE_BLOCK's _ensureQrLib(), which loads it lazily as "qrcode.js" next to index.html).
+    shutil.copy(os.path.join(HERE, "vendor", "qrcode.js"), os.path.join(DST, "qrcode.js"))
 
     n_files = sum(len(f) for _, _, f in os.walk(DST))
     print(f"www/ rebuilt from {SRC}: {n_files} files")

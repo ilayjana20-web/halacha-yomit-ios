@@ -1169,6 +1169,11 @@ html.ios-native-chrome .search-box{display:none !important;}
           <button class="fsz-btn" id="fszUp">א+</button>
         </div>
       </section>
+      <section class="settings-sec">
+        <h3>שיתוף</h3>
+        <button class="tool-btn" id="shareAppBtn" style="width:100%;justify-content:center;margin-bottom:8px;"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.7l7.4-4.2M8.3 13.3l7.4 4.2"/></svg><span>שתפו את האפליקציה</span></button>
+        <button class="tool-btn" id="shareQrBtn" style="width:100%;justify-content:center;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3.5" y="3.5" width="6" height="6" rx="1"/><rect x="14.5" y="3.5" width="6" height="6" rx="1"/><rect x="3.5" y="14.5" width="6" height="6" rx="1"/><path d="M14.5 14.5h3v3h-3zM19.5 14.5v3M14.5 19.5h3M17.5 17.5h.01"/></svg><span>שתפו קוד QR</span></button>
+      </section>
     </div>
   </div>
 </div>
@@ -3769,6 +3774,140 @@ document.getElementById("statsOverlay").addEventListener("click",(e)=>{
     }catch(e){ /* permission denied or plugin unavailable — app works fine without it */ }
   });
 })();
+</script>
+
+<script>
+/* Native shell integration (iOS/Android app build only — no-op on the plain website).
+   Two real native features the App Store wants to see beyond a bare WebView, both fully
+   offline (no server, no push infra):
+   1. A fixed daily 07:30 notification that today's halacha is ready — scheduled once with a
+      fixed id, so rescheduling on every launch just overwrites the same notification.
+   2. A "don't lose your streak" evening reminder (id 2), rescheduled fresh on every launch:
+      cancelled outright if today's learning is already logged (see learnedToday() in the page
+      itself — index.html's streak feature), otherwise scheduled for this evening (or a few
+      minutes from now if it's already past that time), worded from the current streak length. */
+(function(){
+  function whenCapacitorReady(cb){
+    if(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) cb();
+    else document.addEventListener("DOMContentLoaded", ()=>{
+      if(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) cb();
+    });
+  }
+  whenCapacitorReady(async function(){
+    try{
+      const { LocalNotifications } = window.Capacitor.Plugins;
+      if(!LocalNotifications) return;
+      const perm = await LocalNotifications.checkPermissions();
+      if(perm.display !== "granted"){
+        const req = await LocalNotifications.requestPermissions();
+        if(req.display !== "granted") return;
+      }
+      await LocalNotifications.schedule({
+        notifications: [{
+          id: 1,
+          title: "הלכה יומית",
+          body: "ההלכה של היום מוכנה — לחצו לקריאה",
+          schedule: { on: { hour: 7, minute: 30 }, repeats: true, allowWhileIdle: true }
+        }]
+      });
+
+      await LocalNotifications.cancel({ notifications: [{ id: 2 }] });
+      const alreadyLearnedToday = typeof learnedToday === "function" && learnedToday();
+      if(!alreadyLearnedToday){
+        const now = new Date();
+        let at = new Date(); at.setHours(20, 30, 0, 0);
+        if(at <= now) at = new Date(now.getTime() + 5 * 60 * 1000);   // already past 20:30 — nudge shortly instead
+        const streak = typeof currentStreak === "function" ? currentStreak() : 0;
+        const title = streak > 0 ? "🔥 אל תפסידו את הרצף" : "הלכה יומית";
+        const body = streak > 0
+          ? streak + " ימים ברצף — היום עוד לא למדתם! לחצו לשמור על הרצף"
+          : "ההלכה של היום מחכה לכם — לחצו לקריאה";
+        await LocalNotifications.schedule({
+          notifications: [{ id: 2, title, body, schedule: { at, allowWhileIdle: true } }]
+        });
+      }
+    }catch(e){ /* permission denied or plugin unavailable — app works fine without it */ }
+  });
+})();
+</script>
+
+<script>
+const APP_STORE_URL = "https://apps.apple.com/app/REPLACE_WITH_REAL_SLUG/idREPLACE_WITH_REAL_ID";
+async function _ensureQrLib(){ if(!window.qrcode) await _loadScript("qrcode.js"); }
+function shareAppText(){
+  const text="📖 הלכות הבן איש חי — הלכה אחת ביום, בדיוק לפי הסדר של הבן איש חי\n"+APP_STORE_URL;
+  if(navigator.share){ navigator.share({title:"הלכות הבן איש חי", text}).catch(()=>{}); }
+  else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(()=>showToast("הקישור הועתק")).catch(()=>{}); }
+}
+// Fixed light/gold theme regardless of the viewer's in-app dark/light choice, so the shared
+// image always looks the same no matter who sent it or what mode they were in — same reasoning
+// Bet-El's app share image uses a fixed theme rather than tracking S.theme.
+async function buildAppQrImage(){
+  await _ensureQrLib();
+  if(document.fonts && document.fonts.ready) await document.fonts.ready;
+  const qr=qrcode(0,"M"); qr.addData(APP_STORE_URL); qr.make();
+
+  const W=1080,H=1400;
+  const cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+  const ctx=cv.getContext("2d");
+  const bg1="#F5EEDA",bg2="#FCF8EC",navy="#0F314D",gold="#BF9530",goldDeep="#8A6A1E",ink="#2B2A1A";
+  const g=ctx.createLinearGradient(0,0,W,H); g.addColorStop(0,bg2); g.addColorStop(1,bg1);
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle="rgba(191,149,48,.35)"; ctx.lineWidth=3; ctx.strokeRect(30,30,W-60,H-60);
+  ctx.strokeStyle="rgba(191,149,48,.18)"; ctx.lineWidth=1; ctx.strokeRect(44,44,W-88,H-88);
+
+  await new Promise(res=>{
+    const im=new Image();
+    im.onload=()=>{ const lw=200,lh=200; ctx.drawImage(im,(W-lw)/2,70,lw,lh); res(); };
+    im.onerror=res; im.src="icon-512.png";
+  });
+
+  ctx.textAlign="center";
+  ctx.fillStyle=navy; ctx.font='900 56px "Frank Ruhl Libre",serif';
+  ctx.fillText("הלכות הבן איש חי", W/2, 350);
+  ctx.fillStyle=ink; ctx.font='400 30px "Heebo",sans-serif';
+  ctx.fillText("הלכה אחת ביום", W/2, 395);
+
+  ctx.strokeStyle="rgba(191,149,48,.35)"; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(150,430); ctx.lineTo(W-150,430); ctx.stroke();
+  ctx.fillStyle=gold; ctx.font="30px serif"; ctx.fillText("✦", W/2, 440);
+
+  // The QR itself is drawn module-by-module straight onto the canvas (no image request at
+  // all) — fully offline, unlike a remote QR-image-generator API.
+  const qrSize=560, qrX=(W-qrSize)/2, qrY=490;
+  const count=qr.getModuleCount(), cell=qrSize/count;
+  ctx.fillStyle="#FFFFFF"; ctx.fillRect(qrX,qrY,qrSize,qrSize);
+  ctx.fillStyle=navy;
+  for(let r=0;r<count;r++) for(let c=0;c<count;c++)
+    if(qr.isDark(r,c)) ctx.fillRect(qrX+c*cell, qrY+r*cell, Math.ceil(cell), Math.ceil(cell));
+
+  ctx.fillStyle=ink; ctx.font='500 30px "Heebo",sans-serif';
+  ctx.fillText("סריקה תפתח את האפליקציה ב-App Store", W/2, qrY+qrSize+60);
+  ctx.fillStyle=goldDeep; ctx.font='700 32px "Frank Ruhl Libre",serif';
+  ctx.fillText("הלכות הבן איש חי", W/2, H-70);
+  return cv;
+}
+async function shareAppQR(){
+  showToast("מכין תמונה…");
+  try{
+    const cv=await buildAppQrImage();
+    cv.toBlob(async blob=>{
+      if(!blob){ showToast("שגיאה ביצירת תמונה"); return; }
+      const file=new File([blob],"halacha-yomit-qr.png",{type:"image/png"});
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        try{ await navigator.share({files:[file], text:APP_STORE_URL}); }catch(e){}
+      }else{
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement("a"); a.href=url; a.download="halacha-yomit-qr.png";
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),4000);
+        showToast("התמונה נשמרה, אפשר לשתף אותה מהמכשיר");
+      }
+    },"image/png");
+  }catch(e){ showToast("שגיאה ביצירת תמונה"); }
+}
+document.getElementById("shareAppBtn").addEventListener("click", shareAppText);
+document.getElementById("shareQrBtn").addEventListener("click", shareAppQR);
 </script>
 </body>
 </html>
