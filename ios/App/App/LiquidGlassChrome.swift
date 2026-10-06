@@ -37,6 +37,17 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
     private let searchBar = UISearchBar()
     private var searchDebounce: DispatchWorkItem?
 
+    // Exactly one of these three is ever active: the web content's top edge sits flush under
+    // the Dynamic Island when no native bar is showing (full bleed — the web page's own
+    // `env(safe-area-inset-top)` padding handles that case), or flush under whichever native
+    // bar *is* showing. Without this, the nav/search bar would float on top of the web view at
+    // a fixed height while the web page *also* reserves its own top padding for the exact same
+    // bar — either double-padding (a gap under the native bar) or the bar simply painting over
+    // the first ~50pt of the page, depending on which one wins the race.
+    private var topToViewTop: NSLayoutConstraint!
+    private var topToNavBar: NSLayoutConstraint!
+    private var topToSearchBar: NSLayoutConstraint!
+
     // Order and ids match index.html's #segWeek/#segTopics/#segPicker/#segSearch exactly —
     // each tap below just clicks the corresponding existing web button, reusing all of its
     // existing click-handler logic unchanged.
@@ -55,7 +66,6 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
         view.addSubview(capVC.view)
         capVC.view.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            capVC.view.topAnchor.constraint(equalTo: view.topAnchor),
             capVC.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             capVC.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             capVC.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
@@ -72,7 +82,22 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
         setupNavBar()
         setupSearchBar()
 
+        topToViewTop = capVC.view.topAnchor.constraint(equalTo: view.topAnchor)
+        topToNavBar = capVC.view.topAnchor.constraint(equalTo: navBar.bottomAnchor)
+        topToSearchBar = capVC.view.topAnchor.constraint(equalTo: searchBar.bottomAnchor)
+        updateContentInset()
+
         UpdateCheck.checkAndPromptIfNeeded(from: self)
+    }
+
+    /// Activates exactly one of the three top constraints above, matching whichever bar (if
+    /// any) is currently visible, so the web content starts right below it with no gap and no
+    /// overlap. Call this every time `navBar.isHidden` or `searchBar.isHidden` changes.
+    private func updateContentInset() {
+        topToViewTop.isActive = false
+        topToNavBar.isActive = false
+        topToSearchBar.isActive = false
+        (!navBar.isHidden ? topToNavBar : (!searchBar.isHidden ? topToSearchBar : topToViewTop)).isActive = true
     }
 
     private func setupTabBar() {
@@ -193,6 +218,7 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
                 let showSearch = (id == searchTabId)
                 searchBar.isHidden = !showSearch
                 if !showSearch { searchBar.resignFirstResponder() }
+                updateContentInset()
             }
         case "reader":
             let open = (body["open"] as? Bool) ?? false
@@ -201,14 +227,16 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
             // The reader is a full-screen drill-in, not a tab destination, so it swaps the tab
             // bar (and the search bar, if that's where the reader was opened from) for the nav
             // bar rather than showing any of them at once.
+            navBar.isHidden = !open
+            tabBar.isHidden = open
+            if open {
+                searchBar.isHidden = true
+            } else if let tag = tabBar.selectedItem?.tag, tabs[tag].id == searchTabId {
+                searchBar.isHidden = false
+            }
+            updateContentInset()
             UIView.animate(withDuration: 0.22) {
-                self.navBar.isHidden = !open
-                self.tabBar.isHidden = open
-                if open {
-                    self.searchBar.isHidden = true
-                } else if let tag = self.tabBar.selectedItem?.tag, self.tabs[tag].id == self.searchTabId {
-                    self.searchBar.isHidden = false
-                }
+                self.view.layoutIfNeeded()
             }
         case "theme":
             // UITabBar/UINavigationBar already track light/dark automatically via the system
