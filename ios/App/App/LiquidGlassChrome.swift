@@ -72,6 +72,11 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
     }()
     private var pullToRefresh: UIRefreshControl!
 
+    // Tracks the app's own in-page theme choice (see the "theme" case below) so a freshly
+    // presented sheet can be told explicitly which one to use — see presentSheet()'s comment
+    // for why this can't just be inherited from self.overrideUserInterfaceStyle.
+    private var currentThemeIsDark = false
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -335,6 +340,11 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
         // at EVERY detent, so the sheet no longer needs to jump straight to full height to look
         // right — .medium is a perfectly normal resting size again.
         hostingVC.view.backgroundColor = .systemGroupedBackground
+        // overrideUserInterfaceStyle only applies to a view controller and its CHILDREN
+        // (containment) — a presented view controller is not a child in that sense, so setting
+        // it on `self` (as the "theme" case below does) was never actually reaching this sheet.
+        // Set it here explicitly, every time, using the same value.
+        hostingVC.overrideUserInterfaceStyle = currentThemeIsDark ? .dark : .light
         hostingVC.modalPresentationStyle = .pageSheet
         if let sheet = hostingVC.sheetPresentationController {
             sheet.detents = [.medium(), .large()]
@@ -392,6 +402,7 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
             // theme choice ("light"/"dark" as an explicit override, independent of the system
             // setting, vs. "auto" which just follows it), so force it to match here.
             let dark = (body["dark"] as? Bool) ?? false
+            currentThemeIsDark = dark
             overrideUserInterfaceStyle = dark ? .dark : .light
         case "haptic":
             let style = (body["style"] as? String) ?? "light"
