@@ -163,6 +163,31 @@ html.ios-native-chrome .search-box{display:none !important;}
   // The other direction: the native UISearchBar (search tab only, see LiquidGlassChrome.swift)
   // drives the existing #searchInput + its debounced "input" listener, rather than
   // duplicating the search-triggering logic natively.
+
+  // Edge-swipe back (like Android's back gesture) + status-bar tap scroll-to-top. iOS app only.
+  window.betelAppBack = function(){
+    var pb = document.getElementById("pickerBack");
+    if(pb && pb.offsetParent !== null){ pb.click(); return true; }
+    var rv = document.getElementById("readerView"), rb = document.getElementById("rBack");
+    if(rv && !rv.classList.contains("hidden") && rb){ rb.click(); return true; }
+    return false;
+  };
+  window.betelScrollTop = function(){
+    try{ window.scrollTo({top:0, behavior:"smooth"}); }catch(e){ window.scrollTo(0,0); }
+  };
+  if(isIOSNative){
+    var sx=0, sy=0, st=0, edge=false;
+    document.addEventListener("touchstart", function(e){
+      var t=e.touches[0]; sx=t.clientX; sy=t.clientY; st=Date.now();
+      edge = e.touches.length===1 && (sx<=22 || sx>=window.innerWidth-22);
+    }, {passive:true});
+    document.addEventListener("touchend", function(e){
+      if(!edge) return; edge=false;
+      var t=e.changedTouches[0], dx=t.clientX-sx, dy=t.clientY-sy;
+      var inward = sx<=22 ? dx : -dx;
+      if(inward>70 && Math.abs(dy)<0.6*inward && Date.now()-st<700) window.betelAppBack();
+    }, {passive:true});
+  }
   window.nativeSetSearchQuery = function(q){
     var el = document.getElementById("searchInput");
     if(el){ el.value = q; el.dispatchEvent(new Event("input")); }

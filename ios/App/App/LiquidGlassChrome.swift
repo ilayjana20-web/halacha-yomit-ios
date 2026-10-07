@@ -37,6 +37,7 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
     private let navBar = UINavigationBar()
     private let searchBar = UISearchBar()
     private var searchDebounce: DispatchWorkItem?
+    private let scrollTopCatcher = ScrollTopCatcher()
 
     // Exactly one of these three is ever active: the web content's top edge sits flush under
     // the Dynamic Island when no native bar is showing (full bleed — the web page's own
@@ -82,6 +83,7 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
         setupTabBar()
         setupNavBar()
         setupSearchBar()
+        setupScrollToTop()
 
         topToViewTop = capVC.view.topAnchor.constraint(equalTo: view.topAnchor)
         topToNavBar = capVC.view.topAnchor.constraint(equalTo: navBar.bottomAnchor)
@@ -164,6 +166,17 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
         guard let data = try? JSONSerialization.data(withJSONObject: [s]),
               let json = String(data: data, encoding: .utf8), json.count >= 2 else { return "\"\"" }
         return String(json.dropFirst().dropLast())
+    }
+
+    /// Tapping the status bar scrolls the page to top. UIKit only honours that for a lone
+    /// `scrollsToTop` scroll view, so the web view opts out and a hidden catcher takes over.
+    private func setupScrollToTop() {
+        capVC.webView?.scrollView.scrollsToTop = false
+        scrollTopCatcher.frame = CGRect(x: 0, y: 0, width: 2, height: 2)
+        scrollTopCatcher.onScrollToTop = { [weak self] in
+            self?.runJS("window.betelScrollTop && window.betelScrollTop()")
+        }
+        view.addSubview(scrollTopCatcher)
     }
 
     @objc private func backTapped() {
@@ -358,5 +371,28 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
         default:
             break
         }
+    }
+}
+
+
+/// Invisible scroll view that receives the status-bar tap and forwards it to the web page.
+final class ScrollTopCatcher: UIScrollView, UIScrollViewDelegate {
+    var onScrollToTop: (() -> Void)?
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        alpha = 0.02
+        isUserInteractionEnabled = false
+        scrollsToTop = true
+        contentSize = CGSize(width: 2, height: 4000)
+        contentOffset = CGPoint(x: 0, y: 2000)
+        delegate = self
+    }
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    func scrollViewShouldScrollToTop(_ scrollView: UIScrollView) -> Bool {
+        onScrollToTop?()
+        return false
     }
 }
