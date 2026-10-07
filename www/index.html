@@ -2,6 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://www.gstatic.com https://www.sefaria.org https://*.firebaseio.com wss://*.firebaseio.com; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#E3F1F2">
 <title>הלכות הבן איש חי</title>
@@ -19,6 +20,61 @@
   if(dark) document.documentElement.setAttribute("data-theme","dark");
   var m=document.querySelector('meta[name="theme-color"]');
   if(m) m.setAttribute("content", dark ? "#10161A" : "#E3F1F2");
+})();
+</script>
+
+<style>
+/* Liquid Glass native chrome (iOS app only) replaces these — see LiquidGlassChrome.swift. */
+html.ios-native-chrome .tabbar,
+html.ios-native-chrome #rBack,
+html.ios-native-chrome #rShareBtn,
+html.ios-native-chrome .search-box{display:none !important;}
+</style>
+<script>
+(function(){
+  var isIOSNative = !!(window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform()==="ios");
+  document.documentElement.classList.toggle("ios-native-chrome", isIOSNative);
+  // Safe to call from anywhere, anytime, including synchronously during the earliest page
+  // script — no-ops instantly on web/Android, or if the native side hasn't registered the
+  // message handler yet for any reason.
+  window.notifyNativeChrome = function(msg){
+    try{
+      if(isIOSNative && window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.nativeChrome){
+        window.webkit.messageHandlers.nativeChrome.postMessage(msg);
+      }
+    }catch(e){}
+  };
+  // The other direction: the native UISearchBar (search tab only, see LiquidGlassChrome.swift)
+  // drives the existing #searchInput + its debounced "input" listener, rather than
+  // duplicating the search-triggering logic natively.
+  window.nativeSetSearchQuery = function(q){
+    var el = document.getElementById("searchInput");
+    if(el){ el.value = q; el.dispatchEvent(new Event("input")); }
+  };
+  // Pushes the streak + today's parasha into the HalachaWidget's shared App Group storage
+  // (see ios/App/App/HalachaWidgetBridge.swift) so the home-screen widget reflects the
+  // learner's real state. No-ops on web/Android or before the native target exists. Called
+  // from the streak badge, the theme switcher and the weekly-home render (see their call
+  // sites below) — never from here, so it always runs after the real DOM/localStorage state
+  // it reads is already up to date.
+  window.syncWidgetData = function(){
+    try{
+      var plugin = isIOSNative && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.HalachaWidgetBridge;
+      if(!plugin) return;
+      var titleEl = document.getElementById("wParasha");
+      var candle = typeof nextCandleLightingInfo === "function" ? nextCandleLightingInfo() : null;
+      plugin.updateSharedData({
+        streakCount: typeof currentStreak === "function" ? currentStreak() : 0,
+        streakBest: typeof bestStreak === "function" ? bestStreak() : 0,
+        learnedToday: typeof learnedToday === "function" ? learnedToday() : false,
+        theme: (typeof getTheme === "function" && getTheme() === "auto") ? (systemPrefersDark() ? "dark" : "light") : getTheme(),
+        parashaHe: titleEl ? titleEl.textContent : "",
+        candleTimeISO: candle ? candle.iso : null,
+        candleLabel: candle ? candle.label : null,
+        candleWeekday: candle ? candle.weekday : null
+      });
+    }catch(e){}
+  };
 })();
 </script>
 <link rel="manifest" href="manifest.json">
@@ -1137,6 +1193,11 @@
           <button class="fsz-btn" id="fszUp">א+</button>
         </div>
       </section>
+      <section class="settings-sec">
+        <h3>שיתוף</h3>
+        <button class="tool-btn" id="shareAppBtn" style="width:100%;justify-content:center;margin-bottom:8px;"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.7l7.4-4.2M8.3 13.3l7.4 4.2"/></svg><span>שתפו את האפליקציה</span></button>
+        <button class="tool-btn" id="shareQrBtn" style="width:100%;justify-content:center;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3.5" y="3.5" width="6" height="6" rx="1"/><rect x="14.5" y="3.5" width="6" height="6" rx="1"/><rect x="3.5" y="14.5" width="6" height="6" rx="1"/><path d="M14.5 14.5h3v3h-3zM19.5 14.5v3M14.5 19.5h3M17.5 17.5h.01"/></svg><span>שתפו קוד QR</span></button>
+      </section>
     </div>
   </div>
 </div>
@@ -1493,6 +1554,59 @@ function jewishReckoningDate(){
   return {date:d, shifted};
 }
 
+// Candle lighting: the standard 18 minutes before real sunset (hDeg=-0.833, not the -7.083
+// tzeit used above) — the same default most Jewish calendars (incl. the hebcal library used
+// by the user's other app) fall back to when no community-specific custom is configured.
+// Reuses the same TZ_GEO table — still no location permission prompt.
+//
+// Covers both Shabbat AND Yom Tov (reusing YOM_TOV_IL/YOM_TOV_DIA + _hebMD, already defined
+// below for the festival-week feature — same brute-force civil-day-scan approach, no separate
+// Hebrew calendar library needed). Scans each candidate "eve" day E and checks whether E+1 is
+// a day that needs candles (Shabbat, or a Hebrew date in the Yom Tov list) — this also
+// correctly handles a multi-day Yom Tov's later days (lit from an existing flame at the same
+// time), since E itself may already be a Yom Tov day.
+function _yomTovName(md){
+  const [m,d]=md;
+  if(m==="Tishri"){
+    if(d===1||d===2) return "ראש השנה";
+    if(d===10) return "יום הכיפורים";
+    if(d===15||d===16) return "סוכות";
+    if(d===22||d===23) return "שמיני עצרת";
+  }
+  if(m==="Nisan"){
+    if(d===15||d===16) return "פסח";
+    if(d===21||d===22) return "פסח";
+  }
+  if(m==="Sivan" && (d===6||d===7)) return "שבועות";
+  return "יום טוב";
+}
+const CANDLE_LIGHTING_MINS_BEFORE_SUNSET = 18;
+function nextCandleLightingInfo(){
+  try{
+    const tzid=Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const geo=TZ_GEO[tzid]; if(!geo) return null;
+    const diaspora = tzid!=="Asia/Jerusalem";
+    const yomTov = diaspora ? YOM_TOV_DIA : YOM_TOV_IL;
+    const now=new Date();
+    for(let i=0;i<30;i++){
+      const e=new Date(now); e.setDate(e.getDate()+i); e.setHours(12,0,0,0);
+      const next=_addDays(e,1);
+      const ytMatch = yomTov.find(md=>_sameMD(md,_hebMD(next)));
+      const isShabbatEve = next.getDay()===6;
+      if(!ytMatch && !isShabbatEve) continue;
+      const sunset=_sunsetInstant(e, geo[0], geo[1], -0.833);
+      if(!sunset) continue;
+      const candle=new Date(sunset.getTime() - CANDLE_LIGHTING_MINS_BEFORE_SUNSET*60000);
+      if(candle>now){
+        const label = "הדלקת נרות " + (ytMatch ? _yomTovName(ytMatch) : "שבת");
+        const weekday = e.toLocaleDateString("he-IL",{weekday:"long"});
+        return {iso:candle.toISOString(), label, weekday};
+      }
+    }
+  }catch(e){}
+  return null;
+}
+
 const BIUR_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a6 6 0 0 0-4 10.5c.6.6 1 1.4 1 2.5h6c0-1.1.4-1.9 1-2.5A6 6 0 0 0 12 2Z"/></svg>';
 const CHECK_ICON='<svg viewBox="0 0 24 24"><path d="M4 12l6 6L20 6"/></svg>';
 const STAR_ICON='<svg viewBox="0 0 24 24"><path d="M12 2.8l2.9 6 6.6.9-4.8 4.6 1.1 6.6L12 17.8l-5.8 3.1 1.1-6.6L2.5 9.7l6.6-.9z"/></svg>';
@@ -1542,6 +1656,7 @@ function renderStreakBadge(){
   const n=currentStreak();
   b.classList.toggle("hidden", n<=0);
   if(n>0) b.textContent="🔥"+n;
+  syncWidgetData();
 }
 
 // ---------- favorites (separate bookmark, independent of "done") ----------
@@ -1574,6 +1689,10 @@ function applyFsz(idx){
 }
 
 function showToast(msg){
+  // A real native toast (blurred capsule, see presentToast() in LiquidGlassChrome.swift)
+  // replaces the HTML one on iOS — same fixed-position screen-edge chrome as the tab/nav bars,
+  // so it's safe to fully hand off rather than duplicate.
+  if(isIOSNative){ notifyNativeChrome({type:"toast", text:msg}); return; }
   const t=document.getElementById("toast");
   t.textContent=msg;
   t.classList.remove("hidden");
@@ -2085,6 +2204,7 @@ function scrollPageTop(){
 // scroll reset lived in only one — so opening a halacha from a scrolled-down parshiyot list
 // (or from the week screen) dropped you into the middle of the reader instead of at its top.
 function enterReaderView(title){
+  notifyNativeChrome({type:"reader", open:true, title:title||""});
   document.getElementById("weekView").classList.add("hidden");
   document.getElementById("topicsView").classList.add("hidden");
   document.getElementById("pickerView").classList.add("hidden");
@@ -2255,6 +2375,7 @@ function renderReaderCard(navigated){
     if(e.target.checked){
       const st=bumpStreak();
       renderStreakBadge();
+      notifyNativeChrome({type:"haptic", style: st.justHitMilestone ? "success" : "light"});
       if(st.justHitMilestone) setTimeout(()=>showToast("🔥 "+st.count+" ימים ברצף! כל הכבוד"), 650);
     }
     document.querySelector("#rCard .halacha").classList.toggle("done", e.target.checked);
@@ -2334,6 +2455,7 @@ document.getElementById("rSkipUnread").addEventListener("click", ()=>{
 });
 document.getElementById("rBack").addEventListener("click", ()=>{
   document.getElementById("readerView").classList.add("hidden");
+  notifyNativeChrome({type:"reader", open:false});
   document.body.classList.remove("reading");   // restore the full hero on the home screens
   if(lastHome==="topics"){ document.getElementById("topicsView").classList.remove("hidden"); }
   else if(lastHome==="picker"){ document.getElementById("pickerView").classList.remove("hidden"); }
@@ -2905,6 +3027,7 @@ async function renderWeek(rec){
       await openReader(keys, (rec.title_he||"פרשת השבוע")+" · "+trackName(tk), {startAt:"first-unread"});
     });
   });
+  syncWidgetData();
 }
 
 // ---------- TOPICS HOME ----------
@@ -3360,6 +3483,7 @@ function hideAllViews(){
 }
 function setActiveTab(id){
   ["segWeek","segTopics","segPicker","segSearch"].forEach(x=>document.getElementById(x).classList.toggle("active",x===id));
+  notifyNativeChrome({type:"tab", id:id});
 }
 document.getElementById("segWeek").addEventListener("click",()=>{
   setActiveTab("segWeek"); hideAllViews();
@@ -3538,6 +3662,28 @@ function statRing(label, done, total, size, stroke){
     '<div class="ring-pct">'+(done>0 && pct===0 ? 'פחות מאחוז' : pct+'%')+'</div>'+
   '</div>';
 }
+// Same numbers renderStats() below computes for its HTML rings, as plain data — used by the
+// native Stats sheet (NativeStatsView.swift) instead of rendering HTML at all. Kept as its own
+// function (a little duplicated arithmetic) rather than refactoring renderStats() itself, so
+// the existing, working web/Android HTML path is never touched by this native-only addition.
+async function statsNumbersForNative(){
+  if(!master) master=await getJson("content/parashot.json",true);
+  const map=loadProgressMap();
+  const out={};
+  let grandTotal=0, grandDone=0;
+  for(const tk of ["year1","year2"]){
+    const rows=(master&&master[tk])||[];
+    let total=0;
+    for(const r of rows) total += r.chapters + (r.has_intro?1:0);
+    let done=0;
+    for(const k of Object.keys(map)){ if(k.startsWith(tk+"::")) done++; }
+    total = Math.max(total, done);
+    grandTotal+=total; grandDone+=done;
+    out[tk]={done, total};
+  }
+  out.grand={done:grandDone, total:grandTotal};
+  return out;
+}
 async function renderStats(){
   const body=document.getElementById("statsBody");
   if(!master) master=await getJson("content/parashot.json",true);
@@ -3592,12 +3738,14 @@ function systemPrefersDark(){
 }
 function applyTheme(pref){
   const dark = pref==="dark" || (pref==="auto" && systemPrefersDark());
+  notifyNativeChrome({type:"theme", dark:dark});
   document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
   const m=document.querySelector('meta[name="theme-color"]');
   if(m) m.setAttribute("content", dark ? "#10161A" : "#E3F1F2");
   [...document.querySelectorAll("#themeSeg button")].forEach(b=>
     b.classList.toggle("on", b.dataset.themeChoice===pref));
   moveSegPill();
+  syncWidgetData();
 }
 // Slides #themeSegPill behind whichever button is .on. Physical-pixel rect math, so it needs no
 // separate RTL handling: the button's own true on-screen position already accounts for it.
@@ -3627,6 +3775,15 @@ if(window.matchMedia){
 applyTheme(getTheme());
 
 function openSettings(){
+  // On iOS, a real native Liquid Glass sheet (NativeSettingsView.swift) replaces this HTML
+  // overlay entirely — same gating as the tab/nav/search bars (isIOSNative, see head script).
+  // The native side calls back into the exact same setTheme()/applyFsz()/shareAppText()/
+  // shareAppQR() used here, so there is only ever one implementation of each action.
+  if(isIOSNative){
+    notifyNativeChrome({type:"settings", open:true,
+      theme:getTheme(), fszIdx:getFszIdx(), fszMax:FSZ_STEPS.length-1});
+    return;
+  }
   document.getElementById("settingsOverlay").classList.remove("hidden");
   applyFsz(getFszIdx());
   applyTheme(getTheme());       // reflect the current choice in the segmented control
@@ -3641,7 +3798,14 @@ document.getElementById("settingsOverlay").addEventListener("click",(e)=>{
 document.getElementById("fszDown").addEventListener("click",()=>applyFsz(getFszIdx()-1));
 document.getElementById("fszUp").addEventListener("click",()=>applyFsz(getFszIdx()+1));
 
-function openStats(){
+async function openStats(){
+  // Same native-sheet gating as openSettings() above — NativeStatsView.swift draws its own
+  // rings from the real numbers, no HTML rendering on iOS at all.
+  if(isIOSNative){
+    const n = await statsNumbersForNative();
+    notifyNativeChrome({type:"stats", open:true, year1:n.year1, year2:n.year2, grand:n.grand});
+    return;
+  }
   document.getElementById("statsOverlay").classList.remove("hidden");
   renderStats();
 }
@@ -3732,6 +3896,140 @@ document.getElementById("statsOverlay").addEventListener("click",(e)=>{
     }catch(e){ /* permission denied or plugin unavailable — app works fine without it */ }
   });
 })();
+</script>
+
+<script>
+/* Native shell integration (iOS/Android app build only — no-op on the plain website).
+   Two real native features the App Store wants to see beyond a bare WebView, both fully
+   offline (no server, no push infra):
+   1. A fixed daily 07:30 notification that today's halacha is ready — scheduled once with a
+      fixed id, so rescheduling on every launch just overwrites the same notification.
+   2. A "don't lose your streak" evening reminder (id 2), rescheduled fresh on every launch:
+      cancelled outright if today's learning is already logged (see learnedToday() in the page
+      itself — index.html's streak feature), otherwise scheduled for this evening (or a few
+      minutes from now if it's already past that time), worded from the current streak length. */
+(function(){
+  function whenCapacitorReady(cb){
+    if(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) cb();
+    else document.addEventListener("DOMContentLoaded", ()=>{
+      if(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) cb();
+    });
+  }
+  whenCapacitorReady(async function(){
+    try{
+      const { LocalNotifications } = window.Capacitor.Plugins;
+      if(!LocalNotifications) return;
+      const perm = await LocalNotifications.checkPermissions();
+      if(perm.display !== "granted"){
+        const req = await LocalNotifications.requestPermissions();
+        if(req.display !== "granted") return;
+      }
+      await LocalNotifications.schedule({
+        notifications: [{
+          id: 1,
+          title: "הלכה יומית",
+          body: "ההלכה של היום מוכנה — לחצו לקריאה",
+          schedule: { on: { hour: 7, minute: 30 }, repeats: true, allowWhileIdle: true }
+        }]
+      });
+
+      await LocalNotifications.cancel({ notifications: [{ id: 2 }] });
+      const alreadyLearnedToday = typeof learnedToday === "function" && learnedToday();
+      if(!alreadyLearnedToday){
+        const now = new Date();
+        let at = new Date(); at.setHours(20, 30, 0, 0);
+        if(at <= now) at = new Date(now.getTime() + 5 * 60 * 1000);   // already past 20:30 — nudge shortly instead
+        const streak = typeof currentStreak === "function" ? currentStreak() : 0;
+        const title = streak > 0 ? "🔥 אל תפסידו את הרצף" : "הלכה יומית";
+        const body = streak > 0
+          ? streak + " ימים ברצף — היום עוד לא למדתם! לחצו לשמור על הרצף"
+          : "ההלכה של היום מחכה לכם — לחצו לקריאה";
+        await LocalNotifications.schedule({
+          notifications: [{ id: 2, title, body, schedule: { at, allowWhileIdle: true } }]
+        });
+      }
+    }catch(e){ /* permission denied or plugin unavailable — app works fine without it */ }
+  });
+})();
+</script>
+
+<script>
+const APP_STORE_URL = "https://apps.apple.com/app/REPLACE_WITH_REAL_SLUG/idREPLACE_WITH_REAL_ID";
+async function _ensureQrLib(){ if(!window.qrcode) await _loadScript("qrcode.js"); }
+function shareAppText(){
+  const text="📖 הלכות הבן איש חי — הלכה אחת ביום, בדיוק לפי הסדר של הבן איש חי\n"+APP_STORE_URL;
+  if(navigator.share){ navigator.share({title:"הלכות הבן איש חי", text}).catch(()=>{}); }
+  else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(()=>showToast("הקישור הועתק")).catch(()=>{}); }
+}
+// Fixed light/gold theme regardless of the viewer's in-app dark/light choice, so the shared
+// image always looks the same no matter who sent it or what mode they were in — same reasoning
+// Bet-El's app share image uses a fixed theme rather than tracking S.theme.
+async function buildAppQrImage(){
+  await _ensureQrLib();
+  if(document.fonts && document.fonts.ready) await document.fonts.ready;
+  const qr=qrcode(0,"M"); qr.addData(APP_STORE_URL); qr.make();
+
+  const W=1080,H=1400;
+  const cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+  const ctx=cv.getContext("2d");
+  const bg1="#F5EEDA",bg2="#FCF8EC",navy="#0F314D",gold="#BF9530",goldDeep="#8A6A1E",ink="#2B2A1A";
+  const g=ctx.createLinearGradient(0,0,W,H); g.addColorStop(0,bg2); g.addColorStop(1,bg1);
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle="rgba(191,149,48,.35)"; ctx.lineWidth=3; ctx.strokeRect(30,30,W-60,H-60);
+  ctx.strokeStyle="rgba(191,149,48,.18)"; ctx.lineWidth=1; ctx.strokeRect(44,44,W-88,H-88);
+
+  await new Promise(res=>{
+    const im=new Image();
+    im.onload=()=>{ const lw=200,lh=200; ctx.drawImage(im,(W-lw)/2,70,lw,lh); res(); };
+    im.onerror=res; im.src="icon-512.png";
+  });
+
+  ctx.textAlign="center";
+  ctx.fillStyle=navy; ctx.font='900 56px "Frank Ruhl Libre",serif';
+  ctx.fillText("הלכות הבן איש חי", W/2, 350);
+  ctx.fillStyle=ink; ctx.font='400 30px "Heebo",sans-serif';
+  ctx.fillText("הלכה אחת ביום", W/2, 395);
+
+  ctx.strokeStyle="rgba(191,149,48,.35)"; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(150,430); ctx.lineTo(W-150,430); ctx.stroke();
+  ctx.fillStyle=gold; ctx.font="30px serif"; ctx.fillText("✦", W/2, 440);
+
+  // The QR itself is drawn module-by-module straight onto the canvas (no image request at
+  // all) — fully offline, unlike a remote QR-image-generator API.
+  const qrSize=560, qrX=(W-qrSize)/2, qrY=490;
+  const count=qr.getModuleCount(), cell=qrSize/count;
+  ctx.fillStyle="#FFFFFF"; ctx.fillRect(qrX,qrY,qrSize,qrSize);
+  ctx.fillStyle=navy;
+  for(let r=0;r<count;r++) for(let c=0;c<count;c++)
+    if(qr.isDark(r,c)) ctx.fillRect(qrX+c*cell, qrY+r*cell, Math.ceil(cell), Math.ceil(cell));
+
+  ctx.fillStyle=ink; ctx.font='500 30px "Heebo",sans-serif';
+  ctx.fillText("סריקה תפתח את האפליקציה ב-App Store", W/2, qrY+qrSize+60);
+  ctx.fillStyle=goldDeep; ctx.font='700 32px "Frank Ruhl Libre",serif';
+  ctx.fillText("הלכות הבן איש חי", W/2, H-70);
+  return cv;
+}
+async function shareAppQR(){
+  showToast("מכין תמונה…");
+  try{
+    const cv=await buildAppQrImage();
+    cv.toBlob(async blob=>{
+      if(!blob){ showToast("שגיאה ביצירת תמונה"); return; }
+      const file=new File([blob],"halacha-yomit-qr.png",{type:"image/png"});
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        try{ await navigator.share({files:[file], text:APP_STORE_URL}); }catch(e){}
+      }else{
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement("a"); a.href=url; a.download="halacha-yomit-qr.png";
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),4000);
+        showToast("התמונה נשמרה, אפשר לשתף אותה מהמכשיר");
+      }
+    },"image/png");
+  }catch(e){ showToast("שגיאה ביצירת תמונה"); }
+}
+document.getElementById("shareAppBtn").addEventListener("click", shareAppText);
+document.getElementById("shareQrBtn").addEventListener("click", shareAppQR);
 </script>
 </body>
 </html>

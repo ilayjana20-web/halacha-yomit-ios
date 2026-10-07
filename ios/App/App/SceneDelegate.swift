@@ -8,7 +8,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = scene as? UIWindowScene else { return }
 
         window = UIWindow(windowScene: windowScene)
-        window?.rootViewController = CAPBridgeViewController()
+        // MainContainerViewController (LiquidGlassChrome.swift) embeds the Capacitor bridge
+        // view controller itself and adds native Liquid Glass bars (tab bar + reader nav bar)
+        // around it — see that file for the full picture.
+        window?.rootViewController = MainContainerViewController()
         window?.makeKeyAndVisible()
 
         SceneDelegateProxy.shared.scene(scene, willConnectTo: session, options: connectionOptions)
