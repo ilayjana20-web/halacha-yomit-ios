@@ -86,6 +86,7 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
         setupScrollToTop()
         setupEdgeSwipeBack()
         setupPullToRefresh()
+        setupNativePicker()
 
         topToViewTop = capVC.view.topAnchor.constraint(equalTo: view.topAnchor)
         topToNavBar = capVC.view.topAnchor.constraint(equalTo: navBar.bottomAnchor)
@@ -194,6 +195,32 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
         }, for: .valueChanged)
         capVC.webView?.scrollView.refreshControl = refreshControl
     }
+
+    // MARK: Native "All parshiyot" picker (UICollectionView + glass cards) - see NativePickerView below.
+    private let pickerView = NativePickerView()
+
+    private func setupNativePicker() {
+        pickerView.translatesAutoresizingMaskIntoConstraints = false
+        pickerView.isHidden = true
+        pickerView.bottomInset = { [weak self] in (self?.tabBar.frame.height ?? 90) + 12 }
+        pickerView.perform = { [weak self] js in self?.runJS(js) }
+        view.insertSubview(pickerView, belowSubview: tabBar)
+        NSLayoutConstraint.activate([
+            pickerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            pickerView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            pickerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            pickerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+        ])
+    }
+
+    private func showNativePicker(_ raw: Any) {
+        guard let data = try? JSONSerialization.data(withJSONObject: raw),
+              let st = try? JSONDecoder().decode(NPState.self, from: data) else { return }
+        pickerView.isHidden = false
+        pickerView.apply(st)
+    }
+
+    private func hidePicker() { pickerView.isHidden = true }
 
     // MARK: Interactive edge-swipe back (page follows the finger, like UINavigationController)
     private var edgeCanGoBack = false
@@ -460,6 +487,8 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
             if (body["open"] as? Bool) ?? false { presentSettings(body) }
         case "stats":
             if (body["open"] as? Bool) ?? false { presentStats(body) }
+        case "picker":
+            if (body["open"] as? Bool) ?? false, let st = body["state"] { showNativePicker(st) } else { hidePicker() }
         case "toast":
             if let text = body["text"] as? String { presentToast(text) }
         case "actionSheet":
@@ -490,5 +519,306 @@ final class ScrollTopCatcher: UIScrollView, UIScrollViewDelegate {
     func scrollViewShouldScrollToTop(_ scrollView: UIScrollView) -> Bool {
         onScrollToTop?()
         return false
+    }
+}
+
+
+// MARK: - Native picker (books -> parshiyot): real UICollectionView with Liquid Glass cards
+
+struct NPState: Decodable {
+    struct Tab: Decodable { let id: String; let label: String; let active: Bool }
+    struct Banner: Decodable { let label: String; let num: String; let pct: Int; let foot: String; let footPct: String }
+    struct Item: Decodable {
+        let id: String; let ord: String; let title: String; let meta: String
+        let pct: Int; let full: Bool; let untouched: Bool
+    }
+    let level: Int
+    let tabs: [Tab]
+    let backLabel: String?
+    let banner: Banner?
+    let items: [Item]
+}
+
+private let npGold = UIColor(red: 0.83, green: 0.69, blue: 0.37, alpha: 1)
+
+private func npGlass() -> UIVisualEffectView {
+    if #available(iOS 26.0, *) { return UIVisualEffectView(effect: UIGlassEffect()) }
+    return UIVisualEffectView(effect: UIBlurEffect(style: .systemThinMaterial))
+}
+
+final class NPHeaderCell: UICollectionViewCell {
+    static let reuseId = "NPHeaderCell"
+    private let stack = UIStackView()
+    var onTab: ((String) -> Void)?
+    var onBack: (() -> Void)?
+    private var tabIds: [String] = []
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        stack.axis = .vertical
+        stack.spacing = 12
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(stack)
+        NSLayoutConstraint.activate([
+            stack.topAnchor.constraint(equalTo: contentView.topAnchor),
+            stack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            stack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            stack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+        ])
+    }
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    func configure(_ st: NPState) {
+        stack.arrangedSubviews.forEach { $0.removeFromSuperview() }
+        stack.semanticContentAttribute = .forceRightToLeft
+        if !st.tabs.isEmpty {
+            tabIds = st.tabs.map { $0.id }
+            let seg = UISegmentedControl(items: st.tabs.map { $0.label })
+            seg.selectedSegmentIndex = st.tabs.firstIndex(where: { $0.active }) ?? 0
+            seg.selectedSegmentTintColor = npGold
+            seg.setTitleTextAttributes([.foregroundColor: UIColor(white: 0.12, alpha: 1)], for: .selected)
+            seg.addTarget(self, action: #selector(segChanged(_:)), for: .valueChanged)
+            stack.addArrangedSubview(seg)
+        }
+        if let back = st.backLabel {
+            let b = UIButton(type: .system)
+            var c: UIButton.Configuration
+            if #available(iOS 26.0, *) { c = UIButton.Configuration.glass() } else { c = UIButton.Configuration.tinted() }
+            c.title = back
+            c.image = UIImage(systemName: "chevron.right")
+            c.imagePlacement = .leading
+            c.imagePadding = 6
+            c.cornerStyle = .capsule
+            c.baseForegroundColor = npGold
+            b.configuration = c
+            b.contentHorizontalAlignment = .leading
+            b.addAction(UIAction { [weak self] _ in self?.onBack?() }, for: .touchUpInside)
+            let wrap = UIStackView(arrangedSubviews: [b, UIView()])
+            wrap.axis = .horizontal
+            stack.addArrangedSubview(wrap)
+        }
+        if let bn = st.banner { stack.addArrangedSubview(makeBanner(bn)) }
+    }
+
+    @objc private func segChanged(_ s: UISegmentedControl) {
+        guard s.selectedSegmentIndex < tabIds.count else { return }
+        UISelectionFeedbackGenerator().selectionChanged()
+        onTab?(tabIds[s.selectedSegmentIndex])
+    }
+
+    private func makeBanner(_ bn: NPState.Banner) -> UIView {
+        let card = npGlass()
+        card.layer.cornerRadius = 24
+        card.clipsToBounds = true
+        func label(_ t: String, _ style: UIFont.TextStyle, _ weight: UIFont.Weight, _ color: UIColor) -> UILabel {
+            let l = UILabel(); l.text = t; l.textColor = color; l.numberOfLines = 0
+            l.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: style).pointSize, weight: weight)
+            l.adjustsFontForContentSizeCategory = true
+            return l
+        }
+        let top = label(bn.label, .footnote, .semibold, .secondaryLabel)
+        let num = label(bn.num, .title2, .bold, .label)
+        let bar = UIProgressView(progressViewStyle: .default)
+        bar.progress = Float(bn.pct) / 100
+        bar.progressTintColor = npGold
+        bar.trackTintColor = UIColor.tertiarySystemFill
+        let foot = UIStackView(arrangedSubviews: [label(bn.foot, .footnote, .regular, .secondaryLabel),
+                                                  label(bn.footPct, .footnote, .semibold, npGold)])
+        foot.axis = .horizontal
+        let v = UIStackView(arrangedSubviews: [top, num, bar, foot])
+        v.axis = .vertical
+        v.spacing = 8
+        v.semanticContentAttribute = .forceRightToLeft
+        v.translatesAutoresizingMaskIntoConstraints = false
+        card.contentView.addSubview(v)
+        NSLayoutConstraint.activate([
+            v.topAnchor.constraint(equalTo: card.contentView.topAnchor, constant: 16),
+            v.bottomAnchor.constraint(equalTo: card.contentView.bottomAnchor, constant: -16),
+            v.leadingAnchor.constraint(equalTo: card.contentView.leadingAnchor, constant: 16),
+            v.trailingAnchor.constraint(equalTo: card.contentView.trailingAnchor, constant: -16),
+        ])
+        return card
+    }
+}
+
+final class NPTileCell: UICollectionViewCell {
+    static let reuseId = "NPTileCell"
+    private let glass = npGlass()
+    private let ordLabel = UILabel()
+    private let titleLabel = UILabel()
+    private let metaLabel = UILabel()
+    private let pctLabel = UILabel()
+    private let bar = UIProgressView(progressViewStyle: .default)
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        glass.translatesAutoresizingMaskIntoConstraints = false
+        glass.layer.cornerRadius = 22
+        glass.clipsToBounds = true
+        contentView.addSubview(glass)
+        NSLayoutConstraint.activate([
+            glass.topAnchor.constraint(equalTo: contentView.topAnchor),
+            glass.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            glass.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            glass.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+        ])
+        ordLabel.font = UIFont.systemFont(ofSize: 15, weight: .bold)
+        ordLabel.textColor = UIColor(white: 0.12, alpha: 1)
+        ordLabel.textAlignment = .center
+        ordLabel.backgroundColor = npGold
+        ordLabel.layer.cornerRadius = 15
+        ordLabel.clipsToBounds = true
+        titleLabel.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .headline).pointSize, weight: .bold)
+        titleLabel.adjustsFontForContentSizeCategory = true
+        titleLabel.numberOfLines = 2
+        metaLabel.font = UIFont.preferredFont(forTextStyle: .caption1)
+        metaLabel.adjustsFontForContentSizeCategory = true
+        metaLabel.textColor = .secondaryLabel
+        metaLabel.numberOfLines = 2
+        pctLabel.font = UIFont.systemFont(ofSize: 13, weight: .semibold)
+        pctLabel.textColor = npGold
+        bar.progressTintColor = npGold
+        bar.trackTintColor = UIColor.tertiarySystemFill
+        for v in [ordLabel, titleLabel, metaLabel, pctLabel, bar] {
+            v.translatesAutoresizingMaskIntoConstraints = false
+            glass.contentView.addSubview(v)
+        }
+        let c = glass.contentView
+        NSLayoutConstraint.activate([
+            ordLabel.widthAnchor.constraint(equalToConstant: 30), ordLabel.heightAnchor.constraint(equalToConstant: 30),
+            ordLabel.leadingAnchor.constraint(equalTo: c.leadingAnchor, constant: 14),
+            ordLabel.topAnchor.constraint(equalTo: c.topAnchor, constant: 14),
+            pctLabel.trailingAnchor.constraint(equalTo: c.trailingAnchor, constant: -14),
+            pctLabel.centerYAnchor.constraint(equalTo: ordLabel.centerYAnchor),
+            titleLabel.leadingAnchor.constraint(equalTo: ordLabel.trailingAnchor, constant: 10),
+            titleLabel.trailingAnchor.constraint(equalTo: pctLabel.leadingAnchor, constant: -8),
+            titleLabel.centerYAnchor.constraint(equalTo: ordLabel.centerYAnchor),
+            metaLabel.leadingAnchor.constraint(equalTo: c.leadingAnchor, constant: 14),
+            metaLabel.trailingAnchor.constraint(equalTo: c.trailingAnchor, constant: -14),
+            metaLabel.topAnchor.constraint(equalTo: ordLabel.bottomAnchor, constant: 8),
+            bar.leadingAnchor.constraint(equalTo: c.leadingAnchor, constant: 14),
+            bar.trailingAnchor.constraint(equalTo: c.trailingAnchor, constant: -14),
+            bar.bottomAnchor.constraint(equalTo: c.bottomAnchor, constant: -12),
+        ])
+        isAccessibilityElement = true
+        accessibilityTraits = .button
+    }
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    func configure(_ it: NPState.Item) {
+        ordLabel.text = it.ord
+        titleLabel.text = it.title
+        metaLabel.text = it.meta
+        pctLabel.text = it.full ? "✓" : "\(it.pct)%"
+        bar.progress = Float(it.pct) / 100
+        bar.progressTintColor = it.full ? UIColor.systemGreen : npGold
+        glass.contentView.alpha = it.untouched ? 0.85 : 1
+        accessibilityLabel = "\(it.title), \(it.meta)"
+    }
+
+    override var isHighlighted: Bool {
+        didSet {
+            UIView.animate(withDuration: 0.18, delay: 0, options: [.allowUserInteraction, .curveEaseOut]) {
+                self.transform = self.isHighlighted ? CGAffineTransform(scaleX: 0.97, y: 0.97) : .identity
+            }
+        }
+    }
+}
+
+final class NativePickerView: UIView, UICollectionViewDataSource, UICollectionViewDelegate {
+    var perform: ((String) -> Void)?
+    var bottomInset: (() -> CGFloat)?
+    private var state: NPState?
+    private let collectionView: UICollectionView
+
+    override init(frame: CGRect) {
+        let layout = UICollectionViewCompositionalLayout { [weak self] sectionIndex, _ in
+            if sectionIndex == 0 {
+                let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(
+                    widthDimension: .fractionalWidth(1), heightDimension: .estimated(200)))
+                let group = NSCollectionLayoutGroup.vertical(layoutSize: NSCollectionLayoutSize(
+                    widthDimension: .fractionalWidth(1), heightDimension: .estimated(200)), subitems: [item])
+                let sec = NSCollectionLayoutSection(group: group)
+                sec.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 16, bottom: 12, trailing: 16)
+                return sec
+            }
+            let two = (self?.state?.level ?? 1) == 2
+            let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(
+                widthDimension: .fractionalWidth(two ? 0.5 : 1), heightDimension: .fractionalHeight(1)))
+            let group = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(
+                widthDimension: .fractionalWidth(1), heightDimension: .absolute(two ? 118 : 104)),
+                subitem: item, count: two ? 2 : 1)
+            if two { group.interItemSpacing = .fixed(12) }
+            let sec = NSCollectionLayoutSection(group: group)
+            sec.interGroupSpacing = 12
+            sec.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 12, trailing: 16)
+            return sec
+        }
+        collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        super.init(frame: frame)
+        backgroundColor = .clear
+        semanticContentAttribute = .forceRightToLeft
+        collectionView.semanticContentAttribute = .forceRightToLeft
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        collectionView.backgroundColor = .clear
+        collectionView.alwaysBounceVertical = true
+        collectionView.showsVerticalScrollIndicator = false
+        collectionView.dataSource = self
+        collectionView.delegate = self
+        collectionView.register(NPHeaderCell.self, forCellWithReuseIdentifier: NPHeaderCell.reuseId)
+        collectionView.register(NPTileCell.self, forCellWithReuseIdentifier: NPTileCell.reuseId)
+        addSubview(collectionView)
+        NSLayoutConstraint.activate([
+            collectionView.topAnchor.constraint(equalTo: topAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            collectionView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: trailingAnchor),
+        ])
+    }
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        let b = bottomInset?() ?? 100
+        if abs(collectionView.contentInset.bottom - b) > 0.5 { collectionView.contentInset.bottom = b }
+    }
+
+    func apply(_ st: NPState) {
+        let levelChanged = state?.level != st.level
+        state = st
+        collectionView.collectionViewLayout.invalidateLayout()
+        collectionView.reloadData()
+        if levelChanged { collectionView.setContentOffset(CGPoint(x: 0, y: -collectionView.adjustedContentInset.top), animated: false) }
+    }
+
+    func numberOfSections(in collectionView: UICollectionView) -> Int { 2 }
+
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        guard let st = state else { return 0 }
+        return section == 0 ? 1 : st.items.count
+    }
+
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let st = state else { return UICollectionViewCell() }
+        if indexPath.section == 0 {
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: NPHeaderCell.reuseId, for: indexPath) as! NPHeaderCell
+            cell.configure(st)
+            cell.onTab = { [weak self] id in self?.perform?("window.NativePickerHost.track('\(id)')") }
+            cell.onBack = { [weak self] in self?.perform?("window.NativePickerHost.back()") }
+            return cell
+        }
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: NPTileCell.reuseId, for: indexPath) as! NPTileCell
+        cell.configure(st.items[indexPath.item])
+        return cell
+    }
+
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        guard indexPath.section == 1, let st = state else { return }
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        let id = st.items[indexPath.item].id.replacingOccurrences(of: "'", with: "")
+        perform?("window.NativePickerHost.act('\(id)')")
     }
 }
