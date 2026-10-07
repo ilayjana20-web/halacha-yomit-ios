@@ -632,6 +632,85 @@ def main() -> int:
                         '  clearTimeout(showToast._t);\n'
                         '  showToast._t=setTimeout(()=>t.classList.add("hidden"),2200);\n'
                         '}', "index.html showToast native toast")
+
+    # Liquid-Glass-style translucent material on the surfaces that actually overlay scrolling
+    # content (gear buttons, the settings/stats sheet) — see "Materials & depth" in Apple's own
+    # fluid-interfaces guidance: blur only earns its place over something it can blur, so
+    # ordinary content cards (.hero, .entry-card) are deliberately left as the solid "clay"
+    # cards they already were.
+    html = replace_once(html,
+                        '    --good-deep:#2C6D73;\n'
+                        '    --clay:9px 9px 20px rgba(140,125,89,.22), -8px -8px 18px rgba(255,255,255,.75), inset 0 0 0 1px rgba(255,255,255,.4);\n'
+                        '    --clay-sm:6px 6px 14px rgba(140,125,89,.18), -5px -5px 12px rgba(255,255,255,.7), inset 0 0 0 1px rgba(255,255,255,.4);\n'
+                        '  }',
+                        '    --good-deep:#2C6D73;\n'
+                        '    --clay:9px 9px 20px rgba(140,125,89,.22), -8px -8px 18px rgba(255,255,255,.75), inset 0 0 0 1px rgba(255,255,255,.4);\n'
+                        '    --clay-sm:6px 6px 14px rgba(140,125,89,.18), -5px -5px 12px rgba(255,255,255,.7), inset 0 0 0 1px rgba(255,255,255,.4);\n'
+                        '    /* Liquid-Glass-style translucent material (see "Materials & depth": a semi-transparent\n'
+                        '       tint + backdrop-filter blur, with a bright top edge standing in for light catching the\n'
+                        '       surface) — used on the surfaces that actually sit over scrolling/other content\n'
+                        '       (gear buttons, the collapsing mini header, sheets) where a blur has something to blur. */\n'
+                        '    --glass-tint:rgba(255,253,246,.6); --glass-tint-strong:rgba(255,253,246,.78);\n'
+                        '    --glass-border:rgba(255,255,255,.6); --glass-blur:blur(20px) saturate(180%);\n'
+                        '  }', "index.html glass vars (light)")
+    html = replace_once(html,
+                        '    --clay:0 10px 26px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.05);\n'
+                        '    --clay-sm:0 6px 16px rgba(0,0,0,.42), inset 0 0 0 1px rgba(255,255,255,.05);\n'
+                        '    color-scheme:dark;\n'
+                        '  }',
+                        '    --clay:0 10px 26px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.05);\n'
+                        '    --clay-sm:0 6px 16px rgba(0,0,0,.42), inset 0 0 0 1px rgba(255,255,255,.05);\n'
+                        '    --glass-tint:rgba(24,34,42,.62); --glass-tint-strong:rgba(24,34,42,.8);\n'
+                        '    --glass-border:rgba(255,255,255,.08); --glass-blur:blur(20px) saturate(160%);\n'
+                        '    color-scheme:dark;\n'
+                        '  }', "index.html glass vars (dark)")
+    html = replace_once(html,
+                        '  html[data-theme="dark"] .gear-btn{background:#22343D;}\n'
+                        '  html[data-theme="dark"] .gear-btn svg{stroke:#9FD8CF;}',
+                        '  /* .gear-btn\'s glass background + icon stroke are already theme-aware via\n'
+                        '     --glass-tint/--good-deep (see :root / html[data-theme="dark"] above) — no override needed. */',
+                        "index.html gear-btn dark override removed")
+    html = replace_once(html,
+                        '  html[data-theme="dark"] .modal-panel{background:var(--card);}\n',
+                        '', "index.html modal-panel dark override removed")
+    html = replace_once(html,
+                        '  @media (prefers-reduced-motion: reduce){ .seg-pill{transition:none;} }',
+                        '  @media (prefers-reduced-motion: reduce){ .seg-pill{transition:none;} }\n'
+                        '  /* Glass surfaces (gear buttons, settings/stats sheet) go frosty-solid instead of blurred —\n'
+                        '     same intent, no transparency, for anyone who\'s asked the system to reduce it. */\n'
+                        '  @media (prefers-reduced-transparency: reduce){\n'
+                        '    .gear-btn,.modal-panel{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;\n'
+                        '      background:var(--card)!important;}\n'
+                        '  }', "index.html glass reduced-transparency fallback")
+    html = replace_once(html,
+                        '  .gear-btn{position:relative;width:36px;height:36px;border-radius:50%;border:none;cursor:pointer;\n'
+                        '    background:var(--good);display:flex;align-items:center;justify-content:center;\n'
+                        '    box-shadow:3px 3px 8px rgba(63,132,138,.35), -3px -3px 8px rgba(255,255,255,.8);\n'
+                        '    transition:.2s;}\n'
+                        '  .gear-btn:active{transform:scale(.9) rotate(20deg);}\n'
+                        '  .gear-btn svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:1.8;\n'
+                        '    stroke-linecap:round;stroke-linejoin:round;}',
+                        '  .gear-btn{position:relative;width:36px;height:36px;border-radius:50%;cursor:pointer;\n'
+                        '    background:var(--glass-tint);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);\n'
+                        '    border:1px solid var(--glass-border);\n'
+                        '    display:flex;align-items:center;justify-content:center;\n'
+                        '    box-shadow:3px 3px 8px rgba(63,132,138,.2), -2px -2px 6px rgba(255,255,255,.5);\n'
+                        '    transition:.2s;}\n'
+                        '  .gear-btn:active{transform:scale(.9) rotate(20deg);}\n'
+                        '  .gear-btn svg{width:18px;height:18px;stroke:var(--good-deep);fill:none;stroke-width:1.8;\n'
+                        '    stroke-linecap:round;stroke-linejoin:round;}', "index.html gear-btn glass")
+    html = replace_once(html,
+                        '  .modal-panel{position:relative;width:100%;max-width:var(--maxw);margin:0 auto;max-height:86vh;\n'
+                        '    background:linear-gradient(180deg,var(--paper2),#F6EFDB);\n'
+                        '    border-radius:28px 28px 0 0;box-shadow:0 -16px 52px rgba(0,0,0,.34);\n'
+                        '    display:flex;flex-direction:column;animation:sheetUp .3s cubic-bezier(.2,.8,.2,1);}',
+                        '  .modal-panel{position:relative;width:100%;max-width:var(--maxw);margin:0 auto;max-height:86vh;\n'
+                        '    background:var(--glass-tint-strong);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);\n'
+                        '    border-top:1px solid var(--glass-border);\n'
+                        '    border-radius:28px 28px 0 0;box-shadow:0 -16px 52px rgba(0,0,0,.34);\n'
+                        '    display:flex;flex-direction:column;animation:sheetUp .3s cubic-bezier(.2,.8,.2,1);}',
+                        "index.html modal-panel glass")
+
     html = replace_once(html, "</body>", NATIVE_BLOCK + SHARE_BLOCK + MINI_TOPBAR_BLOCK + "</body>", "index.html </body>")
     open(p, "w", encoding="utf-8").write(html)
 

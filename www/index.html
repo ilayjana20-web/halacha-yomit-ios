@@ -114,6 +114,12 @@ html.ios-native-chrome body.reading .hero{display:none !important;}
     --good-deep:#2C6D73;
     --clay:9px 9px 20px rgba(140,125,89,.22), -8px -8px 18px rgba(255,255,255,.75), inset 0 0 0 1px rgba(255,255,255,.4);
     --clay-sm:6px 6px 14px rgba(140,125,89,.18), -5px -5px 12px rgba(255,255,255,.7), inset 0 0 0 1px rgba(255,255,255,.4);
+    /* Liquid-Glass-style translucent material (see "Materials & depth": a semi-transparent
+       tint + backdrop-filter blur, with a bright top edge standing in for light catching the
+       surface) — used on the surfaces that actually sit over scrolling/other content
+       (gear buttons, the collapsing mini header, sheets) where a blur has something to blur. */
+    --glass-tint:rgba(255,253,246,.6); --glass-tint-strong:rgba(255,253,246,.78);
+    --glass-border:rgba(255,255,255,.6); --glass-blur:blur(20px) saturate(180%);
   }
 
   /* ============================ DARK MODE ============================
@@ -134,6 +140,8 @@ html.ios-native-chrome body.reading .hero{display:none !important;}
     --shadow-card-sm:0 6px 18px rgba(0,0,0,.45);
     --clay:0 10px 26px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.05);
     --clay-sm:0 6px 16px rgba(0,0,0,.42), inset 0 0 0 1px rgba(255,255,255,.05);
+    --glass-tint:rgba(24,34,42,.62); --glass-tint-strong:rgba(24,34,42,.8);
+    --glass-border:rgba(255,255,255,.08); --glass-blur:blur(20px) saturate(160%);
     color-scheme:dark;
   }
   html[data-theme="dark"] body{
@@ -144,8 +152,8 @@ html.ios-native-chrome body.reading .hero{display:none !important;}
       linear-gradient(180deg, rgba(255,255,255,.03), transparent 360px);}
   html[data-theme="dark"] .hero{background:linear-gradient(135deg,#16323A,#18222A 70%);}
   html[data-theme="dark"] .hero .portrait{box-shadow:0 0 0 3px var(--card), 0 0 0 4.5px var(--good);}
-  html[data-theme="dark"] .gear-btn{background:#22343D;}
-  html[data-theme="dark"] .gear-btn svg{stroke:#9FD8CF;}
+  /* .gear-btn's glass background + icon stroke are already theme-aware via
+     --glass-tint/--good-deep (see :root / html[data-theme="dark"] above) — no override needed. */
   /* reader — the two frozen panels, re-tuned for dark but still clearly distinct from each other */
   html[data-theme="dark"] .halacha{
     box-shadow:0 10px 28px rgba(0,0,0,.5); border-color:var(--line);}
@@ -208,7 +216,6 @@ html.ios-native-chrome body.reading .hero{display:none !important;}
   html[data-theme="dark"] .tool-btn.fav-on{background:#3A3218;border-color:var(--gold-soft);color:var(--gold-deep);}
   html[data-theme="dark"] .tabbar-inner{background:rgba(24,34,42,.92);
     box-shadow:0 10px 26px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.06);}
-  html[data-theme="dark"] .modal-panel{background:var(--card);}
   html[data-theme="dark"] #searchInput{background:var(--card);color:var(--ink);}
   html[data-theme="dark"] mark{background:rgba(127,227,208,.22);color:#7FE3D0;}
   html[data-theme="dark"] .note{background:var(--card);color:var(--muted);}
@@ -246,6 +253,12 @@ html.ios-native-chrome body.reading .hero{display:none !important;}
     background:var(--card);box-shadow:var(--clay-sm);z-index:0;
     transition:transform .32s cubic-bezier(.34,1.4,.64,1), width .32s cubic-bezier(.34,1.4,.64,1);}
   @media (prefers-reduced-motion: reduce){ .seg-pill{transition:none;} }
+  /* Glass surfaces (gear buttons, settings/stats sheet) go frosty-solid instead of blurred —
+     same intent, no transparency, for anyone who's asked the system to reduce it. */
+  @media (prefers-reduced-transparency: reduce){
+    .gear-btn,.modal-panel{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+      background:var(--card)!important;}
+  }
   /* the five top-level screens fade + rise into place instead of hard-cutting in; the OUTGOING
      screen still just disappears (display:none), which reads fine since attention is already
      moving to what's arriving. */
@@ -1063,18 +1076,21 @@ html.ios-native-chrome body.reading .hero{display:none !important;}
   /* Settings gear + modal */
   .hero-icons{position:relative;z-index:5;order:2;flex:0 0 auto;
     display:flex;flex-direction:column;gap:7px;}
-  .gear-btn{position:relative;width:36px;height:36px;border-radius:50%;border:none;cursor:pointer;
-    background:var(--good);display:flex;align-items:center;justify-content:center;
-    box-shadow:3px 3px 8px rgba(63,132,138,.35), -3px -3px 8px rgba(255,255,255,.8);
+  .gear-btn{position:relative;width:36px;height:36px;border-radius:50%;cursor:pointer;
+    background:var(--glass-tint);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+    border:1px solid var(--glass-border);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:3px 3px 8px rgba(63,132,138,.2), -2px -2px 6px rgba(255,255,255,.5);
     transition:.2s;}
   .gear-btn:active{transform:scale(.9) rotate(20deg);}
-  .gear-btn svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:1.8;
+  .gear-btn svg{width:18px;height:18px;stroke:var(--good-deep);fill:none;stroke-width:1.8;
     stroke-linecap:round;stroke-linejoin:round;}
   .modal-overlay{position:fixed;inset:0;z-index:80;background:rgba(6,22,32,.6);
     backdrop-filter:blur(4px);display:flex;align-items:flex-end;animation:overlayIn .25s ease;}
   @keyframes overlayIn{from{opacity:0;}to{opacity:1;}}
   .modal-panel{position:relative;width:100%;max-width:var(--maxw);margin:0 auto;max-height:86vh;
-    background:linear-gradient(180deg,var(--paper2),#F6EFDB);
+    background:var(--glass-tint-strong);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+    border-top:1px solid var(--glass-border);
     border-radius:28px 28px 0 0;box-shadow:0 -16px 52px rgba(0,0,0,.34);
     display:flex;flex-direction:column;animation:sheetUp .3s cubic-bezier(.2,.8,.2,1);}
   @keyframes sheetUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
