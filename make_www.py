@@ -304,6 +304,46 @@ document.getElementById("shareQrBtn").addEventListener("click", shareAppQR);
 </script>
 '''
 
+# Appended before </body> alongside NATIVE_BLOCK/SHARE_BLOCK. Not gated to any platform — pure
+# scroll-position CSS/JS, so it works identically on the live website too, not just in the app.
+MINI_TOPBAR_BLOCK = r'''
+<div class="mini-topbar" id="miniTopbar" aria-hidden="true"><img src="icon-512.png" alt=""></div>
+<style>
+.mini-topbar{position:fixed;top:0;left:0;right:0;z-index:70;
+  height:calc(env(safe-area-inset-top) + 44px);
+  display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px;
+  background:linear-gradient(180deg,var(--card) 0%,var(--card) 75%,transparent);
+  opacity:0;transform:translateY(-10px);pointer-events:none;
+  transition:opacity .25s ease,transform .25s ease;}
+.mini-topbar.show{opacity:1;transform:translateY(0);}
+.mini-topbar img{width:30px;height:30px;border-radius:9px;display:block;
+  box-shadow:0 2px 8px rgba(0,0,0,.18);}
+body.reading .mini-topbar{display:none;}
+</style>
+<script>
+(function(){
+  // Apple-Music-style collapsing header: the big hero (portrait + title) scrolls away
+  // normally with the page; once it's mostly scrolled past, a small pinned bar with just the
+  // app's own icon fades in at the top — same idea the user already built into their other
+  // app, and the pattern system apps like Music use for a collapsing large title.
+  var bar = document.getElementById("miniTopbar");
+  if(!bar) return;
+  var ticking = false;
+  function onScroll(){
+    if(ticking) return;
+    ticking = true;
+    requestAnimationFrame(function(){
+      var hero = document.querySelector(".hero");
+      var threshold = (hero ? hero.offsetHeight : 160) * 0.6;
+      bar.classList.toggle("show", window.scrollY > threshold);
+      ticking = false;
+    });
+  }
+  window.addEventListener("scroll", onScroll, {passive:true});
+})();
+</script>
+'''
+
 
 def replace_once(text: str, old: str, new: str, what: str) -> str:
     n = text.count(old)
@@ -592,7 +632,7 @@ def main() -> int:
                         '  clearTimeout(showToast._t);\n'
                         '  showToast._t=setTimeout(()=>t.classList.add("hidden"),2200);\n'
                         '}', "index.html showToast native toast")
-    html = replace_once(html, "</body>", NATIVE_BLOCK + SHARE_BLOCK + "</body>", "index.html </body>")
+    html = replace_once(html, "</body>", NATIVE_BLOCK + SHARE_BLOCK + MINI_TOPBAR_BLOCK + "</body>", "index.html </body>")
     open(p, "w", encoding="utf-8").write(html)
 
     # 6. qrcode.js — the offline QR-code generator the share-QR feature above needs (see

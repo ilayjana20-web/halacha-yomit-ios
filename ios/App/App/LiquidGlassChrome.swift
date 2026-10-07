@@ -53,7 +53,7 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
     // each tap below just clicks the corresponding existing web button, reusing all of its
     // existing click-handler logic unchanged.
     private let tabs: [(id: String, title: String, icon: String)] = [
-        ("segWeek",   "השבוע",      "calendar"),
+        ("segWeek",   "השבוע",      "book.fill"),
         ("segTopics", "לפי נושא",   "square.grid.2x2"),
         ("segPicker", "כל הפרשיות", "books.vertical"),
         ("segSearch", "חיפוש",      "magnifyingglass"),
