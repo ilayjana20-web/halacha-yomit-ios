@@ -163,6 +163,134 @@ html.ios-native-chrome .search-box{display:none !important;}
   // The other direction: the native UISearchBar (search tab only, see LiquidGlassChrome.swift)
   // drives the existing #searchInput + its debounced "input" listener, rather than
   // duplicating the search-triggering logic natively.
+
+  // Edge-swipe back (like Android's back gesture) + status-bar tap scroll-to-top. iOS app only.
+  window.betelAppBack = function(){
+    var pb = document.getElementById("pickerBack");
+    if(pb && pb.offsetParent !== null){ pb.click(); return true; }
+    var rv = document.getElementById("readerView"), rb = document.getElementById("rBack");
+    if(rv && !rv.classList.contains("hidden") && rb){ rb.click(); return true; }
+    return false;
+  };
+  window.betelCanGoBack = function(){
+    var pb=document.getElementById("pickerBack");
+    if(pb && pb.offsetParent!==null) return true;
+    var rv=document.getElementById("readerView");
+    return !!(rv && !rv.classList.contains("hidden") && document.getElementById("rBack"));
+  };
+  window.betelScrollTop = function(){
+    try{ window.scrollTo({top:0, behavior:"smooth"}); }catch(e){ window.scrollTo(0,0); }
+  };
+  if(isIOSNative && false){   // native UIScreenEdgePanGestureRecognizer handles this now
+    var sx=0, sy=0, st=0, edge=false;
+    document.addEventListener("touchstart", function(e){
+      var t=e.touches[0]; sx=t.clientX; sy=t.clientY; st=Date.now();
+      edge = e.touches.length===1 && (sx<=22 || sx>=window.innerWidth-22);
+    }, {passive:true});
+    document.addEventListener("touchend", function(e){
+      if(!edge) return; edge=false;
+      var t=e.changedTouches[0], dx=t.clientX-sx, dy=t.clientY-sy;
+      var inward = sx<=22 ? dx : -dx;
+      if(inward>70 && Math.abs(dy)<0.6*inward && Date.now()-st<700) window.betelAppBack();
+    }, {passive:true});
+  }
+
+  // Pull-down-to-refresh (re-renders the open tab), tap-the-active-tab-again scrolls to top,
+  // and a long-press menu on parasha tiles that opens the real iOS action sheet (Liquid Glass on
+  // iOS 26) via the native side. iOS app only.
+  window.betelTabReselect = function(id){
+    var b = document.getElementById(id);
+    if(!b || !b.classList.contains("active")) return false;
+    if((window.scrollY||document.documentElement.scrollTop||0) > 8){ window.betelScrollTop(); return true; }
+    return false;
+  };
+  var __actCb = {};
+  window.__betelActionDone = function(cb, id){ var f = __actCb[cb]; delete __actCb[cb]; if(f) f(id); };
+  function nativeSheet(title, actions, cancel, cb){
+    var n = String(Date.now()); __actCb[n] = cb;
+    window.notifyNativeChrome({type:"actionSheet", title:title, actions:actions, cancel:cancel, cb:n});
+  }
+  if(isIOSNative){
+    // (pull-to-refresh is Apple's native UIRefreshControl now - see LiquidGlassChrome.swift)
+
+    // ---- long-press on a parasha tile -> system action sheet ----
+    var lpTimer=null, lpx=0, lpy=0, lpFired=0;
+    document.addEventListener("touchstart", function(e){
+      var tile = e.target.closest && e.target.closest(".btile[data-key]");
+      if(!tile || e.touches.length!==1) return;
+      var t=e.touches[0]; lpx=t.clientX; lpy=t.clientY;
+      clearTimeout(lpTimer);
+      lpTimer=setTimeout(function(){
+        lpFired=Date.now();
+        window.notifyNativeChrome({type:"haptic", style:"light"});
+        var nm = (tile.querySelector(".bn,.bt,.name")||tile).textContent.trim().split("\n")[0].slice(0,40);
+        nativeSheet(nm, [{id:"open",title:"פתיחה"},{id:"share",title:"שיתוף"}], "ביטול", function(id){
+          if(id==="open") tile.click();
+          else if(id==="share"){
+            var txt = "הלכות הבן איש חי — " + nm;
+            try{ if(typeof APP_STORE_URL==="string" && APP_STORE_URL.indexOf("REPLACE")<0) txt += "\n" + APP_STORE_URL; }catch(_){}
+            if(navigator.share) navigator.share({title:"הלכות הבן איש חי", text:txt}).catch(function(){});
+            else if(navigator.clipboard) navigator.clipboard.writeText(txt);
+          }
+        });
+      }, 480);
+    }, {passive:true});
+    document.addEventListener("touchmove", function(e){
+      var t=e.touches[0]; if(lpTimer && (Math.abs(t.clientX-lpx)>8 || Math.abs(t.clientY-lpy)>8)){ clearTimeout(lpTimer); lpTimer=null; }
+    }, {passive:true});
+    ["touchend","touchcancel"].forEach(function(ev){ document.addEventListener(ev, function(){ clearTimeout(lpTimer); lpTimer=null; }, {passive:true}); });
+    document.addEventListener("click", function(e){ if(Date.now()-lpFired<700){ e.stopPropagation(); e.preventDefault(); } }, true);
+  }
+
+  // ---- Native picker bridge: the "all parshiyot" screen is drawn natively (NativePickerView in
+  // LiquidGlassChrome.swift). The web page keeps all the logic: we scrape the rendered tiles, send them over,
+  // and the native side calls act/track/back which just click the real DOM buttons. iOS app only.
+  if(isIOSNative){
+    var npStyle=document.createElement("style");
+    npStyle.textContent="html.native-picker #pickerView{visibility:hidden}";
+    document.head.appendChild(npStyle);
+    var npOpen=false;
+    function npTxt(el){ return el ? el.textContent.replace(/\s+/g," ").trim() : ""; }
+    function npPct(el){ var i=el && el.querySelector(".tbar i"); var m=i && /([\d.]+)%/.exec(i.getAttribute("style")||""); return m?Math.round(parseFloat(m[1])):0; }
+    function npState(){
+      var pv=document.getElementById("pickerView"), pl=document.getElementById("plist");
+      if(!pv || !pl || pv.classList.contains("hidden")) return null;
+      var tiles=[].slice.call(pl.querySelectorAll(".btile"));
+      if(!tiles.length) return null;
+      var level = pl.querySelector(".btile[data-book]") ? 1 : 2;
+      var tabs=[];
+      if(level===1) [].slice.call(document.querySelectorAll("#pickerTabs .tab")).forEach(function(t){ tabs.push({id:t.getAttribute("data-track"),label:npTxt(t),active:t.classList.contains("active")}); });
+      var tb=pl.querySelector(".tot-banner"), banner=null;
+      if(tb){ var foot=tb.querySelectorAll(".tb-foot span"); var pct=npPct({querySelector:function(){return null;}});
+        var w=tb.querySelector(".tb-track i"); var mm=w&&/([\d.]+)%/.exec(w.getAttribute("style")||"");
+        banner={label:npTxt(tb.querySelector(".tb-lbl")),num:npTxt(tb.querySelector(".tb-num")),pct:mm?Math.round(parseFloat(mm[1])):0,foot:npTxt(foot[0]),footPct:npTxt(foot[1])}; }
+      var back=document.getElementById("pickerBack");
+      return {level:level, tabs:tabs, backLabel: back ? npTxt(back).replace(/^▶\s*/,"") : null, banner:banner,
+        items:tiles.map(function(t){ return {
+          id: t.hasAttribute("data-book") ? "book:"+t.getAttribute("data-book") : "key:"+t.getAttribute("data-key"),
+          ord:npTxt(t.querySelector(".ord")), title:npTxt(t.querySelector(".bn")), meta:npTxt(t.querySelector(".bm")),
+          pct:npPct(t), full:t.classList.contains("full"), untouched:t.classList.contains("untouched") }; })};
+    }
+    function npSync(){
+      var st=npState();
+      if(st){ npOpen=true; document.documentElement.classList.add("native-picker"); window.notifyNativeChrome({type:"picker",open:true,state:st}); }
+      else if(npOpen){ npOpen=false; document.documentElement.classList.remove("native-picker"); window.notifyNativeChrome({type:"picker",open:false}); }
+    }
+    window.NativePickerHost={
+      act:function(id){ var sel = id.indexOf("book:")===0 ? '.btile[data-book="'+id.slice(5)+'"]' : '.btile[data-key="'+id.slice(4)+'"]';
+        var el=document.querySelector("#plist "+sel); if(el) el.click(); },
+      track:function(t){ var el=document.querySelector('#pickerTabs .tab[data-track="'+t+'"]'); if(el) el.click(); },
+      back:function(){ var b=document.getElementById("pickerBack"); if(b) b.click(); }
+    };
+    window.addEventListener("load", function(){
+      try{
+        var orig=window.renderPList;
+        if(typeof orig==="function"){ window.renderPList=function(){ var r=orig.apply(this,arguments); setTimeout(npSync,0); return r; }; }
+        var pv=document.getElementById("pickerView");
+        if(pv) new MutationObserver(function(){ setTimeout(npSync,0); }).observe(pv,{attributes:true,attributeFilter:["class"]});
+      }catch(e){}
+    });
+  }
   window.nativeSetSearchQuery = function(q){
     var el = document.getElementById("searchInput");
     if(el){ el.value = q; el.dispatchEvent(new Event("input")); }
