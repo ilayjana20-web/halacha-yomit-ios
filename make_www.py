@@ -148,7 +148,13 @@ html.ios-native-chrome .search-box{display:none !important;}
 </style>
 <script>
 (function(){
-  var isIOSNative = !!(window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform()==="ios");
+  // A true global (not a closure-local var) — openSettings()/openStats()/showToast() etc.,
+  // defined later as top-level functions in the body script, reference this by bare name and
+  // need it to resolve through the global object. A closure-local `var` here was invisible to
+  // them (ReferenceError, silently swallowing every tap on settings/stats/toast — the bug that
+  // made the gear icon do nothing and a second tap register as the webview's own double-tap-
+  // to-zoom gesture instead).
+  window.isIOSNative = !!(window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform()==="ios");
   document.documentElement.classList.toggle("ios-native-chrome", isIOSNative);
   // Safe to call from anywhere, anytime, including synchronously during the earliest page
   // script — no-ops instantly on web/Android, or if the native side hasn't registered the

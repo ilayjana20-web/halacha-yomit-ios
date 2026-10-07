@@ -60,8 +60,26 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
     ]
     private let searchTabId = "segSearch"
 
+    // Swipe-from-left-edge to go back while the reader is open (RTL: "back" is the left edge,
+    // since the back chevron sits on the right — see the forced RTL semantic content below).
+    // Not a UINavigationController here, so there's no interactivePopGestureRecognizer to get
+    // this for free; only enabled while the reader's nav bar is actually showing.
+    private lazy var backEdgeSwipe: UIScreenEdgePanGestureRecognizer = {
+        let gr = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(backEdgeSwiped))
+        gr.edges = .left
+        gr.isEnabled = false   // only while the reader is open — see the "reader" case below
+        return gr
+    }()
+    private var pullToRefresh: UIRefreshControl!
+
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        // The app is Hebrew-only — force RTL regardless of the device's own language/locale or
+        // whether Info.plist's localizations are configured in a way iOS would otherwise detect
+        // automatically. Without this, the native bars (back chevron, tab order, search field)
+        // can render left-to-right even on a Hebrew-reading device.
+        view.semanticContentAttribute = .forceRightToLeft
 
         addChild(capVC)
         view.addSubview(capVC.view)
@@ -82,6 +100,9 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
         setupTabBar()
         setupNavBar()
         setupSearchBar()
+        setupWebViewScrollBehaviors()
+
+        view.addGestureRecognizer(backEdgeSwipe)
 
         topToViewTop = capVC.view.topAnchor.constraint(equalTo: view.topAnchor)
         topToNavBar = capVC.view.topAnchor.constraint(equalTo: navBar.bottomAnchor)
@@ -89,6 +110,30 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
         updateContentInset()
 
         UpdateCheck.checkAndPromptIfNeeded(from: self)
+    }
+
+    /// Two small standard-iOS behaviors on the web content's own UIScrollView: the keyboard
+    /// dismisses as soon as the user starts scrolling (rather than staying up over the
+    /// content), and pulling down past the top reloads the page — both expected affordances on
+    /// a native-feeling screen that a plain WKWebView doesn't give you for free.
+    private func setupWebViewScrollBehaviors() {
+        guard let scrollView = capVC.webView?.scrollView else { return }
+        scrollView.keyboardDismissMode = .onDrag
+        pullToRefresh = UIRefreshControl()
+        pullToRefresh.addTarget(self, action: #selector(pulledToRefresh), for: .valueChanged)
+        scrollView.refreshControl = pullToRefresh
+    }
+
+    @objc private func backEdgeSwiped(_ gr: UIScreenEdgePanGestureRecognizer) {
+        guard gr.state == .ended else { return }
+        backTapped()
+    }
+
+    @objc private func pulledToRefresh() {
+        capVC.webView?.reload()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            self?.pullToRefresh.endRefreshing()
+        }
     }
 
     /// Activates exactly one of the three top constraints above, matching whichever bar (if
@@ -102,6 +147,7 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
     }
 
     private func setupTabBar() {
+        tabBar.semanticContentAttribute = .forceRightToLeft
         tabBar.delegate = self
         tabBar.items = tabs.enumerated().map { index, tab in
             UITabBarItem(title: tab.title, image: UIImage(systemName: tab.icon), tag: index)
@@ -118,6 +164,7 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
     }
 
     private func setupNavBar() {
+        navBar.semanticContentAttribute = .forceRightToLeft
         let item = UINavigationItem(title: "")
         item.leftBarButtonItem = UIBarButtonItem(
             image: UIImage(systemName: "chevron.backward"), style: .plain,
@@ -138,9 +185,11 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
     }
 
     private func setupSearchBar() {
+        searchBar.semanticContentAttribute = .forceRightToLeft
         searchBar.delegate = self
         searchBar.placeholder = "חפשו מילה, נושא או ביטוי…"
         searchBar.searchBarStyle = .minimal   // lets the bar's own background show through, not a boxed field
+        searchBar.returnKeyType = .search     // a real labeled keyboard action ("חיפוש") to dismiss it, not a bare return
         searchBar.isHidden = true             // only the search tab shows it — see the "tab" message below
 
         view.addSubview(searchBar)
@@ -319,6 +368,7 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
             // bar rather than showing any of them at once.
             navBar.isHidden = !open
             tabBar.isHidden = open
+            backEdgeSwipe.isEnabled = open
             if open {
                 searchBar.isHidden = true
             } else if let tag = tabBar.selectedItem?.tag, tabs[tag].id == searchTabId {
