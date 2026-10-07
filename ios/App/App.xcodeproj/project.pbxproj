@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		09DFB951F3247B29BD0D74DF /* HalachaWidgetBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 717DB7A37B8AA43BBA7B4080 /* HalachaWidgetBridge.swift */; };
+		2D53B5AF70A8EF1AF63E198A /* HalachaSharedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = B40E4C31C51D2EF219E32212 /* HalachaSharedData.swift */; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
 		4D22ABE92AF431CB00220026 /* CapApp-SPM in Frameworks */ = {isa = PBXBuildFile; productRef = 4D22ABE82AF431CB00220026 /* CapApp-SPM */; };
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
@@ -15,17 +17,51 @@
 		504EC30F1FED79650016851F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30E1FED79650016851F /* Assets.xcassets */; };
 		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
-		9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9582B6822FE993A50072D4E8 /* SceneDelegate.swift */; };
+		58B7D733C82AAB48E6C952B7 /* NativeStatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7EC7E160A6DF434603ACD53 /* NativeStatsView.swift */; };
 		753F5668CAD24AF7592C78F5 /* LiquidGlassChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E375FD3074418E2B370F3AC /* LiquidGlassChrome.swift */; };
 		7E72DF51BD5C2555F5AC9082 /* UpdateCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7DAEC455FD5991ECFC8466E /* UpdateCheck.swift */; };
-		2D53B5AF70A8EF1AF63E198A /* HalachaSharedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = B40E4C31C51D2EF219E32212 /* HalachaSharedData.swift */; };
-		09DFB951F3247B29BD0D74DF /* HalachaWidgetBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 717DB7A37B8AA43BBA7B4080 /* HalachaWidgetBridge.swift */; };
+		89AAE55F2851A65F34C49572 /* Provider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 051E119BBF6F88248497CD6E /* Provider.swift */; };
+		9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9582B6822FE993A50072D4E8 /* SceneDelegate.swift */; };
+		9D00EA2C760C9E1E9CDDB2FF /* HalachaCandleWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CB47A83AB5BC2BEBAD438CE /* HalachaCandleWidget.swift */; };
+		AB679E50D3FF8B0C21012803 /* HalachaWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 237AD54E6F746DC69462C6F0 /* HalachaWidgetBundle.swift */; };
 		AFD43E00D267876BB7E7DE98 /* NativeSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CF820DF88FCC0147A23EDDC /* NativeSettingsView.swift */; };
-		58B7D733C82AAB48E6C952B7 /* NativeStatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7EC7E160A6DF434603ACD53 /* NativeStatsView.swift */; };
+		BFB91AB4917507C3359C869D /* HalachaSharedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = B40E4C31C51D2EF219E32212 /* HalachaSharedData.swift */; };
+		CFCA8F38B5A8E735D6663CB0 /* HalachaWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FA9AAC4AD9DE689F7B62FE6 /* HalachaWidget.swift */; };
+		DCAE533C852C908E40EB2E8B /* HalachaWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2482EAC197E637CE9BBF5993 /* HalachaWidget.appex */; settings = {ATTRIBUTES = (RemoveHeaderOnCopy, ); }; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		0257C492CEF36B8ED93A9DD1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 34284DA325F2644D38B40A57;
+			remoteInfo = HalachaWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		EAF1832EF17319938F4FFFC7 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				DCAE533C852C908E40EB2E8B /* HalachaWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		051E119BBF6F88248497CD6E /* Provider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Provider.swift; sourceTree = "<group>"; };
+		1FA9AAC4AD9DE689F7B62FE6 /* HalachaWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HalachaWidget.swift; sourceTree = "<group>"; };
+		237AD54E6F746DC69462C6F0 /* HalachaWidgetBundle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HalachaWidgetBundle.swift; sourceTree = "<group>"; };
+		2482EAC197E637CE9BBF5993 /* HalachaWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HalachaWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		2E375FD3074418E2B370F3AC /* LiquidGlassChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiquidGlassChrome.swift; sourceTree = "<group>"; };
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
+		3CB47A83AB5BC2BEBAD438CE /* HalachaCandleWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HalachaCandleWidget.swift; sourceTree = "<group>"; };
 		50379B222058CBB4000EE86E /* capacitor.config.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = capacitor.config.json; sourceTree = "<group>"; };
 		504EC3041FED79650016851F /* App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = App.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		504EC3071FED79650016851F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -34,17 +70,26 @@
 		504EC3111FED79650016851F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		504EC3131FED79650016851F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		50B271D01FEDC1A000F3C39B /* public */ = {isa = PBXFileReference; lastKnownFileType = folder; path = public; sourceTree = "<group>"; };
-		9582B6822FE993A50072D4E8 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		2E375FD3074418E2B370F3AC /* LiquidGlassChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiquidGlassChrome.swift; sourceTree = "<group>"; };
-		D7DAEC455FD5991ECFC8466E /* UpdateCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateCheck.swift; sourceTree = "<group>"; };
-		B40E4C31C51D2EF219E32212 /* HalachaSharedData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalachaSharedData.swift; sourceTree = "<group>"; };
+		6DA7EC4048AF7B377A334584 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		717DB7A37B8AA43BBA7B4080 /* HalachaWidgetBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalachaWidgetBridge.swift; sourceTree = "<group>"; };
-		9CF820DF88FCC0147A23EDDC /* NativeSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeSettingsView.swift; sourceTree = "<group>"; };
-		E7EC7E160A6DF434603ACD53 /* NativeStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeStatsView.swift; sourceTree = "<group>"; };
+		9582B6822FE993A50072D4E8 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		958DCC722DB07C7200EA8C5F /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
+		9CF820DF88FCC0147A23EDDC /* NativeSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeSettingsView.swift; sourceTree = "<group>"; };
+		B40E4C31C51D2EF219E32212 /* HalachaSharedData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalachaSharedData.swift; sourceTree = "<group>"; };
+		B42B29C04468C76A5B5BD225 /* HalachaWidget.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = HalachaWidget.entitlements; sourceTree = "<group>"; };
+		C1FD0F5A356FF7CEC14D9CEB /* App.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
+		D7DAEC455FD5991ECFC8466E /* UpdateCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateCheck.swift; sourceTree = "<group>"; };
+		E7EC7E160A6DF434603ACD53 /* NativeStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeStatsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		4F82B17B1EFDAD26B2C0664B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		504EC3011FED79650016851F /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -62,6 +107,7 @@
 				958DCC722DB07C7200EA8C5F /* debug.xcconfig */,
 				504EC3061FED79650016851F /* App */,
 				504EC3051FED79650016851F /* Products */,
+				D45A0A03CBD1518AB9C47D47 /* HalachaWidget */,
 			);
 			sourceTree = "<group>";
 		};
@@ -69,6 +115,7 @@
 			isa = PBXGroup;
 			children = (
 				504EC3041FED79650016851F /* App.app */,
+				2482EAC197E637CE9BBF5993 /* HalachaWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -91,13 +138,45 @@
 				504EC3131FED79650016851F /* Info.plist */,
 				2FAD9762203C412B000D30F8 /* config.xml */,
 				50B271D01FEDC1A000F3C39B /* public */,
+				C1FD0F5A356FF7CEC14D9CEB /* App.entitlements */,
 			);
 			path = App;
+			sourceTree = "<group>";
+		};
+		D45A0A03CBD1518AB9C47D47 /* HalachaWidget */ = {
+			isa = PBXGroup;
+			children = (
+				051E119BBF6F88248497CD6E /* Provider.swift */,
+				1FA9AAC4AD9DE689F7B62FE6 /* HalachaWidget.swift */,
+				237AD54E6F746DC69462C6F0 /* HalachaWidgetBundle.swift */,
+				3CB47A83AB5BC2BEBAD438CE /* HalachaCandleWidget.swift */,
+				6DA7EC4048AF7B377A334584 /* Info.plist */,
+				B42B29C04468C76A5B5BD225 /* HalachaWidget.entitlements */,
+			);
+			name = HalachaWidget;
+			path = HalachaWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		34284DA325F2644D38B40A57 /* HalachaWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 32CF3B39FA3F15FACAC4FAC6 /* Build configuration list for PBXNativeTarget "HalachaWidget" */;
+			buildPhases = (
+				B80508A7AEE8412F9BBBFDA0 /* Sources */,
+				4F82B17B1EFDAD26B2C0664B /* Frameworks */,
+				4E7211CEB25F6641BD073B72 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HalachaWidget;
+			productName = HalachaWidget;
+			productReference = 2482EAC197E637CE9BBF5993 /* HalachaWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		504EC3031FED79650016851F /* App */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 504EC3161FED79650016851F /* Build configuration list for PBXNativeTarget "App" */;
@@ -105,10 +184,12 @@
 				504EC3001FED79650016851F /* Sources */,
 				504EC3011FED79650016851F /* Frameworks */,
 				504EC3021FED79650016851F /* Resources */,
+				EAF1832EF17319938F4FFFC7 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				F8683CF4AD889EC437780799 /* PBXTargetDependency */,
 			);
 			name = App;
 			packageProductDependencies = (
@@ -127,6 +208,10 @@
 				LastSwiftUpdateCheck = 0920;
 				LastUpgradeCheck = 0920;
 				TargetAttributes = {
+					34284DA325F2644D38B40A57 = {
+						CreatedOnToolsVersion = 16.0;
+						ProvisioningStyle = Automatic;
+					};
 					504EC3031FED79650016851F = {
 						CreatedOnToolsVersion = 9.2;
 						LastSwiftMigration = 1100;
@@ -151,11 +236,19 @@
 			projectRoot = "";
 			targets = (
 				504EC3031FED79650016851F /* App */,
+				34284DA325F2644D38B40A57 /* HalachaWidget */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		4E7211CEB25F6641BD073B72 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		504EC3021FED79650016851F /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -187,7 +280,28 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B80508A7AEE8412F9BBBFDA0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				89AAE55F2851A65F34C49572 /* Provider.swift in Sources */,
+				CFCA8F38B5A8E735D6663CB0 /* HalachaWidget.swift in Sources */,
+				AB679E50D3FF8B0C21012803 /* HalachaWidgetBundle.swift in Sources */,
+				9D00EA2C760C9E1E9CDDB2FF /* HalachaCandleWidget.swift in Sources */,
+				BFB91AB4917507C3359C869D /* HalachaSharedData.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		F8683CF4AD889EC437780799 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = HalachaWidget;
+			target = 34284DA325F2644D38B40A57 /* HalachaWidget */;
+			targetProxy = 0257C492CEF36B8ED93A9DD1 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		504EC30B1FED79650016851F /* Main.storyboard */ = {
@@ -209,6 +323,32 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		221CB1F7A3330F392A47BAAA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = HalachaWidget/HalachaWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 43DB56398H;
+				INFOPLIST_FILE = HalachaWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.benishchai.halachayomit.HalachaWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		504EC3141FED79650016851F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 958DCC722DB07C7200EA8C5F /* debug.xcconfig */;
@@ -323,8 +463,10 @@
 			baseConfigurationReference = 958DCC722DB07C7200EA8C5F /* debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 43DB56398H;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -345,8 +487,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 43DB56398H;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -362,9 +506,43 @@
 			};
 			name = Release;
 		};
+		580042389EE7886E84C6B2CC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = HalachaWidget/HalachaWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 43DB56398H;
+				INFOPLIST_FILE = HalachaWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.benishchai.halachayomit.HalachaWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		32CF3B39FA3F15FACAC4FAC6 /* Build configuration list for PBXNativeTarget "HalachaWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				221CB1F7A3330F392A47BAAA /* Release */,
+				580042389EE7886E84C6B2CC /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		504EC2FF1FED79650016851F /* Build configuration list for PBXProject "App" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
