@@ -12,6 +12,11 @@ All the code is already written and committed:
   — including the real candle-lighting time (`nextCandleLightingInfo()`) — whenever the streak
   changes, the theme changes, or the home screen renders.
 
+`ios/App/App.xcodeproj/project.pbxproj` has also been updated so `HalachaSharedData.swift` and
+`HalachaWidgetBridge.swift` are already registered in the **App** target's build — you do not
+need to manually add them to Xcode (only the widget-extension files below, since creating the
+extension *target* itself is the one thing that can't be done by editing files).
+
 What's left needs Xcode's UI (creating a new target can't be done by editing files). ~15 minutes.
 
 ## 1. Create the widget extension target

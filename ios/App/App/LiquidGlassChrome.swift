@@ -1,5 +1,6 @@
 import Foundation
 import UIKit
+import SwiftUI
 import WebKit
 import StoreKit
 import Capacitor
@@ -199,12 +200,101 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
         searchBar.resignFirstResponder()
     }
 
+    // MARK: Native Settings / Stats sheets — real UISheetPresentationController (Liquid Glass
+    // sheet chrome on iOS 26, standard sheet material before it, same "genuine system
+    // component, zero custom glass code" reasoning as the tab/nav/search bars) replacing the
+    // HTML #settingsOverlay/#statsOverlay. See openSettings()/openStats() in www/index.html.
+
+    private func presentSettings(_ body: [String: Any]) {
+        let theme = (body["theme"] as? String) ?? "auto"
+        let fszIdx = (body["fszIdx"] as? Int) ?? 1
+        let fszMax = (body["fszMax"] as? Int) ?? 3
+        let view = NativeSettingsView(
+            initialTheme: theme, initialFszIdx: fszIdx, fszMax: fszMax,
+            runJS: { [weak self] js in self?.runJS(js) },
+            onClose: { [weak self] in self?.dismiss(animated: true) }
+        )
+        presentSheet(UIHostingController(rootView: view))
+    }
+
+    private func presentStats(_ body: [String: Any]) {
+        func track(_ key: String) -> StatsTrack {
+            let d = body[key] as? [String: Any]
+            return StatsTrack(done: (d?["done"] as? Int) ?? 0, total: (d?["total"] as? Int) ?? 0)
+        }
+        let view = NativeStatsView(
+            year1: track("year1"), year2: track("year2"), grand: track("grand"),
+            onClose: { [weak self] in self?.dismiss(animated: true) }
+        )
+        presentSheet(UIHostingController(rootView: view))
+    }
+
+    // MARK: Native toast — a blurred capsule, the standard non-sheet pattern for a transient
+    // message (iOS has no public system "toast" component, unlike tab/nav bars or sheets, so a
+    // real UIBlurEffect material is the closest "genuine system material" available). Replaces
+    // the HTML #toast — see showToast() in www/index.html.
+
+    private var activeToast: UIView?
+
+    private func presentToast(_ text: String) {
+        activeToast?.removeFromSuperview()
+
+        let blur = UIBlurEffect(style: .systemMaterial)
+        let container = UIVisualEffectView(effect: blur)
+        container.layer.cornerRadius = 20
+        container.clipsToBounds = true
+        container.translatesAutoresizingMaskIntoConstraints = false
+
+        let label = UILabel()
+        label.text = text
+        label.textAlignment = .center
+        label.numberOfLines = 2
+        label.font = .systemFont(ofSize: 15, weight: .medium)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        container.contentView.addSubview(label)
+        NSLayoutConstraint.activate([
+            label.topAnchor.constraint(equalTo: container.contentView.topAnchor, constant: 10),
+            label.bottomAnchor.constraint(equalTo: container.contentView.bottomAnchor, constant: -10),
+            label.leadingAnchor.constraint(equalTo: container.contentView.leadingAnchor, constant: 18),
+            label.trailingAnchor.constraint(equalTo: container.contentView.trailingAnchor, constant: -18),
+        ])
+
+        view.addSubview(container)
+        activeToast = container
+        NSLayoutConstraint.activate([
+            container.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            container.bottomAnchor.constraint(equalTo: tabBar.topAnchor, constant: -20),
+            container.widthAnchor.constraint(lessThanOrEqualTo: view.widthAnchor, constant: -48),
+        ])
+
+        container.alpha = 0
+        UIView.animate(withDuration: 0.22) { container.alpha = 1 }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
+            UIView.animate(withDuration: 0.22, animations: { container.alpha = 0 }) { _ in
+                container.removeFromSuperview()
+                if self.activeToast === container { self.activeToast = nil }
+            }
+        }
+    }
+
+    private func presentSheet(_ hostingVC: UIViewController) {
+        hostingVC.modalPresentationStyle = .pageSheet
+        if let sheet = hostingVC.sheetPresentationController {
+            sheet.detents = [.medium(), .large()]
+            sheet.prefersGrabberVisible = true
+        }
+        present(hostingVC, animated: true)
+    }
+
     // MARK: WKScriptMessageHandler — the JS side is CHROME_HEAD_BLOCK in make_www.py.
     // Message shapes:
     //   {type:"tab", id:"segWeek"|"segTopics"|"segPicker"|"segSearch"}
     //   {type:"reader", open:true, title:"..."} / {type:"reader", open:false}
     //   {type:"theme", dark:true|false}
     //   {type:"haptic", style:"light"|"success"}
+    //   {type:"settings", open:true, theme:"...", fszIdx:N, fszMax:N}
+    //   {type:"stats", open:true, year1:{done,total}, year2:{done,total}, grand:{done,total}}
+    //   {type:"toast", text:"..."}
 
     private var isReaderOpen = false
 
@@ -259,6 +349,12 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
             } else {
                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
             }
+        case "settings":
+            if (body["open"] as? Bool) ?? false { presentSettings(body) }
+        case "stats":
+            if (body["open"] as? Bool) ?? false { presentStats(body) }
+        case "toast":
+            if let text = body["text"] as? String { presentToast(text) }
         default:
             break
         }

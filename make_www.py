@@ -498,6 +498,88 @@ def main() -> int:
                         '  });\n'
                         '  syncWidgetData();\n'
                         '}', "index.html renderWeek widget sync")
+    html = replace_once(html,
+                        'function openSettings(){\n'
+                        '  document.getElementById("settingsOverlay").classList.remove("hidden");\n'
+                        '  applyFsz(getFszIdx());\n'
+                        '  applyTheme(getTheme());       // reflect the current choice in the segmented control\n'
+                        '}',
+                        'function openSettings(){\n'
+                        '  // On iOS, a real native Liquid Glass sheet (NativeSettingsView.swift) replaces this HTML\n'
+                        '  // overlay entirely — same gating as the tab/nav/search bars (isIOSNative, see head script).\n'
+                        '  // The native side calls back into the exact same setTheme()/applyFsz()/shareAppText()/\n'
+                        '  // shareAppQR() used here, so there is only ever one implementation of each action.\n'
+                        '  if(isIOSNative){\n'
+                        '    notifyNativeChrome({type:"settings", open:true,\n'
+                        '      theme:getTheme(), fszIdx:getFszIdx(), fszMax:FSZ_STEPS.length-1});\n'
+                        '    return;\n'
+                        '  }\n'
+                        '  document.getElementById("settingsOverlay").classList.remove("hidden");\n'
+                        '  applyFsz(getFszIdx());\n'
+                        '  applyTheme(getTheme());       // reflect the current choice in the segmented control\n'
+                        '}', "index.html openSettings native sheet")
+    html = replace_once(html,
+                        'async function renderStats(){\n'
+                        '  const body=document.getElementById("statsBody");',
+                        '// Same numbers renderStats() below computes for its HTML rings, as plain data — used by the\n'
+                        '// native Stats sheet (NativeStatsView.swift) instead of rendering HTML at all. Kept as its own\n'
+                        '// function (a little duplicated arithmetic) rather than refactoring renderStats() itself, so\n'
+                        '// the existing, working web/Android HTML path is never touched by this native-only addition.\n'
+                        'async function statsNumbersForNative(){\n'
+                        '  if(!master) master=await getJson("content/parashot.json",true);\n'
+                        '  const map=loadProgressMap();\n'
+                        '  const out={};\n'
+                        '  let grandTotal=0, grandDone=0;\n'
+                        '  for(const tk of ["year1","year2"]){\n'
+                        '    const rows=(master&&master[tk])||[];\n'
+                        '    let total=0;\n'
+                        '    for(const r of rows) total += r.chapters + (r.has_intro?1:0);\n'
+                        '    let done=0;\n'
+                        '    for(const k of Object.keys(map)){ if(k.startsWith(tk+"::")) done++; }\n'
+                        '    total = Math.max(total, done);\n'
+                        '    grandTotal+=total; grandDone+=done;\n'
+                        '    out[tk]={done, total};\n'
+                        '  }\n'
+                        '  out.grand={done:grandDone, total:grandTotal};\n'
+                        '  return out;\n'
+                        '}\n'
+                        'async function renderStats(){\n'
+                        '  const body=document.getElementById("statsBody");', "index.html statsNumbersForNative")
+    html = replace_once(html,
+                        'function openStats(){\n'
+                        '  document.getElementById("statsOverlay").classList.remove("hidden");\n'
+                        '  renderStats();\n'
+                        '}',
+                        'async function openStats(){\n'
+                        '  // Same native-sheet gating as openSettings() above — NativeStatsView.swift draws its own\n'
+                        '  // rings from the real numbers, no HTML rendering on iOS at all.\n'
+                        '  if(isIOSNative){\n'
+                        '    const n = await statsNumbersForNative();\n'
+                        '    notifyNativeChrome({type:"stats", open:true, year1:n.year1, year2:n.year2, grand:n.grand});\n'
+                        '    return;\n'
+                        '  }\n'
+                        '  document.getElementById("statsOverlay").classList.remove("hidden");\n'
+                        '  renderStats();\n'
+                        '}', "index.html openStats native sheet")
+    html = replace_once(html,
+                        'function showToast(msg){\n'
+                        '  const t=document.getElementById("toast");\n'
+                        '  t.textContent=msg;\n'
+                        '  t.classList.remove("hidden");\n'
+                        '  clearTimeout(showToast._t);\n'
+                        '  showToast._t=setTimeout(()=>t.classList.add("hidden"),2200);\n'
+                        '}',
+                        'function showToast(msg){\n'
+                        '  // A real native toast (blurred capsule, see presentToast() in LiquidGlassChrome.swift)\n'
+                        '  // replaces the HTML one on iOS — same fixed-position screen-edge chrome as the tab/nav bars,\n'
+                        '  // so it\'s safe to fully hand off rather than duplicate.\n'
+                        '  if(isIOSNative){ notifyNativeChrome({type:"toast", text:msg}); return; }\n'
+                        '  const t=document.getElementById("toast");\n'
+                        '  t.textContent=msg;\n'
+                        '  t.classList.remove("hidden");\n'
+                        '  clearTimeout(showToast._t);\n'
+                        '  showToast._t=setTimeout(()=>t.classList.add("hidden"),2200);\n'
+                        '}', "index.html showToast native toast")
     html = replace_once(html, "</body>", NATIVE_BLOCK + SHARE_BLOCK + "</body>", "index.html </body>")
     open(p, "w", encoding="utf-8").write(html)
 

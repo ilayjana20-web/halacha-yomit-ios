@@ -1689,6 +1689,10 @@ function applyFsz(idx){
 }
 
 function showToast(msg){
+  // A real native toast (blurred capsule, see presentToast() in LiquidGlassChrome.swift)
+  // replaces the HTML one on iOS — same fixed-position screen-edge chrome as the tab/nav bars,
+  // so it's safe to fully hand off rather than duplicate.
+  if(isIOSNative){ notifyNativeChrome({type:"toast", text:msg}); return; }
   const t=document.getElementById("toast");
   t.textContent=msg;
   t.classList.remove("hidden");
@@ -3658,6 +3662,28 @@ function statRing(label, done, total, size, stroke){
     '<div class="ring-pct">'+(done>0 && pct===0 ? 'פחות מאחוז' : pct+'%')+'</div>'+
   '</div>';
 }
+// Same numbers renderStats() below computes for its HTML rings, as plain data — used by the
+// native Stats sheet (NativeStatsView.swift) instead of rendering HTML at all. Kept as its own
+// function (a little duplicated arithmetic) rather than refactoring renderStats() itself, so
+// the existing, working web/Android HTML path is never touched by this native-only addition.
+async function statsNumbersForNative(){
+  if(!master) master=await getJson("content/parashot.json",true);
+  const map=loadProgressMap();
+  const out={};
+  let grandTotal=0, grandDone=0;
+  for(const tk of ["year1","year2"]){
+    const rows=(master&&master[tk])||[];
+    let total=0;
+    for(const r of rows) total += r.chapters + (r.has_intro?1:0);
+    let done=0;
+    for(const k of Object.keys(map)){ if(k.startsWith(tk+"::")) done++; }
+    total = Math.max(total, done);
+    grandTotal+=total; grandDone+=done;
+    out[tk]={done, total};
+  }
+  out.grand={done:grandDone, total:grandTotal};
+  return out;
+}
 async function renderStats(){
   const body=document.getElementById("statsBody");
   if(!master) master=await getJson("content/parashot.json",true);
@@ -3749,6 +3775,15 @@ if(window.matchMedia){
 applyTheme(getTheme());
 
 function openSettings(){
+  // On iOS, a real native Liquid Glass sheet (NativeSettingsView.swift) replaces this HTML
+  // overlay entirely — same gating as the tab/nav/search bars (isIOSNative, see head script).
+  // The native side calls back into the exact same setTheme()/applyFsz()/shareAppText()/
+  // shareAppQR() used here, so there is only ever one implementation of each action.
+  if(isIOSNative){
+    notifyNativeChrome({type:"settings", open:true,
+      theme:getTheme(), fszIdx:getFszIdx(), fszMax:FSZ_STEPS.length-1});
+    return;
+  }
   document.getElementById("settingsOverlay").classList.remove("hidden");
   applyFsz(getFszIdx());
   applyTheme(getTheme());       // reflect the current choice in the segmented control
@@ -3763,7 +3798,14 @@ document.getElementById("settingsOverlay").addEventListener("click",(e)=>{
 document.getElementById("fszDown").addEventListener("click",()=>applyFsz(getFszIdx()-1));
 document.getElementById("fszUp").addEventListener("click",()=>applyFsz(getFszIdx()+1));
 
-function openStats(){
+async function openStats(){
+  // Same native-sheet gating as openSettings() above — NativeStatsView.swift draws its own
+  // rings from the real numbers, no HTML rendering on iOS at all.
+  if(isIOSNative){
+    const n = await statsNumbersForNative();
+    notifyNativeChrome({type:"stats", open:true, year1:n.year1, year2:n.year2, grand:n.grand});
+    return;
+  }
   document.getElementById("statsOverlay").classList.remove("hidden");
   renderStats();
 }
