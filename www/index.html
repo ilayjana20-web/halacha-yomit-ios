@@ -70,7 +70,8 @@ html.ios-native-chrome .search-box{display:none !important;}
         theme: (typeof getTheme === "function" && getTheme() === "auto") ? (systemPrefersDark() ? "dark" : "light") : getTheme(),
         parashaHe: titleEl ? titleEl.textContent : "",
         candleTimeISO: candle ? candle.iso : null,
-        candleLabel: candle ? candle.label : null
+        candleLabel: candle ? candle.label : null,
+        candleWeekday: candle ? candle.weekday : null
       });
     }catch(e){}
   };
@@ -1556,22 +1557,51 @@ function jewishReckoningDate(){
 // Candle lighting: the standard 18 minutes before real sunset (hDeg=-0.833, not the -7.083
 // tzeit used above) — the same default most Jewish calendars (incl. the hebcal library used
 // by the user's other app) fall back to when no community-specific custom is configured.
-// Shabbat only for now (no Yom Tov candle times yet). Reuses the same TZ_GEO table — still no
-// location permission prompt. Returns null if the timezone has no entry or it's not Shabbat
-// within the next week (should never happen in practice).
+// Reuses the same TZ_GEO table — still no location permission prompt.
+//
+// Covers both Shabbat AND Yom Tov (reusing YOM_TOV_IL/YOM_TOV_DIA + _hebMD, already defined
+// below for the festival-week feature — same brute-force civil-day-scan approach, no separate
+// Hebrew calendar library needed). Scans each candidate "eve" day E and checks whether E+1 is
+// a day that needs candles (Shabbat, or a Hebrew date in the Yom Tov list) — this also
+// correctly handles a multi-day Yom Tov's later days (lit from an existing flame at the same
+// time), since E itself may already be a Yom Tov day.
+function _yomTovName(md){
+  const [m,d]=md;
+  if(m==="Tishri"){
+    if(d===1||d===2) return "ראש השנה";
+    if(d===10) return "יום הכיפורים";
+    if(d===15||d===16) return "סוכות";
+    if(d===22||d===23) return "שמיני עצרת";
+  }
+  if(m==="Nisan"){
+    if(d===15||d===16) return "פסח";
+    if(d===21||d===22) return "פסח";
+  }
+  if(m==="Sivan" && (d===6||d===7)) return "שבועות";
+  return "יום טוב";
+}
 const CANDLE_LIGHTING_MINS_BEFORE_SUNSET = 18;
 function nextCandleLightingInfo(){
   try{
     const tzid=Intl.DateTimeFormat().resolvedOptions().timeZone;
     const geo=TZ_GEO[tzid]; if(!geo) return null;
+    const diaspora = tzid!=="Asia/Jerusalem";
+    const yomTov = diaspora ? YOM_TOV_DIA : YOM_TOV_IL;
     const now=new Date();
-    for(let i=0;i<8;i++){
-      const d=new Date(now); d.setDate(d.getDate()+i); d.setHours(12,0,0,0);
-      if(d.getDay()!==5) continue;   // Friday
-      const sunset=_sunsetInstant(d, geo[0], geo[1], -0.833);
+    for(let i=0;i<30;i++){
+      const e=new Date(now); e.setDate(e.getDate()+i); e.setHours(12,0,0,0);
+      const next=_addDays(e,1);
+      const ytMatch = yomTov.find(md=>_sameMD(md,_hebMD(next)));
+      const isShabbatEve = next.getDay()===6;
+      if(!ytMatch && !isShabbatEve) continue;
+      const sunset=_sunsetInstant(e, geo[0], geo[1], -0.833);
       if(!sunset) continue;
       const candle=new Date(sunset.getTime() - CANDLE_LIGHTING_MINS_BEFORE_SUNSET*60000);
-      if(candle>now) return {iso:candle.toISOString(), label:"הדלקת נרות"};
+      if(candle>now){
+        const label = "הדלקת נרות " + (ytMatch ? _yomTovName(ytMatch) : "שבת");
+        const weekday = e.toLocaleDateString("he-IL",{weekday:"long"});
+        return {iso:candle.toISOString(), label, weekday};
+      }
     }
   }catch(e){}
   return null;

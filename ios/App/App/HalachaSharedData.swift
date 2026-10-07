@@ -25,13 +25,17 @@ enum HalachaSharedData {
         /// nextCandleLightingInfo() (www/index.html) — nil if the app hasn't synced yet.
         /// Decoded to a Date by candleTime below. No Yom Tov candle times yet, Shabbat only.
         var candleTimeISO: String?
-        /// Hebrew label for the occasion, e.g. "הדלקת נרות" (currently always this one label).
+        /// Hebrew label for the occasion, e.g. "הדלקת נרות שבת" or "הדלקת נרות סוכות" —
+        /// always names Shabbat or the specific Yom Tov, never a bare "הדלקת נרות".
         var candleLabel: String?
+        /// The weekday the candles are lit on, e.g. "יום שישי" for Shabbat (always Friday) or
+        /// whichever real weekday a Yom Tov eve falls on.
+        var candleWeekday: String?
 
         static let placeholder = Snapshot(
             streakCount: 0, streakBest: 0, learnedToday: false,
             theme: "light", parashaHe: "הלכות הבן איש חי",
-            candleTimeISO: nil, candleLabel: nil
+            candleTimeISO: nil, candleLabel: nil, candleWeekday: nil
         )
 
         var candleTime: Date? {

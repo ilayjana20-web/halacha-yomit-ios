@@ -1,6 +1,55 @@
 import SwiftUI
 import WidgetKit
 
+/// Shared design tokens, mirroring the app's own gold/cream (light) and deep navy (dark)
+/// palette — real SF Symbol flame everywhere (never an emoji glyph), so Lock Screen tinting
+/// and vibrancy apply correctly, same reasoning as the user's other app's design tokens.
+enum HalachaWidgetTheme {
+    static func isDark(_ theme: String) -> Bool { theme == "dark" }
+
+    static func gradient(for theme: String) -> LinearGradient {
+        isDark(theme)
+            ? LinearGradient(colors: [Color(red: 0.102, green: 0.125, blue: 0.125), Color(red: 0.047, green: 0.059, blue: 0.059)], startPoint: .top, endPoint: .bottom)
+            : LinearGradient(colors: [Color(red: 0.988, green: 0.973, blue: 0.925), Color(red: 0.918, green: 0.886, blue: 0.788)], startPoint: .top, endPoint: .bottom)
+    }
+
+    static func ink(for theme: String) -> Color {
+        isDark(theme) ? Color(white: 0.94) : Color(red: 0.169, green: 0.165, blue: 0.102)
+    }
+    static func inkSoft(for theme: String) -> Color {
+        isDark(theme) ? Color(white: 0.78) : Color(red: 0.169, green: 0.165, blue: 0.102).opacity(0.62)
+    }
+    static let gold = Color(red: 0.749, green: 0.584, blue: 0.188)
+    static let goldBright = Color(red: 0.906, green: 0.773, blue: 0.431)
+    static let good = Color(red: 0.247, green: 0.518, blue: 0.541)
+    static func line(for theme: String) -> Color { gold.opacity(isDark(theme) ? 0.3 : 0.25) }
+}
+
+/// A flame SF Symbol + count in a rounded capsule — the one real "streak" element reused
+/// across every size and every family, so it always reads the same.
+private struct StreakBadge: View {
+    let count: Int
+    let large: Bool
+    var theme: String = "light"
+    var body: some View {
+        HStack(spacing: large ? 6 : 4) {
+            Image(systemName: "flame.fill").font(.system(size: large ? 18 : 12))
+            Text("\(count)").font(.system(size: large ? 20 : 13, weight: .bold))
+        }
+        .foregroundStyle(count > 0 ? HalachaWidgetTheme.gold : HalachaWidgetTheme.inkSoft(for: theme))
+        .padding(.horizontal, large ? 14 : 9).padding(.vertical, large ? 7 : 4)
+        .background(HalachaWidgetTheme.gold.opacity(0.15), in: Capsule())
+    }
+}
+
+/// Strips the "פרשת " prefix the app's own #wParasha already includes for a plain week
+/// (e.g. "פרשת בראשית" → "בראשית"), so the widget can show "פרשת" as its own label above
+/// the bare name. A festival week's title (e.g. "הלכות סוכות") has no such prefix and is
+/// shown as-is — the "פרשת" label above it is a small, accepted simplification.
+private func bareParashaName(_ full: String) -> String {
+    full.hasPrefix("פרשת ") ? String(full.dropFirst("פרשת ".count)) : full
+}
+
 struct HalachaWidgetEntryView: View {
     @Environment(\.widgetFamily) var family
     var entry: HalachaProvider.Entry
@@ -11,31 +60,86 @@ struct HalachaWidgetEntryView: View {
             case .systemMedium: mediumView
             case .accessoryRectangular: rectangularView
             case .accessoryCircular: circularView
-            case .accessoryInline: inlineView
             default: smallView
             }
         }
         .environment(\.layoutDirection, .rightToLeft)
         .containerBackground(for: .widget) {
             if family == .systemSmall || family == .systemMedium {
-                bg
+                HalachaWidgetTheme.gradient(for: entry.snapshot.theme)
             } else {
                 Color.clear
             }
         }
     }
 
-    // Lock Screen families: the system applies its own tint/vibrancy here, so no custom
-    // colors — just shapes, SF Symbols and text, same as every other Lock Screen widget.
-    private var rectangularView: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(entry.snapshot.streakCount > 0 ? "🔥 \(entry.snapshot.streakCount) ימים ברצף" : "הלכות הבן איש חי")
-                .font(.headline)
-                .widgetAccentable()
-            Text(entry.snapshot.parashaHe)
-                .font(.caption)
-                .lineLimit(1)
+    private var ink: Color { HalachaWidgetTheme.ink(for: entry.snapshot.theme) }
+    private var inkSoft: Color { HalachaWidgetTheme.inkSoft(for: entry.snapshot.theme) }
+
+    // MARK: Home Screen small — centered, not pinned to a corner.
+    private var smallView: some View {
+        VStack(spacing: 10) {
+            Spacer()
+            StreakBadge(count: entry.snapshot.streakCount, large: true, theme: entry.snapshot.theme)
+            Spacer()
+            VStack(spacing: 1) {
+                Text("פרשת")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(inkSoft)
+                Text(bareParashaName(entry.snapshot.parashaHe))
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(ink)
+                    .lineLimit(1)
+            }
         }
+        .padding(14)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // MARK: Home Screen medium
+    private var mediumView: some View {
+        HStack(spacing: 0) {
+            VStack(spacing: 6) {
+                StreakBadge(count: entry.snapshot.streakCount, large: true, theme: entry.snapshot.theme)
+                if entry.snapshot.streakBest > entry.snapshot.streakCount {
+                    Text("השיא שלך: \(entry.snapshot.streakBest)")
+                        .font(.system(size: 11.5))
+                        .foregroundStyle(inkSoft)
+                }
+                if entry.snapshot.learnedToday {
+                    Text("היום כבר למדתם ✓")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(HalachaWidgetTheme.good)
+                }
+            }
+            .frame(maxWidth: .infinity)
+
+            Rectangle().fill(HalachaWidgetTheme.line(for: entry.snapshot.theme)).frame(width: 1).padding(.vertical, 10)
+
+            VStack(spacing: 2) {
+                Text("פרשת")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(inkSoft)
+                Text(bareParashaName(entry.snapshot.parashaHe))
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundStyle(ink)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // MARK: Lock Screen — single line, real SF flame, no second line, no extra padding.
+    private var rectangularView: some View {
+        Label {
+            Text("\(entry.snapshot.streakCount) ימים ברצף")
+        } icon: {
+            Image(systemName: "flame.fill")
+        }
+        .font(.system(size: 14, weight: .semibold))
     }
 
     private var circularView: some View {
@@ -46,69 +150,6 @@ struct HalachaWidgetEntryView: View {
         }
         .gaugeStyle(.accessoryCircular)
         .widgetAccentable()
-    }
-
-    private var inlineView: some View {
-        Label(
-            entry.snapshot.streakCount > 0 ? "\(entry.snapshot.streakCount) ימים ברצף" : "הלכות הבן איש חי",
-            systemImage: "flame.fill"
-        )
-    }
-
-    private var isDark: Bool { entry.snapshot.theme == "dark" }
-    private var bg: Color { isDark ? Color(red: 0.08, green: 0.1, blue: 0.1) : Color(red: 0.96, green: 0.93, blue: 0.85) }
-    private var ink: Color { isDark ? Color(white: 0.92) : Color(red: 0.17, green: 0.16, blue: 0.1) }
-    private var gold: Color { Color(red: 0.75, green: 0.58, blue: 0.19) }
-    private var good: Color { Color(red: 0.25, green: 0.52, blue: 0.54) }
-
-    private var smallView: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(entry.snapshot.streakCount > 0 ? "🔥 \(entry.snapshot.streakCount)" : "📖")
-                .font(.system(size: 28, weight: .bold))
-                .foregroundStyle(entry.snapshot.streakCount > 0 ? gold : ink)
-            Text(entry.snapshot.streakCount > 0 ? "ימים ברצף" : "הלכות הבן איש חי")
-                .font(.system(size: 13, weight: .medium))
-                .foregroundStyle(ink)
-            Spacer()
-            Text(entry.snapshot.parashaHe)
-                .font(.system(size: 12))
-                .foregroundStyle(ink.opacity(0.75))
-                .lineLimit(2)
-        }
-        .padding(14)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-    }
-
-    private var mediumView: some View {
-        HStack(alignment: .top, spacing: 16) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(entry.snapshot.streakCount > 0 ? "🔥 \(entry.snapshot.streakCount) ימים ברצף" : "עוד לא התחלתם רצף")
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundStyle(entry.snapshot.streakCount > 0 ? gold : ink)
-                if entry.snapshot.streakBest > entry.snapshot.streakCount {
-                    Text("השיא שלך: \(entry.snapshot.streakBest)")
-                        .font(.system(size: 12))
-                        .foregroundStyle(ink.opacity(0.6))
-                }
-                Text(entry.snapshot.learnedToday ? "היום כבר למדתם ✓" : "עוד לא למדתם היום")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(entry.snapshot.learnedToday ? good : ink.opacity(0.7))
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            Divider()
-            VStack(alignment: .leading, spacing: 4) {
-                Text("הלכה השבוע")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(ink.opacity(0.55))
-                Text(entry.snapshot.parashaHe)
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(ink)
-                    .lineLimit(2)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .padding(16)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
     }
 }
 
@@ -121,6 +162,6 @@ struct HalachaWidget: Widget {
         }
         .configurationDisplayName("הלכות הבן איש חי")
         .description("הרצף שלכם והלכת השבוע, בלי לפתוח את האפליקציה.")
-        .supportedFamilies([.systemSmall, .systemMedium, .accessoryRectangular, .accessoryCircular, .accessoryInline])
+        .supportedFamilies([.systemSmall, .systemMedium, .accessoryRectangular, .accessoryCircular])
     }
 }

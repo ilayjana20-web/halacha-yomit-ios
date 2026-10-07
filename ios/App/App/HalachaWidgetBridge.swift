@@ -23,7 +23,8 @@ public class HalachaWidgetBridge: CAPPlugin, CAPBridgedPlugin {
             theme: call.getString("theme") ?? "light",
             parashaHe: call.getString("parashaHe") ?? HalachaSharedData.Snapshot.placeholder.parashaHe,
             candleTimeISO: call.getString("candleTimeISO"),
-            candleLabel: call.getString("candleLabel")
+            candleLabel: call.getString("candleLabel"),
+            candleWeekday: call.getString("candleWeekday")
         )
         HalachaSharedData.write(snapshot)
 

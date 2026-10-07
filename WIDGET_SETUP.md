@@ -2,13 +2,12 @@
 
 All the code is already written and committed:
 - `ios/App/App/HalachaSharedData.swift` — shared App Group data model (streak, theme, today's
-  parasha, and now the next Shabbat candle-lighting time + label)
+  parasha, and the next candle-lighting time + occasion label + weekday)
 - `ios/App/App/HalachaWidgetBridge.swift` — Capacitor plugin the web app calls
 - `ios/App/HalachaWidget/Provider.swift`, `HalachaWidget.swift`, `HalachaWidgetBundle.swift` —
-  the streak/parasha widget (Home Screen small/medium + Lock Screen rectangular/circular/inline)
-- `ios/App/HalachaWidget/HalachaCandleWidget.swift` — a second, separate widget: next Shabbat
-  candle-lighting time (Home Screen small + the same three Lock Screen families, with a live
-  self-updating countdown ring on the circular one)
+  the streak/parasha widget (Home Screen small/medium + Lock Screen rectangular + circular)
+- `ios/App/HalachaWidget/HalachaCandleWidget.swift` — a second, separate widget: next candle
+  lighting, Shabbat or Yom Tov (Home Screen small + Lock Screen rectangular)
 - `www/index.html` (and `make_www.py`, for the next content sync) already call `syncWidgetData()`
   — including the real candle-lighting time (`nextCandleLightingInfo()`) — whenever the streak
   changes, the theme changes, or the home screen renders.
@@ -63,37 +62,45 @@ Xcode writes the entitlements files and provisioning automatically — no manual
    theme, then:
    - **Home Screen**: long-press > + > search "הלכות הבן איש חי" or "הדלקת נרות" > add.
    - **Lock Screen**: on the lock screen, long-press > Customize > Lock Screen > tap a widget
-     slot under the clock > you'll see both widgets listed (rectangular, circular, inline).
-     This is exactly the "tap or drag to add widget" gallery you're picturing from the
-     Kosher Switch reference screenshot — add both.
+     slot under the clock. There are now exactly two Lock Screen widgets per kind: a
+     rectangular one (top row, spans two slots) and, for the streak widget only, a small
+     circular one. The candle widget has no circular/inline Lock Screen variant (removed per
+     your feedback — it was a plain time readout, not worth a slot of its own there).
    Both should show your real streak/parasha/candle time within a second or two (the app calls
    `WidgetCenter.shared.reloadAllTimelines()` on every sync).
 
-## What the widgets show (100% real data, no placeholders)
+## What changed in this redesign pass (per your feedback on the mockup)
 
-**HalachaWidget** (streak + parasha):
-- Home Screen small: streak count (🔥 N) or a book icon if no streak yet, + today's parasha title.
-- Home Screen medium: streak + personal best + whether today is already learned, + parasha title.
-- Lock Screen rectangular/circular/inline: streak count, same real data.
+- Real gradient backgrounds (not flat fill) and a shared "streak badge" capsule component —
+  mirrors the actual design pattern from your other app's (still-in-progress) widget code.
+- A real SF Symbol flame (`Image(systemName: "flame.fill")`) everywhere, never a 🔥 emoji
+  glyph — this is what lets Lock Screen apply its own tint/vibrancy correctly ("אש אמיתי").
+- Home Screen small: centered, not pinned to one corner.
+- Home Screen medium: "היום כבר למדתם ✓" now appears **only** when actually true — nothing
+  shows if you haven't learned yet today (no nagging negative message).
+- Parasha display: a small "פרשת" label above the bare name (e.g. "פרשת" / "בראשית"), not the
+  full "פרשת בראשית" repeated under its own "הלכה השבוע" label.
+- Lock Screen rectangular (streak): single line, "N ימים ברצף" + real flame icon — the second
+  (parasha) line and the extra bottom gap are gone.
+- **Removed, per your explicit instruction**: both accessoryInline widgets (streak and candle),
+  and the candle widget's accessoryCircular (the one that only showed a plain time, "18:24" —
+  not a real countdown presentation worth keeping as its own Lock Screen slot). What remains on
+  the Lock Screen: 2 rectangular widgets (streak, candle) + 1 circular (streak only).
 
-**HalachaCandleWidget** (candle lighting — new):
-- Shows the next Shabbat candle-lighting time, computed from the app's own real sunset
-  calculation (`_sunsetInstant` — already existed in `www/index.html` for the nightfall-aware
-  "today", reused here) minus **18 minutes**, the standard default most Jewish calendars use
-  when no community-specific custom is set (the same default the hebcal library — used by
-  your other app — falls back to). **If your minhag uses a different number, tell me and I'll
-  change the one constant** (`CANDLE_LIGHTING_MINS_BEFORE_SUNSET` in `www/index.html` /
-  `make_www.py`).
-- No location permission needed — same timezone→city table the app already uses.
-- Lock Screen circular shows a **live, self-updating countdown ring** (iOS does this natively
-  via `ProgressView(timerInterval:)` — no polling, no extra battery cost).
-- Shabbat only for now — no Yom Tov candle times yet (the festival-week data to compute those
-  already exists in the app; ask if you want this extended).
+## Candle lighting now also covers Yom Tov, not just Shabbat
+
+Extended since the widget redesign: `nextCandleLightingInfo()` now reuses the app's own
+existing festival-calendar data (`YOM_TOV_IL`/`YOM_TOV_DIA`, already used for the festival-week
+feature) to also catch Yom Tov eves, the same brute-force civil-day Hebrew-date scan the app
+already does elsewhere — no new library. The label always names the occasion
+("הדלקת נרות שבת", "הדלקת נרות סוכות", "הדלקת נרות ראש השנה", …) and a separate field names the
+real weekday candles are lit on ("יום שישי" for Shabbat — always Friday — or whichever weekday
+a Yom Tov eve actually falls on). Still 18 minutes before sunset for both — **tell me if Yom
+Tov should use a different number than Shabbat**, some communities do.
 
 ## Explicitly not built (by request)
 
-- **Dynamic Island / Live Activity** — skipped per your instruction. The candle-lighting
-  countdown would have been the natural fit if you change your mind later.
+- **Dynamic Island / Live Activity** — skipped per your instruction.
 - **Settings/Stats screens as a native Liquid Glass sheet** — see the separate note sent in
   chat: this is a larger, different-shaped task (a real native rebuild of each control, not an
   additive file like these widgets) and deserves its own pass rather than a blind, unverified one.
