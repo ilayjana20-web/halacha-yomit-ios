@@ -145,6 +145,12 @@ html.ios-native-chrome .tabbar,
 html.ios-native-chrome #rBack,
 html.ios-native-chrome #rShareBtn,
 html.ios-native-chrome .search-box{display:none !important;}
+/* The native nav bar (back/title/share) already covers the reader's chrome — the web app's
+   own branded header (portrait, title, gear/stats buttons) would otherwise still show right
+   below it, duplicating the back/share affordance and reading as two disconnected headers
+   stacked on top of each other. Hidden only while BOTH native chrome and the reader are active
+   (body.reading) — the home/topics/picker screens keep the full header exactly as before. */
+html.ios-native-chrome body.reading .hero{display:none !important;}
 </style>
 <script>
 (function(){

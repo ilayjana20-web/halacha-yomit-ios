@@ -327,16 +327,17 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
     }
 
     private func presentSheet(_ hostingVC: UIViewController) {
+        // The real fix for the washed-out/translucent look at the half-height (.medium) detent:
+        // a UIHostingController's root view has no opaque background of its own by default, so
+        // at partial sheet height the system's own translucent sheet material was showing
+        // through underneath the SwiftUI content instead of a solid, theme-matched background.
+        // Giving the hosting view a real, dynamic (auto light/dark) background color fixes it
+        // at EVERY detent, so the sheet no longer needs to jump straight to full height to look
+        // right — .medium is a perfectly normal resting size again.
+        hostingVC.view.backgroundColor = .systemGroupedBackground
         hostingVC.modalPresentationStyle = .pageSheet
         if let sheet = hostingVC.sheetPresentationController {
             sheet.detents = [.medium(), .large()]
-            // Opens straight to full height. At the half-height (.medium) detent, SwiftUI's
-            // Form draws its grouped-list background as a translucent/lighter material rather
-            // than the solid dark background it uses at full height — on a dark-themed device
-            // this reads as a washed-out, low-contrast sheet until the user manually drags it
-            // up. Starting at .large avoids ever showing that state; .medium stays in the
-            // detents list so the user can still drag it down by hand if they want to.
-            sheet.selectedDetentIdentifier = .large
             sheet.prefersGrabberVisible = true
         }
         present(hostingVC, animated: true)
