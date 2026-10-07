@@ -56,10 +56,16 @@ html.ios-native-chrome .search-box{display:none !important;}
     if(rv && !rv.classList.contains("hidden") && rb){ rb.click(); return true; }
     return false;
   };
+  window.betelCanGoBack = function(){
+    var pb=document.getElementById("pickerBack");
+    if(pb && pb.offsetParent!==null) return true;
+    var rv=document.getElementById("readerView");
+    return !!(rv && !rv.classList.contains("hidden") && document.getElementById("rBack"));
+  };
   window.betelScrollTop = function(){
     try{ window.scrollTo({top:0, behavior:"smooth"}); }catch(e){ window.scrollTo(0,0); }
   };
-  if(isIOSNative){
+  if(isIOSNative && false){   // native UIScreenEdgePanGestureRecognizer handles this now
     var sx=0, sy=0, st=0, edge=false;
     document.addEventListener("touchstart", function(e){
       var t=e.touches[0]; sx=t.clientX; sy=t.clientY; st=Date.now();

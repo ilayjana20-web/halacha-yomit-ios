@@ -84,6 +84,7 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
         setupNavBar()
         setupSearchBar()
         setupScrollToTop()
+        setupEdgeSwipeBack()
 
         topToViewTop = capVC.view.topAnchor.constraint(equalTo: view.topAnchor)
         topToNavBar = capVC.view.topAnchor.constraint(equalTo: navBar.bottomAnchor)
@@ -177,6 +178,57 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
             self?.runJS("window.betelScrollTop && window.betelScrollTop()")
         }
         view.addSubview(scrollTopCatcher)
+    }
+
+    // MARK: Interactive edge-swipe back (page follows the finger, like UINavigationController)
+    private var edgeCanGoBack = false
+
+    private func setupEdgeSwipeBack() {
+        capVC.webView?.scrollView.keyboardDismissMode = .interactive
+        for edge in [UIRectEdge.left, UIRectEdge.right] {
+            let g = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(edgePanned(_:)))
+            g.edges = edge
+            view.addGestureRecognizer(g)
+        }
+    }
+
+    @objc private func edgePanned(_ g: UIScreenEdgePanGestureRecognizer) {
+        guard let web = capVC.webView else { return }
+        let w = view.bounds.width
+        let fromLeft = g.edges == .left
+        let sign: CGFloat = fromLeft ? 1 : -1
+        let dist = max(0, sign * g.translation(in: view).x)
+        switch g.state {
+        case .began:
+            edgeCanGoBack = false
+            web.evaluateJavaScript("window.betelCanGoBack ? window.betelCanGoBack() : false") { [weak self] r, _ in
+                self?.edgeCanGoBack = (r as? Bool) ?? false
+            }
+        case .changed:
+            let d = edgeCanGoBack ? dist : min(dist, 60) * 0.35
+            web.transform = CGAffineTransform(translationX: sign * d, y: 0)
+        case .ended, .cancelled, .failed:
+            let vx = sign * g.velocity(in: view).x
+            if g.state == .ended && edgeCanGoBack && (dist > w * 0.35 || vx > 800) {
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                UIView.animate(withDuration: 0.18, delay: 0, options: .curveEaseOut, animations: {
+                    web.transform = CGAffineTransform(translationX: sign * w, y: 0)
+                    web.alpha = 0.6
+                }, completion: { _ in
+                    web.evaluateJavaScript("window.betelAppBack && window.betelAppBack()") { _, _ in
+                        web.transform = CGAffineTransform(translationX: -sign * w * 0.25, y: 0)
+                        UIView.animate(withDuration: 0.22, delay: 0.05, options: .curveEaseOut, animations: {
+                            web.transform = .identity
+                            web.alpha = 1
+                        })
+                    }
+                })
+            } else {
+                UIView.animate(withDuration: 0.35, delay: 0, usingSpringWithDamping: 0.8,
+                               initialSpringVelocity: 0.5, options: [], animations: { web.transform = .identity })
+            }
+        default: break
+        }
     }
 
     @objc private func backTapped() {
