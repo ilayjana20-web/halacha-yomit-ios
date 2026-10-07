@@ -85,6 +85,7 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
         setupSearchBar()
         setupScrollToTop()
         setupEdgeSwipeBack()
+        setupPullToRefresh()
 
         topToViewTop = capVC.view.topAnchor.constraint(equalTo: view.topAnchor)
         topToNavBar = capVC.view.topAnchor.constraint(equalTo: navBar.bottomAnchor)
@@ -178,6 +179,20 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
             self?.runJS("window.betelScrollTop && window.betelScrollTop()")
         }
         view.addSubview(scrollTopCatcher)
+    }
+
+    // MARK: Pull-to-refresh - Apple's own UIRefreshControl (this site scrolls on the window, so the
+    // WKWebView's scroll view really scrolls and the system control works). Refreshing = re-tapping the
+    // active tab; turned off while the reader is open.
+    private let refreshControl = UIRefreshControl()
+
+    private func setupPullToRefresh() {
+        refreshControl.addAction(UIAction { [weak self] _ in
+            guard let self = self else { return }
+            self.runJS("var a=document.querySelector('.tab-btn.active'); if(a) a.click();")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { self.refreshControl.endRefreshing() }
+        }, for: .valueChanged)
+        capVC.webView?.scrollView.refreshControl = refreshControl
     }
 
     // MARK: Interactive edge-swipe back (page follows the finger, like UINavigationController)
@@ -404,6 +419,7 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
         case "reader":
             let open = (body["open"] as? Bool) ?? false
             isReaderOpen = open
+            capVC.webView?.scrollView.refreshControl = open ? nil : refreshControl
             navBar.items?.first?.title = (body["title"] as? String) ?? ""
             // The reader is a full-screen drill-in, not a tab destination, so it swaps the tab
             // bar (and the search bar, if that's where the reader was opened from) for the nav
