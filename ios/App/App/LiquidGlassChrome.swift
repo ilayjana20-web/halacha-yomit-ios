@@ -330,6 +330,13 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
         hostingVC.modalPresentationStyle = .pageSheet
         if let sheet = hostingVC.sheetPresentationController {
             sheet.detents = [.medium(), .large()]
+            // Opens straight to full height. At the half-height (.medium) detent, SwiftUI's
+            // Form draws its grouped-list background as a translucent/lighter material rather
+            // than the solid dark background it uses at full height — on a dark-themed device
+            // this reads as a washed-out, low-contrast sheet until the user manually drags it
+            // up. Starting at .large avoids ever showing that state; .medium stays in the
+            // detents list so the user can still drag it down by hand if they want to.
+            sheet.selectedDetentIdentifier = .large
             sheet.prefersGrabberVisible = true
         }
         present(hostingVC, animated: true)
