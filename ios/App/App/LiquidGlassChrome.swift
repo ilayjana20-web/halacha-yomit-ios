@@ -243,7 +243,12 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
 
     func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
         let id = tabs[item.tag].id
-        runJS("var b=document.getElementById('\(id)'); if(b) b.click();")
+        // Tapping the already-active tab scrolls to top first (iOS convention); otherwise a normal tap.
+        capVC.webView?.evaluateJavaScript("window.betelTabReselect ? window.betelTabReselect('\(id)') : false") { [weak self] r, _ in
+            if (r as? Bool) != true {
+                self?.runJS("var b=document.getElementById('\(id)'); if(b) b.click();")
+            }
+        }
     }
 
     // MARK: UISearchBarDelegate — drives the existing #searchInput + its debounced "input"
@@ -300,6 +305,27 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
     // the HTML #toast — see showToast() in www/index.html.
 
     private var activeToast: UIView?
+
+    /// System action sheet (UIAlertController): real Liquid Glass on iOS 26, classic sheet before.
+    /// Reports the tapped action id (or "cancel") back via window.__betelActionDone(cb, id).
+    private func presentActionSheet(_ body: [String: Any]) {
+        let cb = body["cb"] as? String ?? ""
+        let sheet = UIAlertController(title: body["title"] as? String, message: nil, preferredStyle: .actionSheet)
+        func done(_ id: String) {
+            runJS("window.__betelActionDone && window.__betelActionDone('\(cb)','\(id)')")
+        }
+        for a in (body["actions"] as? [[String: Any]]) ?? [] {
+            let id = a["id"] as? String ?? ""
+            sheet.addAction(UIAlertAction(title: a["title"] as? String ?? "", style: .default) { _ in done(id) })
+        }
+        sheet.addAction(UIAlertAction(title: body["cancel"] as? String ?? "Cancel", style: .cancel) { _ in done("cancel") })
+        if let pop = sheet.popoverPresentationController {
+            pop.sourceView = view
+            pop.sourceRect = CGRect(x: view.bounds.midX, y: view.bounds.midY, width: 1, height: 1)
+            pop.permittedArrowDirections = []
+        }
+        (presentedViewController ?? self).present(sheet, animated: true)
+    }
 
     private func presentToast(_ text: String) {
         activeToast?.removeFromSuperview()
@@ -420,6 +446,8 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
             if (body["open"] as? Bool) ?? false { presentStats(body) }
         case "toast":
             if let text = body["text"] as? String { presentToast(text) }
+        case "actionSheet":
+            presentActionSheet(body)
         default:
             break
         }
