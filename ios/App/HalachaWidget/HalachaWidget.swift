@@ -9,11 +9,50 @@ struct HalachaWidgetEntryView: View {
         Group {
             switch family {
             case .systemMedium: mediumView
+            case .accessoryRectangular: rectangularView
+            case .accessoryCircular: circularView
+            case .accessoryInline: inlineView
             default: smallView
             }
         }
         .environment(\.layoutDirection, .rightToLeft)
-        .containerBackground(bg, for: .widget)
+        .containerBackground(for: .widget) {
+            if family == .systemSmall || family == .systemMedium {
+                bg
+            } else {
+                Color.clear
+            }
+        }
+    }
+
+    // Lock Screen families: the system applies its own tint/vibrancy here, so no custom
+    // colors — just shapes, SF Symbols and text, same as every other Lock Screen widget.
+    private var rectangularView: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(entry.snapshot.streakCount > 0 ? "🔥 \(entry.snapshot.streakCount) ימים ברצף" : "הלכות הבן איש חי")
+                .font(.headline)
+                .widgetAccentable()
+            Text(entry.snapshot.parashaHe)
+                .font(.caption)
+                .lineLimit(1)
+        }
+    }
+
+    private var circularView: some View {
+        Gauge(value: Double(min(entry.snapshot.streakCount, 30)), in: 0...30) {
+            Image(systemName: "flame.fill")
+        } currentValueLabel: {
+            Text("\(entry.snapshot.streakCount)")
+        }
+        .gaugeStyle(.accessoryCircular)
+        .widgetAccentable()
+    }
+
+    private var inlineView: some View {
+        Label(
+            entry.snapshot.streakCount > 0 ? "\(entry.snapshot.streakCount) ימים ברצף" : "הלכות הבן איש חי",
+            systemImage: "flame.fill"
+        )
     }
 
     private var isDark: Bool { entry.snapshot.theme == "dark" }
@@ -82,6 +121,6 @@ struct HalachaWidget: Widget {
         }
         .configurationDisplayName("הלכות הבן איש חי")
         .description("הרצף שלכם והלכת השבוע, בלי לפתוח את האפליקציה.")
-        .supportedFamilies([.systemSmall, .systemMedium])
+        .supportedFamilies([.systemSmall, .systemMedium, .accessoryRectangular, .accessoryCircular, .accessoryInline])
     }
 }

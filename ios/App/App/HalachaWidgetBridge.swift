@@ -21,7 +21,9 @@ public class HalachaWidgetBridge: CAPPlugin, CAPBridgedPlugin {
             streakBest: call.getInt("streakBest") ?? 0,
             learnedToday: call.getBool("learnedToday") ?? false,
             theme: call.getString("theme") ?? "light",
-            parashaHe: call.getString("parashaHe") ?? HalachaSharedData.Snapshot.placeholder.parashaHe
+            parashaHe: call.getString("parashaHe") ?? HalachaSharedData.Snapshot.placeholder.parashaHe,
+            candleTimeISO: call.getString("candleTimeISO"),
+            candleLabel: call.getString("candleLabel")
         )
         HalachaSharedData.write(snapshot)
 

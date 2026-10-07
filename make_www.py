@@ -178,12 +178,15 @@ html.ios-native-chrome .search-box{display:none !important;}
       var plugin = isIOSNative && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.HalachaWidgetBridge;
       if(!plugin) return;
       var titleEl = document.getElementById("wParasha");
+      var candle = typeof nextCandleLightingInfo === "function" ? nextCandleLightingInfo() : null;
       plugin.updateSharedData({
         streakCount: typeof currentStreak === "function" ? currentStreak() : 0,
         streakBest: typeof bestStreak === "function" ? bestStreak() : 0,
         learnedToday: typeof learnedToday === "function" ? learnedToday() : false,
         theme: (typeof getTheme === "function" && getTheme() === "auto") ? (systemPrefersDark() ? "dark" : "light") : getTheme(),
-        parashaHe: titleEl ? titleEl.textContent : ""
+        parashaHe: titleEl ? titleEl.textContent : "",
+        candleTimeISO: candle ? candle.iso : null,
+        candleLabel: candle ? candle.label : null
       });
     }catch(e){}
   };
@@ -397,6 +400,42 @@ def main() -> int:
                         '\n'
                         '<div class="modal-overlay hidden" id="statsOverlay">',
                         "index.html share settings section")
+    html = replace_once(html,
+                        '  const d=new Date(now);\n'
+                        '  if(shifted) d.setDate(d.getDate()+1);\n'
+                        '  d.setHours(12,0,0,0);\n'
+                        '  return {date:d, shifted};\n'
+                        '}\n',
+                        '  const d=new Date(now);\n'
+                        '  if(shifted) d.setDate(d.getDate()+1);\n'
+                        '  d.setHours(12,0,0,0);\n'
+                        '  return {date:d, shifted};\n'
+                        '}\n'
+                        '\n'
+                        '// Candle lighting: the standard 18 minutes before real sunset (hDeg=-0.833, not the -7.083\n'
+                        '// tzeit used above) — the same default most Jewish calendars (incl. the hebcal library used\n'
+                        '// by the user\'s other app) fall back to when no community-specific custom is configured.\n'
+                        '// Shabbat only for now (no Yom Tov candle times yet). Reuses the same TZ_GEO table — still no\n'
+                        '// location permission prompt. Returns null if the timezone has no entry or it\'s not Shabbat\n'
+                        '// within the next week (should never happen in practice).\n'
+                        'const CANDLE_LIGHTING_MINS_BEFORE_SUNSET = 18;\n'
+                        'function nextCandleLightingInfo(){\n'
+                        '  try{\n'
+                        '    const tzid=Intl.DateTimeFormat().resolvedOptions().timeZone;\n'
+                        '    const geo=TZ_GEO[tzid]; if(!geo) return null;\n'
+                        '    const now=new Date();\n'
+                        '    for(let i=0;i<8;i++){\n'
+                        '      const d=new Date(now); d.setDate(d.getDate()+i); d.setHours(12,0,0,0);\n'
+                        '      if(d.getDay()!==5) continue;   // Friday\n'
+                        '      const sunset=_sunsetInstant(d, geo[0], geo[1], -0.833);\n'
+                        '      if(!sunset) continue;\n'
+                        '      const candle=new Date(sunset.getTime() - CANDLE_LIGHTING_MINS_BEFORE_SUNSET*60000);\n'
+                        '      if(candle>now) return {iso:candle.toISOString(), label:"הדלקת נרות"};\n'
+                        '    }\n'
+                        '  }catch(e){}\n'
+                        '  return null;\n'
+                        '}\n',
+                        "index.html candle lighting calc")
     html = replace_once(html,
                         '  [...document.querySelectorAll("#themeSeg button")].forEach(b=>\n'
                         '    b.classList.toggle("on", b.dataset.themeChoice===pref));\n'

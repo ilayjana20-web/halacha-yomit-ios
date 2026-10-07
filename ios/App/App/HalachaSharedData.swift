@@ -21,11 +21,23 @@ enum HalachaSharedData {
         /// Today's parasha/festival title exactly as shown on the app's home screen
         /// (e.g. "פרשת בראשית", or a festival's own title such as "הלכות סוכות").
         var parashaHe: String
+        /// ISO-8601 time of the next Shabbat candle lighting, as computed by the app's own
+        /// nextCandleLightingInfo() (www/index.html) — nil if the app hasn't synced yet.
+        /// Decoded to a Date by candleTime below. No Yom Tov candle times yet, Shabbat only.
+        var candleTimeISO: String?
+        /// Hebrew label for the occasion, e.g. "הדלקת נרות" (currently always this one label).
+        var candleLabel: String?
 
         static let placeholder = Snapshot(
             streakCount: 0, streakBest: 0, learnedToday: false,
-            theme: "light", parashaHe: "הלכות הבן איש חי"
+            theme: "light", parashaHe: "הלכות הבן איש חי",
+            candleTimeISO: nil, candleLabel: nil
         )
+
+        var candleTime: Date? {
+            guard let iso = candleTimeISO else { return nil }
+            return ISO8601DateFormatter().date(from: iso)
+        }
     }
 
     private static var defaults: UserDefaults? {

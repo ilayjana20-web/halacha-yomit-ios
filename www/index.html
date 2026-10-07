@@ -62,12 +62,15 @@ html.ios-native-chrome .search-box{display:none !important;}
       var plugin = isIOSNative && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.HalachaWidgetBridge;
       if(!plugin) return;
       var titleEl = document.getElementById("wParasha");
+      var candle = typeof nextCandleLightingInfo === "function" ? nextCandleLightingInfo() : null;
       plugin.updateSharedData({
         streakCount: typeof currentStreak === "function" ? currentStreak() : 0,
         streakBest: typeof bestStreak === "function" ? bestStreak() : 0,
         learnedToday: typeof learnedToday === "function" ? learnedToday() : false,
         theme: (typeof getTheme === "function" && getTheme() === "auto") ? (systemPrefersDark() ? "dark" : "light") : getTheme(),
-        parashaHe: titleEl ? titleEl.textContent : ""
+        parashaHe: titleEl ? titleEl.textContent : "",
+        candleTimeISO: candle ? candle.iso : null,
+        candleLabel: candle ? candle.label : null
       });
     }catch(e){}
   };
@@ -1548,6 +1551,30 @@ function jewishReckoningDate(){
   if(shifted) d.setDate(d.getDate()+1);
   d.setHours(12,0,0,0);
   return {date:d, shifted};
+}
+
+// Candle lighting: the standard 18 minutes before real sunset (hDeg=-0.833, not the -7.083
+// tzeit used above) — the same default most Jewish calendars (incl. the hebcal library used
+// by the user's other app) fall back to when no community-specific custom is configured.
+// Shabbat only for now (no Yom Tov candle times yet). Reuses the same TZ_GEO table — still no
+// location permission prompt. Returns null if the timezone has no entry or it's not Shabbat
+// within the next week (should never happen in practice).
+const CANDLE_LIGHTING_MINS_BEFORE_SUNSET = 18;
+function nextCandleLightingInfo(){
+  try{
+    const tzid=Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const geo=TZ_GEO[tzid]; if(!geo) return null;
+    const now=new Date();
+    for(let i=0;i<8;i++){
+      const d=new Date(now); d.setDate(d.getDate()+i); d.setHours(12,0,0,0);
+      if(d.getDay()!==5) continue;   // Friday
+      const sunset=_sunsetInstant(d, geo[0], geo[1], -0.833);
+      if(!sunset) continue;
+      const candle=new Date(sunset.getTime() - CANDLE_LIGHTING_MINS_BEFORE_SUNSET*60000);
+      if(candle>now) return {iso:candle.toISOString(), label:"הדלקת נרות"};
+    }
+  }catch(e){}
+  return null;
 }
 
 const BIUR_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a6 6 0 0 0-4 10.5c.6.6 1 1.4 1 2.5h6c0-1.1.4-1.9 1-2.5A6 6 0 0 0 12 2Z"/></svg>';

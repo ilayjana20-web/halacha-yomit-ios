@@ -5,5 +5,6 @@ import SwiftUI
 struct HalachaWidgetBundle: WidgetBundle {
     var body: some Widget {
         HalachaWidget()
+        HalachaCandleWidget()
     }
 }
