@@ -194,6 +194,24 @@ html.ios-native-chrome body.reading .offline-banner{display:none;}
   };
   // The search field is the page's own #searchInput; the keyboard's "search" key dismisses it.
   // The reader's back/share glass buttons just forward to the original (hidden) controls.
+  // Image shares go through the native share sheet (Web Share API `files` is unreliable inside
+  // WKWebView). Resolves true once the native sheet handled it (even if the user cancelled),
+  // false when unavailable so the caller falls back to the web paths.
+  window.nativeShareImages = async function(files, text){
+    var p = isIOSNative && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.ShareImageBridge;
+    if(!p) return false;
+    try{
+      var images = await Promise.all(files.map(function(f){
+        return new Promise(function(res, rej){
+          var r = new FileReader();
+          r.onload = function(){ res({name:f.name, data:String(r.result).split(",")[1]}); };
+          r.onerror = rej; r.readAsDataURL(f);
+        });
+      }));
+      await p.shareImages({images:images, text:text||""});
+      return true;
+    }catch(e){ return false; }
+  };
   document.addEventListener("keydown", function(e){
     if(isIOSNative && e.key==="Enter" && e.target && e.target.id==="searchInput") e.target.blur();
   });
@@ -743,6 +761,14 @@ def main() -> int:
                         '  <button class="backbtn" id="rBack">▶ חזרה</button>\n',
                         '  <button class="backbtn" id="rBack">▶ חזרה</button>\n  <div class="rh-bar"><button class="rh-btn rh-back" id="rhBack" aria-label="חזרה"><svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg></button><button class="rh-btn rh-share" id="rhShare" aria-label="שיתוף"><svg viewBox="0 0 24 24"><path d="M12 15V4"/><polyline points="8 8 12 4 16 8"/><path d="M6 11H5a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7a1 1 0 0 0-1-1h-1"/></svg></button></div>\n',
                         "index.html reader back/share glass buttons")
+    html = replace_once(html,
+                        '      if(navigator.canShare && navigator.canShare({files})){\n        await navigator.share({title:"הלכות הבן איש חי",text:shareText,files});\n      }else{',
+                        '      if(await nativeShareImages(files, shareText)){\n        // handled by the native share sheet\n      }else if(navigator.canShare && navigator.canShare({files})){\n        await navigator.share({title:"הלכות הבן איש חי",text:shareText,files});\n      }else{',
+                        'index.html halacha image native share')
+    html = replace_once(html,
+                        '      if(navigator.canShare && navigator.canShare({files:[file]})){\n        try{ await navigator.share({files:[file], text:APP_STORE_URL}); }catch(e){}\n      }else{',
+                        '      if(await nativeShareImages([file], APP_STORE_URL)){\n        // handled by the native share sheet\n      }else if(navigator.canShare && navigator.canShare({files:[file]})){\n        try{ await navigator.share({files:[file], text:APP_STORE_URL}); }catch(e){}\n      }else{',
+                        'index.html QR image native share')
     html = replace_once(html, "</body>", NATIVE_BLOCK + SHARE_BLOCK + MINI_TOPBAR_BLOCK + "</body>", "index.html </body>")
     open(p, "w", encoding="utf-8").write(html)
 

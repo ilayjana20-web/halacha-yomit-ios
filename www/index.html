@@ -78,6 +78,24 @@ html.ios-native-chrome body.reading .offline-banner{display:none;}
   };
   // The search field is the page's own #searchInput; the keyboard's "search" key dismisses it.
   // The reader's back/share glass buttons just forward to the original (hidden) controls.
+  // Image shares go through the native share sheet (Web Share API `files` is unreliable inside
+  // WKWebView). Resolves true once the native sheet handled it (even if the user cancelled),
+  // false when unavailable so the caller falls back to the web paths.
+  window.nativeShareImages = async function(files, text){
+    var p = isIOSNative && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.ShareImageBridge;
+    if(!p) return false;
+    try{
+      var images = await Promise.all(files.map(function(f){
+        return new Promise(function(res, rej){
+          var r = new FileReader();
+          r.onload = function(){ res({name:f.name, data:String(r.result).split(",")[1]}); };
+          r.onerror = rej; r.readAsDataURL(f);
+        });
+      }));
+      await p.shareImages({images:images, text:text||""});
+      return true;
+    }catch(e){ return false; }
+  };
   document.addEventListener("keydown", function(e){
     if(isIOSNative && e.key==="Enter" && e.target && e.target.id==="searchInput") e.target.blur();
   });
@@ -2466,7 +2484,9 @@ function renderReaderCard(navigated){
         blobs.length>1?(baseName+"-"+(i+1)+"of"+blobs.length+".png"):(baseName+".png"),
         {type:"image/png"}));
       const shareText="הלכות הבן איש חי — "+label;
-      if(navigator.canShare && navigator.canShare({files})){
+      if(await nativeShareImages(files, shareText)){
+        // handled by the native share sheet
+      }else if(navigator.canShare && navigator.canShare({files})){
         await navigator.share({title:"הלכות הבן איש חי",text:shareText,files});
       }else{
         for(const f of files){
@@ -4069,7 +4089,9 @@ async function shareAppQR(){
     cv.toBlob(async blob=>{
       if(!blob){ showToast("שגיאה ביצירת תמונה"); return; }
       const file=new File([blob],"halacha-yomit-qr.png",{type:"image/png"});
-      if(navigator.canShare && navigator.canShare({files:[file]})){
+      if(await nativeShareImages([file], APP_STORE_URL)){
+        // handled by the native share sheet
+      }else if(navigator.canShare && navigator.canShare({files:[file]})){
         try{ await navigator.share({files:[file], text:APP_STORE_URL}); }catch(e){}
       }else{
         const url=URL.createObjectURL(blob);

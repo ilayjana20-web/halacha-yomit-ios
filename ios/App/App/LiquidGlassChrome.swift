@@ -16,6 +16,16 @@ private final class WeakScriptMessageHandler: NSObject, WKScriptMessageHandler {
     }
 }
 
+/// Local (non-npm) Capacitor plugins are not auto-discovered — each has to be registered on the
+/// bridge by hand, otherwise `window.Capacitor.Plugins.<Name>` is simply undefined in the web
+/// app (the widget data bridge and the image share sheet both depend on this).
+final class AppBridgeViewController: CAPBridgeViewController {
+    override func capacitorDidLoad() {
+        bridge?.registerPluginInstance(HalachaWidgetBridge())
+        bridge?.registerPluginInstance(ShareImageBridge())
+    }
+}
+
 /// Hosts the web content (`CAPBridgeViewController`) full-bleed (under the status bar, no
 /// native bar at the top) with a real native `UITabBar` at the bottom mirroring the web app's 4
 /// tabs. It's a genuine system component, not a hand-rolled blur view — Apple renders it with
@@ -32,7 +42,7 @@ private final class WeakScriptMessageHandler: NSObject, WKScriptMessageHandler {
 /// untouched: that gating lives entirely in index.html, keyed off `Capacitor.getPlatform()`.
 final class MainContainerViewController: UIViewController, WKScriptMessageHandler, UITabBarDelegate {
 
-    private let capVC = CAPBridgeViewController()
+    private let capVC = AppBridgeViewController()
     private let tabBar = UITabBar()
 
     // Order and ids match index.html's #segWeek/#segTopics/#segPicker/#segSearch exactly —
