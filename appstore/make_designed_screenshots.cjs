@@ -46,9 +46,9 @@ const DIAMOND = c => `url("data:image/svg+xml;utf8,${encodeURIComponent(
 function page({ dataUri, theme, c }) {
   const dark = true;   // slides always use the deep-navy + gold look; the app screen inside keeps its own light/dark theme
   const P = dark
-    ? { bg: "linear-gradient(168deg,#0A2236 0%,#0F314D 42%,#14354A 66%,#5A4D26 118%)", ink: "#FFFFFF", gold1: "#F6DE96", gold2: "#D9AE45",
+    ? { bg: "radial-gradient(120% 62% at 100% 0%,rgba(190,150,58,.72) 0%,rgba(190,150,58,.18) 45%,transparent 70%),linear-gradient(180deg,#0C2A4F 0%,#0E3260 52%,#0A2446 100%)", ink: "#FFFFFF", gold1: "#F6DE96", gold2: "#D9AE45",
         sub: "#A9BBC4", pillBorder: "rgba(231,212,158,.45)", pillInk: "#E7D49E", pillBg: "rgba(231,212,158,.07)",
-        glow1: "rgba(63,132,138,.28)", glow2: "rgba(217,174,69,.34)", pat: "rgba(231,212,158,.0)",
+        glow1: "rgba(63,132,138,.0)", glow2: "rgba(217,174,69,.0)", pat: "rgba(231,212,158,.0)",
         shadow: "0 50px 110px rgba(0,0,0,.65), 0 0 0 2px rgba(231,212,158,.14)", bezel: "#05090D", edge: "rgba(255,255,255,.18)" }
     : { bg: "linear-gradient(172deg,#FFFDF6 0%,#F5EEDA 56%,#E8D6A0 100%)", ink: "#0F314D", gold1: "#C99A2B", gold2: "#8A6A1E",
         sub: "#5C6B72", pillBorder: "rgba(138,106,30,.45)", pillInk: "#8A6A1E", pillBg: "rgba(191,149,48,.10)",
