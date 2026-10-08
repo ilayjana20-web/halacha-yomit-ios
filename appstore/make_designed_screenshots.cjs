@@ -44,11 +44,11 @@ function page({ dataUri, theme, c }) {
     ? { bg: "linear-gradient(172deg,#0D1B27 0%,#09131B 58%,#11303A 100%)", ink: "#F1E7C8", gold1: "#F6E3A6", gold2: "#D9AE45",
         sub: "#A9BBC4", pillBorder: "rgba(231,212,158,.45)", pillInk: "#E7D49E", pillBg: "rgba(231,212,158,.07)",
         glow1: "rgba(63,132,138,.30)", glow2: "rgba(191,149,48,.16)", pat: "rgba(231,212,158,.06)",
-        shadow: "0 70px 140px rgba(0,0,0,.65), 0 0 0 2px rgba(231,212,158,.14)", bezel: "#05090D", edge: "rgba(255,255,255,.18)" }
+        shadow: "0 50px 110px rgba(0,0,0,.65), 0 0 0 2px rgba(231,212,158,.14)", bezel: "#05090D", edge: "rgba(255,255,255,.18)" }
     : { bg: "linear-gradient(172deg,#FFFDF6 0%,#F5EEDA 56%,#E8D6A0 100%)", ink: "#0F314D", gold1: "#C99A2B", gold2: "#8A6A1E",
         sub: "#5C6B72", pillBorder: "rgba(138,106,30,.45)", pillInk: "#8A6A1E", pillBg: "rgba(191,149,48,.10)",
         glow1: "rgba(63,132,138,.22)", glow2: "rgba(191,149,48,.20)", pat: "rgba(191,149,48,.10)",
-        shadow: "0 70px 140px rgba(15,49,77,.38), 0 0 0 2px rgba(15,49,77,.10)", bezel: "#0E141A", edge: "rgba(255,255,255,.28)" };
+        shadow: "0 50px 110px rgba(15,49,77,.38), 0 0 0 2px rgba(15,49,77,.10)", bezel: "#0E141A", edge: "rgba(255,255,255,.28)" };
   return `<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><style>
 @font-face{font-family:FRL;font-weight:900;src:url("${font("FrankRuhlLibre-Black.ttf")}")}
 @font-face{font-family:FRL;font-weight:700;src:url("${font("FrankRuhlLibre-Bold.ttf")}")}
@@ -62,23 +62,23 @@ body{background:${P.bg};position:relative;font-family:Heebo,sans-serif}
 .glow2{position:absolute;width:1500px;height:1500px;right:-600px;bottom:-500px;border-radius:50%;background:radial-gradient(closest-side,${P.glow2},transparent)}
 .pat{position:absolute;inset:0;background-image:${DIAMOND(P.pat)};background-size:180px 180px;background-position:center top;
   -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 30%,transparent 62%);mask-image:linear-gradient(180deg,#000 0%,#000 30%,transparent 62%)}
-.copy{position:absolute;top:118px;left:0;right:0;text-align:center;padding:0 70px}
-.pill{display:inline-block;font-weight:700;font-size:38px;color:${P.pillInk};border:2.5px solid ${P.pillBorder};background:${P.pillBg};
-  border-radius:999px;padding:12px 40px 14px}
-.hl{margin-top:44px;font-family:FRL,serif;font-weight:900;font-size:142px;line-height:1.06;color:${P.ink}}
+.copy{position:absolute;top:64px;left:0;right:0;text-align:center;padding:0 70px}
+.pill{display:inline-block;font-weight:700;font-size:34px;color:${P.pillInk};border:2.5px solid ${P.pillBorder};background:${P.pillBg};
+  border-radius:999px;padding:9px 36px 11px}
+.hl{margin-top:26px;font-family:FRL,serif;font-weight:900;font-size:122px;line-height:1.03;color:${P.ink}}
 .hl em{font-style:normal;background:linear-gradient(100deg,${P.gold1},${P.gold2});-webkit-background-clip:text;background-clip:text;color:transparent}
-.orn{display:flex;align-items:center;justify-content:center;gap:22px;margin:40px 0 0}
-.orn i{display:block;height:3px;width:150px;background:linear-gradient(90deg,transparent,${P.gold2})}
+.orn{display:flex;align-items:center;justify-content:center;gap:22px;margin:22px 0 0}
+.orn i{display:block;height:3px;width:120px;background:linear-gradient(90deg,transparent,${P.gold2})}
 .orn i:last-child{transform:scaleX(-1)}
-.orn b{display:block;width:20px;height:20px;transform:rotate(45deg);background:${P.gold2}}
-.sub{margin-top:34px;font-weight:500;font-size:50px;line-height:1.35;color:${P.sub};white-space:pre-line}
-.device{position:absolute;left:100px;top:${c.deviceTop}px;width:1120px;height:2500px;border-radius:152px;background:${P.bezel};
-  box-shadow:${P.shadow};padding:20px}
-.device:before{content:"";position:absolute;inset:0;border-radius:152px;box-shadow:inset 0 0 0 3px ${P.edge};pointer-events:none}
-.screen{position:relative;width:1080px;height:2460px;border-radius:132px;overflow:hidden;background:#000}
-.screen img{display:block;width:1080px;height:auto}
-.island{position:absolute;left:50%;top:30px;width:292px;height:86px;margin-left:-146px;border-radius:50px;background:#000}
-.sheen{position:absolute;inset:0;border-radius:132px;background:linear-gradient(115deg,rgba(255,255,255,.10),transparent 28%);pointer-events:none}
+.orn b{display:block;width:16px;height:16px;transform:rotate(45deg);background:${P.gold2}}
+.sub{margin-top:22px;font-weight:500;font-size:44px;line-height:1.3;color:${P.sub};white-space:pre-line}
+.device{position:absolute;left:146px;top:${c.deviceTop}px;width:1028px;height:2203px;border-radius:138px;background:${P.bezel};
+  box-shadow:${P.shadow};padding:14px}
+.device:before{content:"";position:absolute;inset:0;border-radius:138px;box-shadow:inset 0 0 0 3px ${P.edge};pointer-events:none}
+.screen{position:relative;width:1000px;height:2175px;border-radius:124px;overflow:hidden;background:#000}
+.screen img{display:block;width:1000px;height:2175px}
+.island{position:absolute;left:50%;top:28px;width:270px;height:80px;margin-left:-135px;border-radius:46px;background:#000}
+.sheen{position:absolute;inset:0;border-radius:124px;background:linear-gradient(115deg,rgba(255,255,255,.10),transparent 28%);pointer-events:none}
 </style></head><body>
 <div class="glow1"></div><div class="glow2"></div><div class="pat"></div>
 <div class="copy">
@@ -117,7 +117,7 @@ body{background:${P.bg};position:relative;font-family:Heebo,sans-serif}
       for (let i = 0; i < r.length; i += 4) { const l = (r[i] + r[i + 1] + r[i + 2]) / 3; mn = Math.min(mn, l); mx = Math.max(mx, l); }
       return mx - mn < 40;                                           // flat background => safe to draw
     }, dataUri);
-    const html = page({ dataUri, theme, c: { ...c0, deviceTop: 810, island: drawIsland } });
+    const html = page({ dataUri, theme, c: { ...c0, deviceTop: 636, island: drawIsland } });
     await pg.setContent(html, { waitUntil: "load" });
     await pg.evaluate(() => document.fonts.ready);
     n++;
