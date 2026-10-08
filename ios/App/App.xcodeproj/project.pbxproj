@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		09DFB951F3247B29BD0D74DF /* HalachaWidgetBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 717DB7A37B8AA43BBA7B4080 /* HalachaWidgetBridge.swift */; };
+		C9C1CA0B17BD417F9937D0BE /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E2E811257728405BABA3B485 /* PrivacyInfo.xcprivacy */; };
+		53D2FD48254A46F0B90944AB /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 4FD8E9C8FA9A44FEB8F79979 /* PrivacyInfo.xcprivacy */; };
 		2D53B5AF70A8EF1AF63E198A /* HalachaSharedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = B40E4C31C51D2EF219E32212 /* HalachaSharedData.swift */; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
 		4D22ABE92AF431CB00220026 /* CapApp-SPM in Frameworks */ = {isa = PBXBuildFile; productRef = 4D22ABE82AF431CB00220026 /* CapApp-SPM */; };
@@ -56,6 +58,8 @@
 
 /* Begin PBXFileReference section */
 		051E119BBF6F88248497CD6E /* Provider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Provider.swift; sourceTree = "<group>"; };
+		E2E811257728405BABA3B485 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		4FD8E9C8FA9A44FEB8F79979 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		1FA9AAC4AD9DE689F7B62FE6 /* HalachaWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HalachaWidget.swift; sourceTree = "<group>"; };
 		237AD54E6F746DC69462C6F0 /* HalachaWidgetBundle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HalachaWidgetBundle.swift; sourceTree = "<group>"; };
 		2482EAC197E637CE9BBF5993 /* HalachaWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HalachaWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -139,6 +143,7 @@
 				2FAD9762203C412B000D30F8 /* config.xml */,
 				50B271D01FEDC1A000F3C39B /* public */,
 				C1FD0F5A356FF7CEC14D9CEB /* App.entitlements */,
+				E2E811257728405BABA3B485 /* PrivacyInfo.xcprivacy */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -152,6 +157,7 @@
 				3CB47A83AB5BC2BEBAD438CE /* HalachaCandleWidget.swift */,
 				6DA7EC4048AF7B377A334584 /* Info.plist */,
 				B42B29C04468C76A5B5BD225 /* HalachaWidget.entitlements */,
+				4FD8E9C8FA9A44FEB8F79979 /* PrivacyInfo.xcprivacy */,
 			);
 			name = HalachaWidget;
 			path = HalachaWidget;
@@ -246,6 +252,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				53D2FD48254A46F0B90944AB /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -259,6 +266,7 @@
 				50379B232058CBB4000EE86E /* capacitor.config.json in Resources */,
 				504EC30D1FED79650016851F /* Main.storyboard in Resources */,
 				2FAD9763203C412B000D30F8 /* config.xml in Resources */,
+				C9C1CA0B17BD417F9937D0BE /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -329,7 +337,7 @@
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				CODE_SIGN_ENTITLEMENTS = HalachaWidget/HalachaWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2610082046;
 				DEVELOPMENT_TEAM = 43DB56398H;
 				INFOPLIST_FILE = HalachaWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -338,7 +346,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.benishchai.halachayomit.HalachaWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -465,7 +473,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2610082046;
 				DEVELOPMENT_TEAM = 43DB56398H;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -473,7 +481,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" \"-DDEBUG\"";
 				PRODUCT_BUNDLE_IDENTIFIER = com.benishchai.halachayomit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -489,7 +497,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2610082046;
 				DEVELOPMENT_TEAM = 43DB56398H;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -497,7 +505,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.benishchai.halachayomit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
@@ -512,7 +520,7 @@
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				CODE_SIGN_ENTITLEMENTS = HalachaWidget/HalachaWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2610082046;
 				DEVELOPMENT_TEAM = 43DB56398H;
 				INFOPLIST_FILE = HalachaWidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -521,7 +529,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.benishchai.halachayomit.HalachaWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
