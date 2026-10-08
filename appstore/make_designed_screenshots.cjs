@@ -3,7 +3,12 @@
 //   npm i --no-save playwright          (once; uses your installed Google Chrome, no download)
 //   node appstore/make_designed_screenshots.cjs <rawDir> <outDir>
 //
-// <rawDir> is scanned recursively for PNGs (1320x2868). A file is a "dark" slide when its path
+// Two kinds of input PNGs:
+//   * REAL SIMULATOR WINDOW captures (preferred): the whole Simulator window with Apple's real
+//     iPhone bezel, e.g. `screencapture -o -l <windowId> week_framed.png` (transparent corners).
+//     Put "framed" in the file name. It is placed as-is, no frame is drawn.
+//   * Plain screen captures (`simctl io screenshot`, 1320x2868): a simple frame is drawn around them.
+// <rawDir> is scanned recursively for PNGs. A file is a "dark" slide when its path
 // or name contains "dark", otherwise "light". The slide copy is chosen by keyword in the file
 // name (week|home, reader, topics, picker|parash, search, settings, stats) — see
 // appstore/screenshot_copy.json. Output: JPEG (flattened, no alpha), 1320x2868.
@@ -77,6 +82,8 @@ body{background:${P.bg};position:relative;font-family:Heebo,sans-serif}
 .device:before{content:"";position:absolute;inset:0;border-radius:138px;box-shadow:inset 0 0 0 3px ${P.edge};pointer-events:none}
 .screen{position:relative;width:1000px;height:2175px;border-radius:124px;overflow:hidden;background:#000}
 .screen img{display:block;width:1000px;height:2175px}
+.framed{position:absolute;left:40px;top:${c.deviceTop - 10}px;width:1240px;height:2230px;display:flex;align-items:flex-start;justify-content:center}
+.framed img{max-width:100%;max-height:100%;display:block;filter:drop-shadow(0 50px 70px ${dark ? "rgba(0,0,0,.6)" : "rgba(15,49,77,.35)"})}
 .island{position:absolute;left:50%;top:28px;width:270px;height:80px;margin-left:-135px;border-radius:46px;background:#000}
 .sheen{position:absolute;inset:0;border-radius:124px;background:linear-gradient(115deg,rgba(255,255,255,.10),transparent 28%);pointer-events:none}
 </style></head><body>
@@ -87,7 +94,8 @@ body{background:${P.bg};position:relative;font-family:Heebo,sans-serif}
   <div class="orn"><i></i><b></b><i></i></div>
   <div class="sub">${esc(c.sub)}</div>
 </div>
-<div class="device"><div class="screen"><img src="${dataUri}">${c.island ? '<div class="island"></div>' : ""}<div class="sheen"></div></div></div>
+${c.framed ? `<div class="framed"><img src="${dataUri}"></div>` :
+`<div class="device"><div class="screen"><img src="${dataUri}">${c.island ? '<div class="island"></div>' : ""}<div class="sheen"></div></div></div>`}
 </body></html>`;
 }
 
@@ -105,7 +113,8 @@ body{background:${P.bg};position:relative;font-family:Heebo,sans-serif}
     const dataUri = "data:image/png;base64," + fs.readFileSync(f).toString("base64");
     // Draw our own Dynamic Island only if the raw screenshot has none AND the spot is empty
     // status-bar space (never on top of app content, e.g. screenshots taken without a status bar).
-    const drawIsland = await pg.evaluate(async uri => {
+    const framed = /framed/i.test(f);
+    const drawIsland = framed ? false : await pg.evaluate(async uri => {
       const im = new Image(); im.src = uri; await im.decode();
       const cv = document.createElement("canvas"); cv.width = im.width; cv.height = im.height;
       const cx = cv.getContext("2d"); cx.drawImage(im, 0, 0);
@@ -117,7 +126,7 @@ body{background:${P.bg};position:relative;font-family:Heebo,sans-serif}
       for (let i = 0; i < r.length; i += 4) { const l = (r[i] + r[i + 1] + r[i + 2]) / 3; mn = Math.min(mn, l); mx = Math.max(mx, l); }
       return mx - mn < 40;                                           // flat background => safe to draw
     }, dataUri);
-    const html = page({ dataUri, theme, c: { ...c0, deviceTop: 636, island: drawIsland } });
+    const html = page({ dataUri, theme, c: { ...c0, deviceTop: 636, island: drawIsland, framed } });
     await pg.setContent(html, { waitUntil: "load" });
     await pg.evaluate(() => document.fonts.ready);
     n++;
