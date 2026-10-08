@@ -44,11 +44,11 @@ const DIAMOND = c => `url("data:image/svg+xml;utf8,${encodeURIComponent(
   `<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180' fill='none' stroke='${c}' stroke-width='2'><path d='M90 12 168 90 90 168 12 90Z'/><path d='M90 44 136 90 90 136 44 90Z'/></svg>`)}")`;
 
 function page({ dataUri, theme, c }) {
-  const dark = theme === "dark";
+  const dark = true;   // slides always use the deep-navy + gold look; the app screen inside keeps its own light/dark theme
   const P = dark
-    ? { bg: "linear-gradient(172deg,#0D1B27 0%,#09131B 58%,#11303A 100%)", ink: "#F1E7C8", gold1: "#F6E3A6", gold2: "#D9AE45",
+    ? { bg: "linear-gradient(168deg,#0A2236 0%,#0F314D 42%,#14354A 66%,#5A4D26 118%)", ink: "#FFFFFF", gold1: "#F6DE96", gold2: "#D9AE45",
         sub: "#A9BBC4", pillBorder: "rgba(231,212,158,.45)", pillInk: "#E7D49E", pillBg: "rgba(231,212,158,.07)",
-        glow1: "rgba(63,132,138,.30)", glow2: "rgba(191,149,48,.16)", pat: "rgba(231,212,158,.06)",
+        glow1: "rgba(63,132,138,.28)", glow2: "rgba(217,174,69,.34)", pat: "rgba(231,212,158,.0)",
         shadow: "0 50px 110px rgba(0,0,0,.65), 0 0 0 2px rgba(231,212,158,.14)", bezel: "#05090D", edge: "rgba(255,255,255,.18)" }
     : { bg: "linear-gradient(172deg,#FFFDF6 0%,#F5EEDA 56%,#E8D6A0 100%)", ink: "#0F314D", gold1: "#C99A2B", gold2: "#8A6A1E",
         sub: "#5C6B72", pillBorder: "rgba(138,106,30,.45)", pillInk: "#8A6A1E", pillBg: "rgba(191,149,48,.10)",
@@ -68,15 +68,14 @@ body{background:${P.bg};position:relative;font-family:Heebo,sans-serif}
 .pat{position:absolute;inset:0;background-image:${DIAMOND(P.pat)};background-size:180px 180px;background-position:center top;
   -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 30%,transparent 62%);mask-image:linear-gradient(180deg,#000 0%,#000 30%,transparent 62%)}
 .copy{position:absolute;top:64px;left:0;right:0;text-align:center;padding:0 70px}
-.pill{display:inline-block;font-weight:700;font-size:34px;color:${P.pillInk};border:2.5px solid ${P.pillBorder};background:${P.pillBg};
-  border-radius:999px;padding:9px 36px 11px}
-.hl{margin-top:26px;font-family:FRL,serif;font-weight:900;font-size:122px;line-height:1.03;color:${P.ink}}
+.pill{display:inline-block;font-weight:700;font-size:34px;color:#C9A24A;opacity:.95}
+.hl{margin-top:22px;font-family:Heebo,sans-serif;font-weight:800;font-size:124px;line-height:1.06;letter-spacing:-.01em;color:${P.ink}}
 .hl em{font-style:normal;background:linear-gradient(100deg,${P.gold1},${P.gold2});-webkit-background-clip:text;background-clip:text;color:transparent}
-.orn{display:flex;align-items:center;justify-content:center;gap:22px;margin:22px 0 0}
+.orn{display:none;align-items:center;justify-content:center;gap:22px;margin:22px 0 0}
 .orn i{display:block;height:3px;width:120px;background:linear-gradient(90deg,transparent,${P.gold2})}
 .orn i:last-child{transform:scaleX(-1)}
 .orn b{display:block;width:16px;height:16px;transform:rotate(45deg);background:${P.gold2}}
-.sub{margin-top:22px;font-weight:500;font-size:44px;line-height:1.3;color:${P.sub};white-space:pre-line}
+.sub{margin-top:24px;font-weight:500;font-size:44px;line-height:1.32;color:${P.sub};white-space:pre-line}
 .device{position:absolute;left:146px;top:${c.deviceTop}px;width:1028px;height:2203px;border-radius:138px;background:${P.bezel};
   box-shadow:${P.shadow};padding:14px}
 .device:before{content:"";position:absolute;inset:0;border-radius:138px;box-shadow:inset 0 0 0 3px ${P.edge};pointer-events:none}
@@ -91,7 +90,6 @@ body{background:${P.bg};position:relative;font-family:Heebo,sans-serif}
 <div class="copy">
   <div class="pill">${esc(c.eyebrow)}</div>
   <div class="hl">${headlineHtml(c.headline)}</div>
-  <div class="orn"><i></i><b></b><i></i></div>
   <div class="sub">${esc(c.sub)}</div>
 </div>
 ${c.framed ? `<div class="framed"><img src="${dataUri}"></div>` :
