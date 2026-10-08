@@ -143,14 +143,34 @@ CHROME_HEAD_BLOCK = r'''
 /* Liquid Glass native chrome (iOS app only) replaces these — see LiquidGlassChrome.swift. */
 html.ios-native-chrome .tabbar,
 html.ios-native-chrome #rBack,
-html.ios-native-chrome #rShareBtn,
-html.ios-native-chrome .search-box{display:none !important;}
+html.ios-native-chrome #rShareBtn{display:none !important;}
 /* The native nav bar (back/title/share) already covers the reader's chrome — the web app's
    own branded header (portrait, title, gear/stats buttons) would otherwise still show right
    below it, duplicating the back/share affordance and reading as two disconnected headers
    stacked on top of each other. Hidden only while BOTH native chrome and the reader are active
    (body.reading) — the home/topics/picker screens keep the full header exactly as before. */
 html.ios-native-chrome body.reading .hero{display:none !important;}
+/* No native bar sits above the page any more (it left a black strip over the content): the web
+   content runs edge to edge under the status bar, the search field replaces the "חיפוש הלכה"
+   title card, and the reader's back/share buttons sit in the reader's own title row. */
+html.ios-native-chrome #searchView .page-head{display:none;}
+html.ios-native-chrome #searchView .search-box{margin:18px 0 6px;}
+html.ios-native-chrome #searchInput{padding:21px 54px 21px 22px;font-size:18px;
+  background:var(--glass-tint-strong);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+  border:1px solid var(--glass-border);}
+.rh-bar{display:none;}
+html.ios-native-chrome .rh-bar{display:block;position:sticky;top:calc(max(env(safe-area-inset-top),47px) + 6px);height:0;z-index:30;}
+html.ios-native-chrome .rh-btn{position:absolute;top:0;width:42px;height:42px;border-radius:50%;display:flex;
+  align-items:center;justify-content:center;padding:0;border:1px solid var(--glass-border);
+  background:var(--glass-tint-strong);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+  box-shadow:var(--clay-sm);color:var(--good-deep);-webkit-tap-highlight-color:transparent;}
+html.ios-native-chrome .rh-back{inset-inline-start:2px;}
+html.ios-native-chrome .rh-share{inset-inline-end:2px;}
+html.ios-native-chrome .rh-btn svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:2.3;
+  stroke-linecap:round;stroke-linejoin:round;}
+html.ios-native-chrome body.reading #readerView{padding-top:calc(max(env(safe-area-inset-top),47px) + 6px);}
+html.ios-native-chrome body.reading .reader-head{padding-inline:54px;}
+html.ios-native-chrome body.reading .offline-banner{display:none;}
 </style>
 <script>
 (function(){
@@ -172,13 +192,17 @@ html.ios-native-chrome body.reading .hero{display:none !important;}
       }
     }catch(e){}
   };
-  // The other direction: the native UISearchBar (search tab only, see LiquidGlassChrome.swift)
-  // drives the existing #searchInput + its debounced "input" listener, rather than
-  // duplicating the search-triggering logic natively.
-  window.nativeSetSearchQuery = function(q){
-    var el = document.getElementById("searchInput");
-    if(el){ el.value = q; el.dispatchEvent(new Event("input")); }
-  };
+  // The search field is the page's own #searchInput; the keyboard's "search" key dismisses it.
+  // The reader's back/share glass buttons just forward to the original (hidden) controls.
+  document.addEventListener("keydown", function(e){
+    if(isIOSNative && e.key==="Enter" && e.target && e.target.id==="searchInput") e.target.blur();
+  });
+  document.addEventListener("click", function(e){
+    var b = e.target && e.target.closest ? e.target.closest("#rhBack,#rhShare") : null;
+    if(!b) return;
+    var t = document.getElementById(b.id==="rhBack" ? "rBack" : "rShareBtn");
+    if(t) t.click();
+  });
   // Pushes the streak + today's parasha into the HalachaWidget's shared App Group storage
   // (see ios/App/App/HalachaWidgetBridge.swift) so the home-screen widget reflects the
   // learner's real state. No-ops on web/Android or before the native target exists. Called
@@ -711,6 +735,14 @@ def main() -> int:
                         '    display:flex;flex-direction:column;animation:sheetUp .3s cubic-bezier(.2,.8,.2,1);}',
                         "index.html modal-panel glass")
 
+    html = replace_once(html,
+                        '<input type="search" id="searchInput" placeholder="חפשו מילה, נושא או ביטוי…" autocomplete="off">',
+                        '<input type="search" id="searchInput" placeholder="חפשו מילה, נושא או ביטוי…" autocomplete="off" enterkeyhint="search">',
+                        "index.html search input enterkeyhint")
+    html = replace_once(html,
+                        '  <button class="backbtn" id="rBack">▶ חזרה</button>\n',
+                        '  <button class="backbtn" id="rBack">▶ חזרה</button>\n  <div class="rh-bar"><button class="rh-btn rh-back" id="rhBack" aria-label="חזרה"><svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg></button><button class="rh-btn rh-share" id="rhShare" aria-label="שיתוף"><svg viewBox="0 0 24 24"><path d="M12 15V4"/><polyline points="8 8 12 4 16 8"/><path d="M6 11H5a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7a1 1 0 0 0-1-1h-1"/></svg></button></div>\n',
+                        "index.html reader back/share glass buttons")
     html = replace_once(html, "</body>", NATIVE_BLOCK + SHARE_BLOCK + MINI_TOPBAR_BLOCK + "</body>", "index.html </body>")
     open(p, "w", encoding="utf-8").write(html)
 
