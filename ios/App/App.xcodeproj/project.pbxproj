@@ -35,6 +35,7 @@
 		BFB91AB4917507C3359C869D /* HalachaSharedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = B40E4C31C51D2EF219E32212 /* HalachaSharedData.swift */; };
 		CFCA8F38B5A8E735D6663CB0 /* HalachaWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FA9AAC4AD9DE689F7B62FE6 /* HalachaWidget.swift */; };
 		DCAE533C852C908E40EB2E8B /* HalachaWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2482EAC197E637CE9BBF5993 /* HalachaWidget.appex */; settings = {ATTRIBUTES = (RemoveHeaderOnCopy, ); }; };
+		32809BD8737DDA8113B48BE0 /* AppUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE1D3D7A3845AAF437670AE3 /* AppUITests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,6 +45,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 34284DA325F2644D38B40A57;
 			remoteInfo = HalachaWidget;
+		};
+		D3162BB0EA64ECF52C474769 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 504EC3031FED79650016851F;
+			remoteInfo = App;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -93,6 +101,8 @@
 		C1FD0F5A356FF7CEC14D9CEB /* App.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
 		D7DAEC455FD5991ECFC8466E /* UpdateCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateCheck.swift; sourceTree = "<group>"; };
 		E7EC7E160A6DF434603ACD53 /* NativeStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeStatsView.swift; sourceTree = "<group>"; };
+		2CF99117AECF83D0413726A3 /* AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE1D3D7A3845AAF437670AE3 /* AppUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppUITests.swift; path = AppUITests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -111,6 +121,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A3E15D2CE8A9D0F65B8D7FA1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -121,6 +138,7 @@
 				504EC3061FED79650016851F /* App */,
 				504EC3051FED79650016851F /* Products */,
 				D45A0A03CBD1518AB9C47D47 /* HalachaWidget */,
+				8B9A6422B67B6E296D43CB00 /* AppUITests */,
 			);
 			sourceTree = "<group>";
 		};
@@ -129,6 +147,7 @@
 			children = (
 				504EC3041FED79650016851F /* App.app */,
 				2482EAC197E637CE9BBF5993 /* HalachaWidget.appex */,
+				2CF99117AECF83D0413726A3 /* AppUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -176,6 +195,15 @@
 			path = HalachaWidget;
 			sourceTree = "<group>";
 		};
+		8B9A6422B67B6E296D43CB00 /* AppUITests */ = {
+			isa = PBXGroup;
+			children = (
+				AE1D3D7A3845AAF437670AE3 /* AppUITests.swift */,
+			);
+			name = AppUITests;
+			path = AppUITests;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -218,6 +246,24 @@
 			productReference = 504EC3041FED79650016851F /* App.app */;
 			productType = "com.apple.product-type.application";
 		};
+		DF0E3717747F18D06244F4D8 /* AppUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 13BB0E2AB4727417E43C1316 /* Build configuration list for PBXNativeTarget "AppUITests" */;
+			buildPhases = (
+				75BC9EDAD96D210ADFA1C03E /* Sources */,
+				A3E15D2CE8A9D0F65B8D7FA1 /* Frameworks */,
+				8152460AFFB95BBB0B2A5E63 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9E0884937B8A12DA26428D67 /* PBXTargetDependency */,
+			);
+			name = AppUITests;
+			productName = AppUITests;
+			productReference = 2CF99117AECF83D0413726A3 /* AppUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -235,6 +281,10 @@
 						CreatedOnToolsVersion = 9.2;
 						LastSwiftMigration = 1100;
 						ProvisioningStyle = Automatic;
+					};
+					DF0E3717747F18D06244F4D8 = {
+						ProvisioningStyle = Automatic;
+						TestTargetID = 504EC3031FED79650016851F;
 					};
 				};
 			};
@@ -256,6 +306,7 @@
 			targets = (
 				504EC3031FED79650016851F /* App */,
 				34284DA325F2644D38B40A57 /* HalachaWidget */,
+				DF0E3717747F18D06244F4D8 /* AppUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -283,6 +334,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		8152460AFFB95BBB0B2A5E63 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -302,6 +360,14 @@
 				39C4DE71CBC08C2F6696F085 /* HalachaShortcuts.swift in Sources */,
 				AFD43E00D267876BB7E7DE98 /* NativeSettingsView.swift in Sources */,
 				58B7D733C82AAB48E6C952B7 /* NativeStatsView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		75BC9EDAD96D210ADFA1C03E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				32809BD8737DDA8113B48BE0 /* AppUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -326,6 +392,12 @@
 			name = HalachaWidget;
 			target = 34284DA325F2644D38B40A57 /* HalachaWidget */;
 			targetProxy = 0257C492CEF36B8ED93A9DD1 /* PBXContainerItemProxy */;
+		};
+		9E0884937B8A12DA26428D67 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = App;
+			target = 504EC3031FED79650016851F /* App */;
+			targetProxy = D3162BB0EA64ECF52C474769 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -557,9 +629,53 @@
 			};
 			name = Debug;
 		};
+		5FBD4717CB4727C21A5B5746 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.benishchai.halachayomit.AppUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = App;
+			};
+			name = Debug;
+		};
+		E80E9389FF766A54C43240D2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.benishchai.halachayomit.AppUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = App;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		13BB0E2AB4727417E43C1316 /* Build configuration list for PBXNativeTarget "AppUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5FBD4717CB4727C21A5B5746 /* Debug */,
+				E80E9389FF766A54C43240D2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		32CF3B39FA3F15FACAC4FAC6 /* Build configuration list for PBXNativeTarget "HalachaWidget" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
