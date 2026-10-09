@@ -1,7 +1,8 @@
 // Designed App Store screenshots from real Simulator captures.
 //
 //   npm i --no-save playwright          (once; uses your installed Google Chrome, no download)
-//   node appstore/make_designed_screenshots.cjs <rawDir> <outDir>
+//   node appstore/make_designed_screenshots.cjs <rawDir> <outDir> [ipad]
+//   (add "ipad" for the 13" iPad canvas, 2064x2752; default is the 6.9" iPhone canvas, 1320x2868)
 //
 // Input PNGs (scanned recursively):
 //   * REAL SIMULATOR WINDOW captures (preferred): the whole Simulator window with Apple's real
@@ -12,12 +13,22 @@
 // The copy (headline, chips) is picked by keyword in the file name
 // (week|home, reader, topics, picker|parash, search, settings, stats) from screenshot_copy.json.
 // A closing "brand" slide (icon + feature chips) is generated automatically.
-// Output: JPEG (flattened, no alpha), 1320x2868.
+// Output: JPEG (flattened, no alpha), 1320x2868 (iPhone) or 2064x2752 (iPad).
 const fs = require("fs");
 const path = require("path");
 const { chromium } = require("playwright");
 
-const [rawDir, outDir] = process.argv.slice(2);
+const [rawDir, outDir, mode] = process.argv.slice(2);
+const IPAD = mode === "ipad";
+// Design space is always 1320 wide; the iPad canvas is the same design zoomed to 2064 wide and a
+// shorter, squarer device. `dH` is the design-space height.
+const PROF = IPAD
+  ? { W: 2064, H: 2752, k: 2064 / 1320, dH: Math.round(2752 / (2064 / 1320)), devLeft: 236, devW: 848, devH: 1121, scrW: 820, scrH: 1093, devR: 70, scrR: 58, pad: 14,
+      framedLeft: 40, framedW: 1240, framedH: 1130, deviceTop: 595, chipScale: 1121 / 2203,
+      brand: { markTop: 150, markSize: 520, btTop: 720, featTop: 1180 } }
+  : { W: 1320, H: 2868, k: 1, dH: 2868, devLeft: 146, devW: 1028, devH: 2203, scrW: 1000, scrH: 2175, devR: 138, scrR: 124, pad: 14,
+      framedLeft: 40, framedW: 1240, framedH: 2230, deviceTop: 636, chipScale: 1,
+      brand: { markTop: 430, markSize: 600, btTop: 1150, featTop: 1830 } };
 if (!rawDir || !outDir) { console.error("usage: node make_designed_screenshots.cjs <rawDir> <outDir>"); process.exit(1); }
 const copy = JSON.parse(fs.readFileSync(path.join(__dirname, "screenshot_copy.json"), "utf8"));
 const font = f => "file://" + path.join(__dirname, "fonts", f);
@@ -83,8 +94,8 @@ function baseCss(P) {
 @font-face{font-family:Heebo;font-weight:700;src:url("${font("Heebo-Bold.ttf")}")}
 @font-face{font-family:Heebo;font-weight:800;src:url("${font("Heebo-ExtraBold.ttf")}")}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{width:1320px;height:2868px;overflow:hidden}
-body{background:${P.bg};position:relative;font-family:Heebo,sans-serif}
+html{width:${PROF.W}px;height:${PROF.H}px;overflow:hidden}
+body{width:1320px;height:${PROF.dH}px;zoom:${PROF.k};overflow:hidden;background:${P.bg};position:relative;font-family:Heebo,sans-serif}
 .copy{position:absolute;top:64px;left:0;right:0;text-align:center;padding:0 70px}
 .pill{display:inline-block;font-weight:700;font-size:34px;color:${P.pillInk};border:2.5px solid ${P.pillBorder};background:${P.pillBg};border-radius:999px;padding:9px 38px 11px}
 .hl{margin-top:26px;font-weight:800;font-size:124px;line-height:1.06;letter-spacing:-.01em;color:${P.ink}}
@@ -97,9 +108,9 @@ body{background:${P.bg};position:relative;font-family:Heebo,sans-serif}
 .chip svg{width:42px;height:42px;color:${P.chipIcon};flex:none}
 `;
 }
-const sparkles = () => SPARKLES.map(([x, y, s]) => `<div class="spark" style="left:${x}px;top:${y}px;width:${s}px;height:${s}px">${icon("sparkle")}</div>`).join("");
+const sparkles = () => SPARKLES.map(([x, y, s]) => `<div class="spark" style="left:${x}px;top:${Math.round(y * PROF.dH / 2868)}px;width:${s}px;height:${s}px">${icon("sparkle")}</div>`).join("");
 const chipsHtml = chips => (chips || []).map(c =>
-  `<div class="chip" style="top:${c.top}px;${c.side === "left" ? "left:22px" : "right:22px"}">${icon(c.icon)}<span>${esc(c.t)}</span></div>`).join("");
+  `<div class="chip" style="top:${Math.round(PROF.deviceTop + (c.top - 636) * PROF.chipScale)}px;${c.side === "left" ? "left:22px" : "right:22px"}">${icon(c.icon)}<span>${esc(c.t)}</span></div>`).join("");
 
 function slidePage({ dataUri, dark, c }) {
   const P = palette(dark);
@@ -107,13 +118,13 @@ function slidePage({ dataUri, dark, c }) {
     ? `<div class="framed"><img src="${dataUri}"></div>`
     : `<div class="device"><div class="screen"><img src="${dataUri}">${c.island ? '<div class="island"></div>' : ""}<div class="sheen"></div></div></div>`;
   return `<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><style>${baseCss(P)}
-.device{position:absolute;left:146px;top:${c.deviceTop}px;width:1028px;height:2203px;border-radius:138px;background:${P.bezel};box-shadow:0 50px 110px ${P.devShadow};padding:14px}
-.device:before{content:"";position:absolute;inset:0;border-radius:138px;box-shadow:inset 0 0 0 3px ${P.edge};pointer-events:none}
-.screen{position:relative;width:1000px;height:2175px;border-radius:124px;overflow:hidden;background:#000}
-.screen img{display:block;width:1000px;height:2175px}
+.device{position:absolute;left:${PROF.devLeft}px;top:${c.deviceTop}px;width:${PROF.devW}px;height:${PROF.devH}px;border-radius:${PROF.devR}px;background:${P.bezel};box-shadow:0 50px 110px ${P.devShadow};padding:${PROF.pad}px}
+.device:before{content:"";position:absolute;inset:0;border-radius:${PROF.devR}px;box-shadow:inset 0 0 0 3px ${P.edge};pointer-events:none}
+.screen{position:relative;width:${PROF.scrW}px;height:${PROF.scrH}px;border-radius:${PROF.scrR}px;overflow:hidden;background:#000}
+.screen img{display:block;width:${PROF.scrW}px;height:${PROF.scrH}px}
 .island{position:absolute;left:50%;top:28px;width:270px;height:80px;margin-left:-135px;border-radius:46px;background:#000}
-.sheen{position:absolute;inset:0;border-radius:124px;background:linear-gradient(115deg,rgba(255,255,255,.10),transparent 28%);pointer-events:none}
-.framed{position:absolute;left:40px;top:${c.deviceTop - 10}px;width:1240px;height:2230px;display:flex;align-items:flex-start;justify-content:center}
+.sheen{position:absolute;inset:0;border-radius:${PROF.scrR}px;background:linear-gradient(115deg,rgba(255,255,255,.10),transparent 28%);pointer-events:none}
+.framed{position:absolute;left:${PROF.framedLeft}px;top:${c.deviceTop - 10}px;width:${PROF.framedW}px;height:${PROF.framedH}px;display:flex;align-items:flex-start;justify-content:center}
 .framed img{max-width:100%;max-height:100%;display:block;filter:drop-shadow(0 50px 70px ${P.devShadow})}
 </style></head><body>
 ${sparkles()}
@@ -130,13 +141,13 @@ ${chipsHtml(c.chips)}
 function brandPage({ dark, c }) {
   const P = palette(dark);
   return `<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><style>${baseCss(P)}
-.mark{position:absolute;left:50%;top:430px;width:600px;height:600px;margin-left:-300px;border-radius:50%;
+.mark{position:absolute;left:50%;top:${PROF.brand.markTop}px;width:${PROF.brand.markSize}px;height:${PROF.brand.markSize}px;margin-left:-${PROF.brand.markSize / 2}px;border-radius:50%;
   box-shadow:0 0 0 14px ${P.pillBg},0 0 0 18px ${P.pillBorder},0 50px 110px ${P.devShadow};overflow:hidden}
 .mark img{width:100%;height:100%;display:block;object-fit:cover}
-.bt{position:absolute;top:1150px;left:0;right:0;text-align:center;padding:0 60px}
+.bt{position:absolute;top:${PROF.brand.btTop}px;left:0;right:0;text-align:center;padding:0 60px}
 .bt .hl{font-size:132px;margin-top:0}
 .bt .sub{font-size:52px;margin-top:30px}
-.feat{position:absolute;top:1830px;left:90px;right:90px;display:flex;flex-wrap:wrap;gap:30px 26px;justify-content:center}
+.feat{position:absolute;top:${PROF.brand.featTop}px;left:90px;right:90px;display:flex;flex-wrap:wrap;gap:30px 26px;justify-content:center}
 .feat .chip{position:static;height:104px;font-size:44px;gap:20px;padding:0 40px 0 36px}
 .feat .chip svg{width:50px;height:50px}
 </style></head><body>
@@ -153,7 +164,7 @@ ${sparkles()}
   files.sort((a, b) => copy.order.indexOf(a.key) - copy.order.indexOf(b.key) || a.theme.localeCompare(b.theme));
   let browser;
   try { browser = await chromium.launch({ channel: "chrome" }); } catch (e) { browser = await chromium.launch(); }
-  const ctx = await browser.newContext({ viewport: { width: 1320, height: 2868 }, deviceScaleFactor: 1 });
+  const ctx = await browser.newContext({ viewport: { width: PROF.W, height: PROF.H }, deviceScaleFactor: 1 });
   const pg = await ctx.newPage();
   let n = 0;
   const shoot = async (html, name) => {
@@ -180,7 +191,7 @@ ${sparkles()}
       for (let i = 0; i < r.length; i += 4) { const l = (r[i] + r[i + 1] + r[i + 2]) / 3; mn = Math.min(mn, l); mx = Math.max(mx, l); }
       return mx - mn < 40;
     }, dataUri);
-    await shoot(slidePage({ dataUri, dark: theme === "dark", c: { ...c0, deviceTop: 636, island: drawIsland, framed } }), `${key}_${theme}`);
+    await shoot(slidePage({ dataUri, dark: theme === "dark", c: { ...c0, deviceTop: PROF.deviceTop, island: drawIsland, framed } }), `${key}_${theme}`);
   }
   if (copy.slides.brand) await shoot(brandPage({ dark: false, c: copy.slides.brand.light }), "brand");
   await browser.close();
