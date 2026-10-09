@@ -48,6 +48,21 @@ enum HalachaSharedData {
         UserDefaults(suiteName: appGroupId)
     }
 
+    private static let pendingKey = "halacha_pending_action"
+
+    /// Leaves a one-shot note for the app (e.g. "today" = open today's halacha). Written by
+    /// OpenTodayHalachaIntent (from Siri / Shortcuts / the widget button), read once by the app.
+    static func setPendingAction(_ action: String) {
+        defaults?.set(action, forKey: pendingKey)
+    }
+
+    /// Returns and clears the pending action, if any.
+    static func takePendingAction() -> String? {
+        guard let action = defaults?.string(forKey: pendingKey) else { return nil }
+        defaults?.removeObject(forKey: pendingKey)
+        return action
+    }
+
     /// Called by HalachaWidgetBridge (main app target only).
     static func write(_ snapshot: Snapshot) {
         guard let data = try? JSONEncoder().encode(snapshot) else { return }

@@ -53,6 +53,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.expanduser("~/halacha_yomit/static")
 DST = os.path.join(HERE, "www")
 
+# Feature block (iCloud sync, Dynamic Type, VoiceOver, read aloud, smart reminders, native actions)
+# lives in its own file so it can be edited/tested as plain HTML+JS.
+FEATURES_BLOCK = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "blocks", "features.html"), encoding="utf-8").read()
+
 NATIVE_BLOCK = r'''
 <script>
 /* Native shell integration (iOS/Android app build only — no-op on the plain website).
@@ -71,41 +75,8 @@ NATIVE_BLOCK = r'''
       if(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) cb();
     });
   }
-  whenCapacitorReady(async function(){
-    try{
-      const { LocalNotifications } = window.Capacitor.Plugins;
-      if(!LocalNotifications) return;
-      const perm = await LocalNotifications.checkPermissions();
-      if(perm.display !== "granted"){
-        const req = await LocalNotifications.requestPermissions();
-        if(req.display !== "granted") return;
-      }
-      await LocalNotifications.schedule({
-        notifications: [{
-          id: 1,
-          title: "הלכה יומית",
-          body: "ההלכה של היום מוכנה — לחצו לקריאה",
-          schedule: { on: { hour: 7, minute: 30 }, repeats: true, allowWhileIdle: true }
-        }]
-      });
-
-      await LocalNotifications.cancel({ notifications: [{ id: 2 }] });
-      const alreadyLearnedToday = typeof learnedToday === "function" && learnedToday();
-      if(!alreadyLearnedToday){
-        const now = new Date();
-        let at = new Date(); at.setHours(20, 30, 0, 0);
-        if(at <= now) at = new Date(now.getTime() + 5 * 60 * 1000);   // already past 20:30 — nudge shortly instead
-        const streak = typeof currentStreak === "function" ? currentStreak() : 0;
-        const title = streak > 0 ? "🔥 אל תפסידו את הרצף" : "הלכה יומית";
-        const body = streak > 0
-          ? streak + " ימים ברצף — היום עוד לא למדתם! לחצו לשמור על הרצף"
-          : "ההלכה של היום מחכה לכם — לחצו לקריאה";
-        await LocalNotifications.schedule({
-          notifications: [{ id: 2, title, body, schedule: { at, allowWhileIdle: true } }]
-        });
-      }
-    }catch(e){ /* permission denied or plugin unavailable — app works fine without it */ }
-  });
+  // Reminder scheduling moved to the feature block (window.hyScheduleReminders) so the user can pick the times.
+  void whenCapacitorReady;
 })();
 </script>
 '''
@@ -769,7 +740,7 @@ def main() -> int:
                         '      if(navigator.canShare && navigator.canShare({files:[file]})){\n        try{ await navigator.share({files:[file], text:APP_STORE_URL}); }catch(e){}\n      }else{',
                         '      if(await nativeShareImages([file], APP_STORE_URL)){\n        // handled by the native share sheet\n      }else if(navigator.canShare && navigator.canShare({files:[file]})){\n        try{ await navigator.share({files:[file], text:APP_STORE_URL}); }catch(e){}\n      }else{',
                         'index.html QR image native share')
-    html = replace_once(html, "</body>", NATIVE_BLOCK + SHARE_BLOCK + MINI_TOPBAR_BLOCK + "</body>", "index.html </body>")
+    html = replace_once(html, "</body>", NATIVE_BLOCK + SHARE_BLOCK + MINI_TOPBAR_BLOCK + FEATURES_BLOCK + "</body>", "index.html </body>")
     open(p, "w", encoding="utf-8").write(html)
 
     # 6. qrcode.js — the offline QR-code generator the share-QR feature above needs (see

@@ -23,6 +23,7 @@ final class AppBridgeViewController: CAPBridgeViewController {
     override func capacitorDidLoad() {
         bridge?.registerPluginInstance(HalachaWidgetBridge())
         bridge?.registerPluginInstance(ShareImageBridge())
+        bridge?.registerPluginInstance(CloudSyncBridge())
     }
 }
 
@@ -194,12 +195,26 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
         let theme = (body["theme"] as? String) ?? "auto"
         let fszIdx = (body["fszIdx"] as? Int) ?? 1
         let fszMax = (body["fszMax"] as? Int) ?? 3
-        let view = NativeSettingsView(
-            initialTheme: theme, initialFszIdx: fszIdx, fszMax: fszMax,
-            runJS: { [weak self] js in self?.runJS(js) },
-            onClose: { [weak self] in self?.dismiss(animated: true) }
-        )
-        presentSheet(UIHostingController(rootView: view))
+        // The reminder times live in the page (hy_reminders_v1, see blocks/features.html) — read
+        // them just before the sheet opens so the toggles/time pickers show the real values.
+        capVC.webView?.evaluateJavaScript("JSON.stringify(window.getReminderPrefs ? window.getReminderPrefs() : null)") { [weak self] result, _ in
+            guard let self else { return }
+            var reminders = ReminderPrefs.defaults
+            if let json = result as? String, let data = json.data(using: .utf8),
+               let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                reminders = ReminderPrefs(
+                    morningOn: (dict["morningOn"] as? Bool) ?? true,
+                    morning: (dict["morning"] as? String) ?? "07:30",
+                    eveningOn: (dict["eveningOn"] as? Bool) ?? true,
+                    evening: (dict["evening"] as? String) ?? "20:30")
+            }
+            let view = NativeSettingsView(
+                initialTheme: theme, initialFszIdx: fszIdx, fszMax: fszMax, initialReminders: reminders,
+                runJS: { [weak self] js in self?.runJS(js) },
+                onClose: { [weak self] in self?.dismiss(animated: true) }
+            )
+            self.presentSheet(UIHostingController(rootView: view))
+        }
     }
 
     private func presentStats(_ body: [String: Any]) {
