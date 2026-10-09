@@ -1,0 +1,350 @@
+<style>
+/* ---- Accessibility: honour "Reduce Motion" and keep focus visible for keyboard / VoiceOver users ---- */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;scroll-behavior:auto !important;}
+}
+:focus-visible{outline:3px solid var(--good,#3F848A);outline-offset:2px;}
+/* ---- Read aloud button (sits next to favourite / share in the reader) ---- */
+.minor-btn.speaking{color:var(--good-deep,#2C6D73);}
+/* ---- Wide screens (iPad / large windows): a roomier reading column ---- */
+@media (min-width:744px){
+  :root{--maxw:860px;}
+  .tabbar{max-width:640px;margin-inline:auto;}
+}
+</style>
+<script>
+/* Feature block (v1.2): iCloud progress sync, Dynamic Type, VoiceOver labels, read aloud,
+   smart reminders and native "open today's halacha" actions (Siri / widget / notification / URL).
+   Everything is defensive: on the website / Android (no Capacitor iOS plugins) it is a no-op or
+   a harmless extra, and any failure is swallowed so it can never break the app itself. */
+(function(){
+  "use strict";
+  var IOS = !!window.isIOSNative;
+  function plugins(){ return (window.Capacitor && window.Capacitor.Plugins) || {}; }
+  function jget(k, d){ try{ var v = JSON.parse(localStorage.getItem(k) || "null"); return v == null ? d : v; }catch(e){ return d; } }
+
+  /* =====================================================================================
+     1. iCloud sync of progress / favourites / streak (NSUbiquitousKeyValueStore, see
+        CloudSyncBridge.swift). Merge = last-writer-wins PER halacha (with tombstones so
+        un-marking syncs too); the streak keeps the more recent / higher one.
+     ===================================================================================== */
+  var PK = "hy_progress_v1", FK = "hy_favorites_v1", SK = "hy_streak_v1", MK = "hy_sync_meta_v1";
+  var rawSet = Storage.prototype.setItem;
+  var applying = false, pushTimer = null, meta = jget(MK, null) || { p: {}, f: {} };
+  function saveMeta(){ try{ rawSet.call(localStorage, MK, JSON.stringify(meta)); }catch(e){} }
+  function trackDiff(which, newJson){
+    var oldMap = jget(which === "p" ? PK : FK, {}), newMap = {};
+    try{ newMap = JSON.parse(newJson) || {}; }catch(e){ return; }
+    var now = Date.now(), t = meta[which], seen = {}, k;
+    for(k in oldMap) seen[k] = 1;
+    for(k in newMap) seen[k] = 1;
+    for(k in seen){ if(!!oldMap[k] !== !!newMap[k]) t[k] = now; }
+    saveMeta();
+  }
+  Storage.prototype.setItem = function(k, v){
+    var mine = (this === window.localStorage) && !applying;
+    if(mine && k === PK) trackDiff("p", v);
+    if(mine && k === FK) trackDiff("f", v);
+    var r = rawSet.apply(this, arguments);
+    if(mine && (k === PK || k === FK || k === SK)) schedulePush();
+    return r;
+  };
+  function buildBlob(){
+    var out = { v: 1, t: Date.now(), p: {}, f: {}, s: jget(SK, null) };
+    [["p", PK], ["f", FK]].forEach(function(pair){
+      var map = jget(pair[1], {}), t = meta[pair[0]], dst = out[pair[0]], k;
+      for(k in map) if(map[k]) dst[k] = [t[k] || 0, true];
+      for(k in t) if(!map[k]) dst[k] = [t[k], false];
+    });
+    return out;
+  }
+  function mergeMap(local, lmeta, remote){
+    var changed = false;
+    Object.keys(remote || {}).forEach(function(k){
+      var r = remote[k], lt = lmeta[k] || 0, lv = !!local[k];
+      if(r[0] > lt){
+        lmeta[k] = r[0];
+        if(!!r[1] !== lv){ if(r[1]) local[k] = true; else delete local[k]; changed = true; }
+      }
+    });
+    return changed;
+  }
+  function mergeStreak(a, b){
+    if(!a) return b; if(!b) return a;
+    var best = Math.max(a.best || 0, b.best || 0), out;
+    if((a.last || "") > (b.last || "")) out = { last: a.last, count: a.count };
+    else if((b.last || "") > (a.last || "")) out = { last: b.last, count: b.count };
+    else out = { last: a.last, count: Math.max(a.count || 0, b.count || 0) };
+    out.best = Math.max(best, out.count || 0);
+    return out;
+  }
+  function applyRemote(blob){
+    if(!blob || blob.v !== 1) return false;
+    var progress = jget(PK, {}), favs = jget(FK, {}), changed = false;
+    var c1 = mergeMap(progress, meta.p, blob.p), c2 = mergeMap(favs, meta.f, blob.f);
+    var localStreak = jget(SK, null), merged = mergeStreak(localStreak, blob.s), c3 = false;
+    if(merged && JSON.stringify(merged) !== JSON.stringify(localStreak)) c3 = true;
+    applying = true;
+    try{
+      if(c1) rawSet.call(localStorage, PK, JSON.stringify(progress));
+      if(c2) rawSet.call(localStorage, FK, JSON.stringify(favs));
+      if(c3) rawSet.call(localStorage, SK, JSON.stringify(merged));
+    }finally{ applying = false; }
+    saveMeta();
+    changed = c1 || c2 || c3;
+    return changed;
+  }
+  function cloud(){ var p = plugins().CloudSyncBridge; return (IOS && p) ? p : null; }
+  async function push(){
+    var c = cloud(); if(!c) return;
+    try{ await c.setBlob({ value: JSON.stringify(buildBlob()) }); }catch(e){}
+  }
+  function schedulePush(){ clearTimeout(pushTimer); pushTimer = setTimeout(push, 2500); }
+  async function pull(refreshUi){
+    var c = cloud(); if(!c) return;
+    try{
+      var res = await c.getBlob();
+      var blob = res && res.value ? JSON.parse(res.value) : null;
+      var changed = blob ? applyRemote(blob) : false;
+      if(changed){
+        try{ if(typeof renderStreakBadge === "function") renderStreakBadge(); }catch(e){}
+        if(refreshUi){ try{ if(typeof showWeek === "function" && document.getElementById("weekView") &&
+          !document.getElementById("weekView").classList.contains("hidden") &&
+          !document.body.classList.contains("reading")) showWeek(); }catch(e){} }
+      }
+      if(!blob || changed) schedulePush();   // first device uploads; after a merge, publish the union
+    }catch(e){}
+  }
+  window.hyCloud = { build: buildBlob, apply: applyRemote, mergeStreak: mergeStreak, pull: pull, push: push };
+  if(IOS){
+    setTimeout(function(){ pull(true); }, 1500);
+    document.addEventListener("visibilitychange", function(){ if(document.visibilityState === "visible") pull(false); });
+    try{ var cp = plugins().CloudSyncBridge; if(cp && cp.addListener) cp.addListener("cloudChanged", function(){ pull(false); }); }catch(e){}
+  }
+
+  /* =====================================================================================
+     2. Dynamic Type (the user's system text size scales the reader text) + VoiceOver labels
+     ===================================================================================== */
+  function dynScale(){
+    try{
+      if(!(window.CSS && CSS.supports && CSS.supports("font", "-apple-system-body"))) return 1;
+      var p = document.createElement("div");
+      p.style.cssText = "font:-apple-system-body;position:absolute;visibility:hidden;pointer-events:none";
+      p.textContent = "x"; document.body.appendChild(p);
+      var px = parseFloat(getComputedStyle(p).fontSize); p.remove();
+      if(!px) return 1;
+      return Math.max(.85, Math.min(1.9, px / 17));
+    }catch(e){ return 1; }
+  }
+  function applyDyn(){
+    var v = parseFloat(localStorage.getItem("hy_fontsize_v1") || "1") || 1;
+    document.documentElement.style.setProperty("--fsz", String(v * dynScale()));
+  }
+  var origApplyFsz = window.applyFsz;
+  if(typeof origApplyFsz === "function"){
+    window.applyFsz = function(){ var r = origApplyFsz.apply(this, arguments); applyDyn(); return r; };
+  }
+  applyDyn();
+  document.addEventListener("visibilitychange", function(){ if(document.visibilityState === "visible") applyDyn(); });
+
+  function labelAll(){
+    function set(sel, label){ document.querySelectorAll(sel).forEach(function(el){ if(!el.getAttribute("aria-label")) el.setAttribute("aria-label", label); }); }
+    set("#openSettings", "הגדרות");
+    set("#openStats", "סטטיסטיקה והתקדמות");
+    set("#closeSettings", "סגירה");
+    set("#closeStats", "סגירה");
+    set("#rBack", "חזרה");
+    set("#rChk", "סמן שלמדתי את ההלכה");
+    set("#rFavBtn", "הוספה למועדפים");
+    set("#rShareBtn", "שיתוף ההלכה");
+    set("#searchInput", "חיפוש בכל הספר");
+    set("#fszDown", "הקטנת הטקסט");
+    set("#fszUp", "הגדלת הטקסט");
+    document.querySelectorAll(".jump-pill").forEach(function(el){
+      if(!el.getAttribute("role")){ el.setAttribute("role", "button"); el.setAttribute("tabindex", "0"); }
+      el.setAttribute("aria-label", "הלכה " + el.textContent.trim() + (el.classList.contains("done") ? ", נלמדה" : "") + (el.classList.contains("cur") ? ", נוכחית" : ""));
+    });
+    var st = document.getElementById("searchStatus"); if(st && !st.getAttribute("aria-live")) st.setAttribute("aria-live", "polite");
+    var ts = document.querySelector(".toast"); if(ts){ ts.setAttribute("role", "status"); ts.setAttribute("aria-live", "polite"); }
+    document.querySelectorAll("svg").forEach(function(s){ if(!s.hasAttribute("aria-hidden")) s.setAttribute("aria-hidden", "true"); });
+  }
+  var labelTimer = null;
+  function scheduleLabel(){ clearTimeout(labelTimer); labelTimer = setTimeout(labelAll, 120); }
+  try{ new MutationObserver(scheduleLabel).observe(document.body, { childList: true, subtree: true }); }catch(e){}
+  document.addEventListener("keydown", function(e){
+    if((e.key === "Enter" || e.key === " ") && e.target && e.target.classList && e.target.classList.contains("jump-pill")){ e.preventDefault(); e.target.click(); }
+  });
+  labelAll();
+
+  /* =====================================================================================
+     3. Read aloud (system Hebrew voice via the Web Speech API)
+     ===================================================================================== */
+  var synth = window.speechSynthesis, speaking = false;
+  function stripMarks(s){ return s.replace(/[֑-ׇ]/g, "").replace(/\s+/g, " ").trim(); }
+  function chunks(text){
+    // split after sentence punctuation (no regex lookbehind: iOS < 16.4 can't parse it)
+    var pieces = text.split(/([.!?:;׃])\s+/), parts = [], i;
+    for(i = 0; i < pieces.length; i += 2) parts.push(pieces[i] + (pieces[i + 1] || ""));
+    var out = [], cur = "";
+    parts.forEach(function(p){
+      if(!p) return;
+      if((cur + " " + p).length > 220 && cur){ out.push(cur); cur = p; } else cur = cur ? cur + " " + p : p;
+    });
+    if(cur) out.push(cur);
+    return out;
+  }
+  function hebrewVoice(){
+    try{ return (synth.getVoices() || []).filter(function(v){ return /^he/i.test(v.lang); })[0] || null; }catch(e){ return null; }
+  }
+  function currentText(){
+    var el = document.querySelector("#rCard .halacha"); if(!el) return "";
+    var src = el.querySelector(".source"), biur = el.querySelector(".biur:not(.pending)");
+    return stripMarks((src ? src.innerText : "") + (biur ? ". " + biur.innerText : ""));
+  }
+  function stopSpeak(){
+    try{ synth.cancel(); }catch(e){}
+    speaking = false; var b = document.getElementById("rSpeakBtn");
+    if(b){ b.classList.remove("speaking"); var s = b.querySelector("span"); if(s) s.textContent = "הקראה"; b.setAttribute("aria-label", "הקראת ההלכה"); }
+  }
+  function startSpeak(){
+    var text = currentText(); if(!text) return;
+    var voice = hebrewVoice(), list = chunks(text), i = 0;
+    speaking = true;
+    var b = document.getElementById("rSpeakBtn");
+    if(b){ b.classList.add("speaking"); var s = b.querySelector("span"); if(s) s.textContent = "עצור"; b.setAttribute("aria-label", "עצירת ההקראה"); }
+    (function next(){
+      if(!speaking || i >= list.length){ stopSpeak(); return; }
+      var u = new SpeechSynthesisUtterance(list[i++]);
+      u.lang = "he-IL"; if(voice) u.voice = voice; u.rate = .95;
+      u.onend = next; u.onerror = function(){ stopSpeak(); };
+      try{ synth.speak(u); }catch(e){ stopSpeak(); }
+    })();
+  }
+  function ensureSpeakBtn(){
+    var host = document.getElementById("sealMinor"); if(!host || !synth) return;
+    if(document.getElementById("rSpeakBtn")) return;
+    var b = document.createElement("button");
+    b.className = "minor-btn"; b.id = "rSpeakBtn"; b.type = "button"; b.setAttribute("aria-label", "הקראת ההלכה");
+    b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg><span>הקראה</span>';
+    b.addEventListener("click", function(){ if(speaking) stopSpeak(); else startSpeak(); });
+    host.appendChild(b);
+  }
+  if(synth){
+    var sealMinorObs = new MutationObserver(function(){ stopSpeak(); ensureSpeakBtn(); });
+    var attach = function(){ var h = document.getElementById("sealMinor"); if(h){ sealMinorObs.observe(h, { childList: true }); ensureSpeakBtn(); } };
+    attach();
+    document.addEventListener("visibilitychange", function(){ if(document.visibilityState !== "visible") stopSpeak(); });
+    window.addEventListener("pagehide", stopSpeak);
+  }
+
+  /* =====================================================================================
+     4. Smart reminders (local notifications, fully offline)
+        - morning reminder at the user's time, for the next 7 days, skipped on days already learned
+        - evening "keep your streak" reminder for the next 3 days, cancelled the moment you learn
+        - tapping any reminder opens straight onto today's halacha
+     ===================================================================================== */
+  var RK = "hy_reminders_v1", DEF = { morningOn: true, morning: "07:30", eveningOn: true, evening: "20:30" };
+  function getReminderPrefs(){ var p = jget(RK, {}); return { morningOn: p.morningOn !== false, morning: p.morning || DEF.morning, eveningOn: p.eveningOn !== false, evening: p.evening || DEF.evening }; }
+  window.getReminderPrefs = getReminderPrefs;
+  function hm(s){ var m = /^(\d{1,2}):(\d{2})$/.exec(s || ""); return m ? [Math.min(23, +m[1]), Math.min(59, +m[2])] : [7, 30]; }
+  function dayAt(offset, h, m){ var d = new Date(); d.setDate(d.getDate() + offset); d.setHours(h, m, 0, 0); return d; }
+  function planReminders(prefs, now, learned, parasha, streak){
+    var plan = [], d, at, hmv;
+    if(prefs.morningOn){
+      hmv = hm(prefs.morning);
+      for(d = 0; d < 7; d++){
+        at = dayAt(d, hmv[0], hmv[1]); if(at <= now) continue; if(d === 0 && learned) continue;
+        plan.push({ id: 1000 + d, title: "הלכה יומית", body: parasha ? "ההלכה של היום מוכנה · " + parasha : "ההלכה של היום מוכנה — לחצו לקריאה", at: at });
+      }
+    }
+    if(prefs.eveningOn){
+      hmv = hm(prefs.evening);
+      for(d = 0; d < 3; d++){
+        at = dayAt(d, hmv[0], hmv[1]); if(at <= now) continue; if(d === 0 && learned) continue;
+        var withStreak = d === 0 && streak > 0;
+        plan.push({ id: 2000 + d, title: withStreak ? "🔥 אל תפסידו את הרצף" : "הלכה יומית",
+          body: withStreak ? streak + " ימים ברצף — היום עוד לא למדתם! לחצו לשמור על הרצף" : "ההלכה של היום מחכה לכם — לחצו לקריאה", at: at });
+      }
+    }
+    return plan;
+  }
+  window.hyPlanReminders = planReminders;
+  var ALL_IDS = [1, 2]; (function(){ var i; for(i = 0; i < 7; i++) ALL_IDS.push(1000 + i); for(i = 0; i < 3; i++) ALL_IDS.push(2000 + i); })();
+  async function scheduleReminders(){
+    try{
+      var LN = plugins().LocalNotifications; if(!IOS || !LN) return;
+      var perm = await LN.checkPermissions();
+      if(perm.display !== "granted"){ perm = await LN.requestPermissions(); if(perm.display !== "granted") return; }
+      await LN.cancel({ notifications: ALL_IDS.map(function(id){ return { id: id }; }) });
+      var pEl = document.getElementById("wParasha"), parasha = pEl ? pEl.textContent.trim() : "";
+      if(parasha === "—") parasha = "";
+      var plan = planReminders(getReminderPrefs(), new Date(), typeof learnedToday === "function" && learnedToday(), parasha,
+        typeof currentStreak === "function" ? currentStreak() : 0);
+      if(!plan.length) return;
+      await LN.schedule({ notifications: plan.map(function(n){
+        return { id: n.id, title: n.title, body: n.body, extra: { action: "today" }, schedule: { at: n.at, allowWhileIdle: true } };
+      }) });
+    }catch(e){}
+  }
+  window.hyScheduleReminders = scheduleReminders;
+  window.setReminderPrefs = function(patch){
+    var p = getReminderPrefs(); Object.keys(patch || {}).forEach(function(k){ if(k in DEF) p[k] = patch[k]; });
+    try{ rawSet.call(localStorage, RK, JSON.stringify(p)); }catch(e){}
+    scheduleReminders(); return p;
+  };
+  // cancel today's reminders the moment today's learning is logged
+  var origBump = window.bumpStreak;
+  if(typeof origBump === "function"){
+    window.bumpStreak = function(){
+      var r = origBump.apply(this, arguments);
+      try{
+        var LN = plugins().LocalNotifications;
+        if(IOS && LN) LN.cancel({ notifications: [{ id: 1000 }, { id: 2000 }] });
+      }catch(e){}
+      return r;
+    };
+  }
+  if(IOS){
+    setTimeout(scheduleReminders, 2500);
+    try{
+      var LN2 = plugins().LocalNotifications;
+      if(LN2 && LN2.addListener) LN2.addListener("localNotificationActionPerformed", function(){ window.hyNativeAction("today"); });
+    }catch(e){}
+  }
+
+  /* =====================================================================================
+     5. Native actions: "open today's halacha" from Siri / Shortcuts / the widget / a reminder / URL
+     ===================================================================================== */
+  window.hyNativeAction = function(action){
+    if(action !== "today") return;
+    var tries = 0;
+    function go(){
+      if(document.body.classList.contains("reading")){ var back = document.getElementById("rBack"); if(back) back.click(); }
+      var seg = document.getElementById("segWeek"); if(seg && tries === 0) seg.click();
+      var btn = document.querySelector('#wContent [data-act="today"]') || document.querySelector('#wContent [data-act="one"]') || document.querySelector("#wContent .entry-btn");
+      if(btn){ btn.click(); return; }
+      if(++tries < 25) setTimeout(go, 400);
+    }
+    go();
+  };
+  async function takePending(){
+    try{
+      var b = plugins().HalachaWidgetBridge; if(!IOS || !b || !b.takePendingAction) return;
+      var r = await b.takePendingAction();
+      if(r && r.action) window.hyNativeAction(r.action);
+    }catch(e){}
+  }
+  if(IOS){
+    setTimeout(takePending, 1200);
+    document.addEventListener("visibilitychange", function(){ if(document.visibilityState === "visible") takePending(); });
+    try{
+      var AppP = plugins().App;
+      if(AppP){
+        if(AppP.addListener) AppP.addListener("appUrlOpen", function(e){ if(e && /^halachayomit:\/\/today/i.test(e.url || "")) window.hyNativeAction("today"); });
+        if(AppP.getLaunchUrl) AppP.getLaunchUrl().then(function(r){ if(r && /^halachayomit:\/\/today/i.test(r.url || "")) setTimeout(function(){ window.hyNativeAction("today"); }, 1200); }).catch(function(){});
+      }
+    }catch(e){}
+  }
+})();
+</script>

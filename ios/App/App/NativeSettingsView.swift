@@ -10,6 +10,16 @@ import SwiftUI
 /// ever one real implementation of each action and its persistence (localStorage stays the
 /// single source of truth). `runJS` is the same `capVC.webView?.evaluateJavaScript` already
 /// used by the tab/nav/search bars.
+/// The reminder preferences as stored by the page (window.getReminderPrefs / setReminderPrefs in
+/// blocks/features.html). Times are "HH:mm" strings.
+struct ReminderPrefs {
+    var morningOn: Bool
+    var morning: String
+    var eveningOn: Bool
+    var evening: String
+    static let defaults = ReminderPrefs(morningOn: true, morning: "07:30", eveningOn: true, evening: "20:30")
+}
+
 struct NativeSettingsView: View {
     let initialTheme: String       // "auto" | "light" | "dark"
     let initialFszIdx: Int         // 0...fszMax
@@ -19,10 +29,15 @@ struct NativeSettingsView: View {
 
     @State private var theme: String
     @State private var fszIdx: Int
+    @State private var morningOn: Bool
+    @State private var eveningOn: Bool
+    @State private var morningTime: Date
+    @State private var eveningTime: Date
 
     private static let fszLabels = ["קטן", "רגיל", "גדול", "גדול מאוד"]
 
-    init(initialTheme: String, initialFszIdx: Int, fszMax: Int, runJS: @escaping (String) -> Void, onClose: @escaping () -> Void) {
+    init(initialTheme: String, initialFszIdx: Int, fszMax: Int, initialReminders: ReminderPrefs = .defaults,
+         runJS: @escaping (String) -> Void, onClose: @escaping () -> Void) {
         self.initialTheme = initialTheme
         self.initialFszIdx = initialFszIdx
         self.fszMax = fszMax
@@ -30,6 +45,27 @@ struct NativeSettingsView: View {
         self.onClose = onClose
         _theme = State(initialValue: initialTheme)
         _fszIdx = State(initialValue: initialFszIdx)
+        _morningOn = State(initialValue: initialReminders.morningOn)
+        _eveningOn = State(initialValue: initialReminders.eveningOn)
+        _morningTime = State(initialValue: Self.date(fromHM: initialReminders.morning))
+        _eveningTime = State(initialValue: Self.date(fromHM: initialReminders.evening))
+    }
+
+    private static func date(fromHM hm: String) -> Date {
+        let parts = hm.split(separator: ":").compactMap { Int($0) }
+        var comps = Calendar.current.dateComponents([.year, .month, .day], from: Date())
+        comps.hour = parts.first ?? 7
+        comps.minute = parts.count > 1 ? parts[1] : 30
+        return Calendar.current.date(from: comps) ?? Date()
+    }
+
+    private static func hm(from date: Date) -> String {
+        let comps = Calendar.current.dateComponents([.hour, .minute], from: date)
+        return String(format: "%02d:%02d", comps.hour ?? 0, comps.minute ?? 0)
+    }
+
+    private func pushReminders() {
+        runJS("setReminderPrefs({morningOn:\(morningOn),morning:'\(Self.hm(from: morningTime))',eveningOn:\(eveningOn),evening:'\(Self.hm(from: eveningTime))'})")
     }
 
     private var fszLabel: String {
@@ -66,6 +102,21 @@ struct NativeSettingsView: View {
                             .disabled(fszIdx >= fszMax)
                     }
                     .buttonStyle(.bordered)
+                }
+
+                Section(header: Text("תזכורות"), footer: Text("תזכורת הערב לא נשלחת אם כבר למדתם היום.")) {
+                    Toggle("תזכורת בוקר", isOn: $morningOn)
+                        .onChange(of: morningOn) { _ in pushReminders() }
+                    if morningOn {
+                        DatePicker("שעה", selection: $morningTime, displayedComponents: .hourAndMinute)
+                            .onChange(of: morningTime) { _ in pushReminders() }
+                    }
+                    Toggle("תזכורת ערב לשמירת הרצף", isOn: $eveningOn)
+                        .onChange(of: eveningOn) { _ in pushReminders() }
+                    if eveningOn {
+                        DatePicker("שעה", selection: $eveningTime, displayedComponents: .hourAndMinute)
+                            .onChange(of: eveningTime) { _ in pushReminders() }
+                    }
                 }
 
                 Section("שיתוף") {

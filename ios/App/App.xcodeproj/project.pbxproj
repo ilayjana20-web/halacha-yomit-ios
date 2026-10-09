@@ -9,6 +9,10 @@
 /* Begin PBXBuildFile section */
 		09DFB951F3247B29BD0D74DF /* HalachaWidgetBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 717DB7A37B8AA43BBA7B4080 /* HalachaWidgetBridge.swift */; };
 		49AE5359FF4FDB6CBB5E937E /* ShareImageBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E2FF0232639E60F40F774AD /* ShareImageBridge.swift */; };
+		1B4299858A4D9EFE1E8D8785 /* CloudSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B40BB3089EF41DAAF848D3 /* CloudSyncBridge.swift */; };
+		40831EB6ED17AE8A7D0DB003 /* HalachaIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C4714A004D01A3164882EE3 /* HalachaIntents.swift */; };
+		39C4DE71CBC08C2F6696F085 /* HalachaShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E9CEC96C843E3388A92B5B3 /* HalachaShortcuts.swift */; };
+		4F5302363F320AED5C7A2A89 /* HalachaIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C4714A004D01A3164882EE3 /* HalachaIntents.swift */; };
 		C9C1CA0B17BD417F9937D0BE /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E2E811257728405BABA3B485 /* PrivacyInfo.xcprivacy */; };
 		53D2FD48254A46F0B90944AB /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 4FD8E9C8FA9A44FEB8F79979 /* PrivacyInfo.xcprivacy */; };
 		2D53B5AF70A8EF1AF63E198A /* HalachaSharedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = B40E4C31C51D2EF219E32212 /* HalachaSharedData.swift */; };
@@ -78,6 +82,9 @@
 		6DA7EC4048AF7B377A334584 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		717DB7A37B8AA43BBA7B4080 /* HalachaWidgetBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalachaWidgetBridge.swift; sourceTree = "<group>"; };
 		2E2FF0232639E60F40F774AD /* ShareImageBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareImageBridge.swift; sourceTree = "<group>"; };
+		A3B40BB3089EF41DAAF848D3 /* CloudSyncBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSyncBridge.swift; sourceTree = "<group>"; };
+		6C4714A004D01A3164882EE3 /* HalachaIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalachaIntents.swift; sourceTree = "<group>"; };
+		0E9CEC96C843E3388A92B5B3 /* HalachaShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalachaShortcuts.swift; sourceTree = "<group>"; };
 		9582B6822FE993A50072D4E8 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		958DCC722DB07C7200EA8C5F /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
 		9CF820DF88FCC0147A23EDDC /* NativeSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeSettingsView.swift; sourceTree = "<group>"; };
@@ -135,6 +142,9 @@
 				B40E4C31C51D2EF219E32212 /* HalachaSharedData.swift */,
 				717DB7A37B8AA43BBA7B4080 /* HalachaWidgetBridge.swift */,
 				2E2FF0232639E60F40F774AD /* ShareImageBridge.swift */,
+				A3B40BB3089EF41DAAF848D3 /* CloudSyncBridge.swift */,
+				6C4714A004D01A3164882EE3 /* HalachaIntents.swift */,
+				0E9CEC96C843E3388A92B5B3 /* HalachaShortcuts.swift */,
 				9CF820DF88FCC0147A23EDDC /* NativeSettingsView.swift */,
 				E7EC7E160A6DF434603ACD53 /* NativeStatsView.swift */,
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
@@ -287,6 +297,9 @@
 				2D53B5AF70A8EF1AF63E198A /* HalachaSharedData.swift in Sources */,
 				09DFB951F3247B29BD0D74DF /* HalachaWidgetBridge.swift in Sources */,
 				49AE5359FF4FDB6CBB5E937E /* ShareImageBridge.swift in Sources */,
+				1B4299858A4D9EFE1E8D8785 /* CloudSyncBridge.swift in Sources */,
+				40831EB6ED17AE8A7D0DB003 /* HalachaIntents.swift in Sources */,
+				39C4DE71CBC08C2F6696F085 /* HalachaShortcuts.swift in Sources */,
 				AFD43E00D267876BB7E7DE98 /* NativeSettingsView.swift in Sources */,
 				58B7D733C82AAB48E6C952B7 /* NativeStatsView.swift in Sources */,
 			);
@@ -301,6 +314,7 @@
 				AB679E50D3FF8B0C21012803 /* HalachaWidgetBundle.swift in Sources */,
 				9D00EA2C760C9E1E9CDDB2FF /* HalachaCandleWidget.swift in Sources */,
 				BFB91AB4917507C3359C869D /* HalachaSharedData.swift in Sources */,
+				4F5302363F320AED5C7A2A89 /* HalachaIntents.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
