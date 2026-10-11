@@ -140,6 +140,9 @@ struct NativeSettingsView: View {
                 }
             }
         }
+        // On iPad a bare NavigationView is a two-column split view (empty sidebar + detail),
+        // which left half of the sheet blank. .stack keeps the single-column phone layout.
+        .navigationViewStyle(.stack)
         .environment(\.layoutDirection, .rightToLeft)
     }
 
