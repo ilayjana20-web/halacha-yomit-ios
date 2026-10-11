@@ -223,7 +223,7 @@ html.ios-native-chrome body.reading .offline-banner{display:none;}
 # TODO(david): replace with the app's real App Store link before shipping this feature —
 # https://apps.apple.com/app/<slug>/id<numeric id>. Deliberately left as an obvious
 # placeholder (not a guess) so this is impossible to ship by accident.
-APP_STORE_URL = "https://apps.apple.com/app/REPLACE_WITH_REAL_SLUG/idREPLACE_WITH_REAL_ID"
+APP_STORE_URL = "https://apps.apple.com/app/id6815639083"
 
 SHARE_SETTINGS_SECTION = '''      <section class="settings-sec">
         <h3>שיתוף</h3>
