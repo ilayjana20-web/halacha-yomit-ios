@@ -1,6 +1,6 @@
 # Metadata + screenshots only. The build itself is uploaded with xcodebuild/altool, and the
 # version is never submitted for review from here.
-app_identifier "com.benishchai.halachayomit"
+app_identifier "com.davidpitchkhadze.benishchai"
 skip_binary_upload true
 skip_metadata false
 skip_screenshots false
