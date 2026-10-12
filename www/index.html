@@ -346,10 +346,6 @@ html.ios-native-chrome body.reading .offline-banner{display:none;}
     letter-spacing:.3px;line-height:1.2;color:var(--navy3);}
   .hero .tagline{position:relative;color:var(--good);font-size:13px;margin:0;font-family:var(--sans);
     letter-spacing:.2px;font-weight:700;}
-  /* three names now, so the type steps down and the leading tightens — the block keeps
-     roughly the footprint it had at two lines instead of pushing the hero taller. */
-  .hero-dedication{position:relative;color:var(--gold-deep);font-size:8.5px;margin:4px 0 0;font-family:var(--serif);
-    letter-spacing:.1px;font-weight:700;opacity:.8;line-height:1.25;}
 
   /* While a halacha is open the hero is a little tighter and the reader's own header
      tightens up, so more of the TEXT is on screen. The לעילוי-נשמת dedication STAYS —
@@ -359,7 +355,6 @@ html.ios-native-chrome body.reading .offline-banner{display:none;}
   .reading .hero-orn{display:none;}
   .reading .hero h1{font-size:19px;}
   .reading .hero .tagline{font-size:11.5px;}
-  .reading .hero-dedication{font-size:8px;margin-top:2px;line-height:1.2;}
   .reading .portrait-frame,
   .reading .hero .portrait{width:38px;}
   .reading .hero .portrait{height:38px;}
@@ -1056,6 +1051,13 @@ html.ios-native-chrome body.reading .offline-banner{display:none;}
   .live-dot::after{content:"";position:absolute;inset:-5px;border-radius:50%;
     border:1.5px solid var(--good);animation:livePulse 1.9s ease-out infinite;}
   @keyframes livePulse{0%{transform:scale(.45);opacity:.85;}100%{transform:scale(1.6);opacity:0;}}
+  /* Dedications (לעילוי נשמת + להצלחת) live in the footer — quiet serif + gold, a hairline above. */
+  .foot-dedic{margin:20px auto 0;padding-top:12px;max-width:min(300px,100%);border-top:1px solid var(--line2);
+    font-family:var(--serif);font-size:clamp(9.5px,2.7vw,11px);font-weight:700;line-height:1.65;color:var(--gold-deep);
+    text-wrap:balance;overflow-wrap:anywhere;opacity:.92;}
+  .foot-dedic p{margin:0;}
+  /* short hairline between the לעילוי-נשמת and the להצלחת groups */
+  .foot-dedic p + p::before{content:"";display:block;width:44px;height:1px;background:var(--line);margin:8px auto 7px;}
   .foot-ver{margin-top:9px;font-size:10px;color:var(--muted2);opacity:.8;}
   .hidden{display:none!important;}
 
@@ -1234,7 +1236,6 @@ html.ios-native-chrome body.reading .offline-banner{display:none;}
     <h1>הלכות הבן איש חי</h1>
     <div class="hero-orn"><span class="diamond"></span></div>
     <p class="tagline">לפי רבינו יוסף חיים זצוק״ל</p>
-    <p class="hero-dedication">לעילוי נשמת אליהו בן אהרון הנולד מן אסתר ז״ל<br>שמואל בן אברהם הנולד מן רות חנה ז״ל</p>
   </div>
 </header>
 
@@ -1417,6 +1418,10 @@ html.ios-native-chrome body.reading .offline-banner{display:none;}
       <span class="chip-txt"><span class="chip-num" id="totalCount">–</span><span class="chip-lbl">משתמשים</span></span>
     </div>
   </div>
+    <div class="foot-dedic">
+    <p>לעילוי נשמת אליהו בן אהרון הנולד מן אסתר ז״ל<br>שמואל בן אברהם הנולד מן רות חנה ז״ל</p>
+    <p>להצלחת דוד מאיר ישראל בן שרה קרולין<br>איליי מיכאל בן אירית</p>
+  </div>
   <div class="foot-ver"><span id="verLabel"></span></div>
 </footer>
 
@@ -1526,6 +1531,44 @@ function heNum(n){
   if(s.length===1) return s+"׳";
   return s.slice(0,-1)+"״"+s.slice(-1);
 }
+if(typeof T==="undefined"){ window.T=function(x){ return x; }; }   // this bundle has no UI-translation layer
+// ---------- printed-edition labels ----------
+// The data keeps Sefaria's chapter numbers as KEYS (progress, favourites, nikud, refs), but what
+// the reader sees must match the printed book. Six Sefaria-split halachot were merged in the data
+// itself (printed_numbering.py). The other difference is display-only: in a few parashot the book
+// starts a NEW numbered section part-way through — numbering restarts at א׳ under its own heading
+// (checked against the printed edition's transcription, 2026-10-12). Purim in year-1 Tetzaveh also
+// opens with an unnumbered note (data chapter 24) before its א׳.
+//   from  = first data chapter of the section      intro = that chapter is the section's opening note
+//   own   = the section stands apart from the parasha (shown without "· פרשת X")
+const PRINTED_SECTIONS={
+  "year1::Tetzaveh":[{from:24,he:"הלכות פורים",intro:true,own:true}],
+  "year1::Tzav":[{from:44,he:"ערב פסח שחל בשבת"},{from:51,he:"הלכות עירוב תבשילין"}],
+  "year2::Shmini":[{from:21,he:"המשך הפרשה"}]
+};
+function sectionOf(it){
+  if(!it || it.isIntro) return null;
+  const L=PRINTED_SECTIONS[it.track+"::"+it.key]; if(!L) return null;
+  let s=null; L.forEach(x=>{ if(Number(it.chapter)>=x.from) s=x; });
+  return s;
+}
+function isPurimHalacha(it){ const s=sectionOf(it); return !!(s && s.own); }   // keeps its own heading, no "· פרשת X"
+function printedNum(it){                       // the short number shown on badges and chips
+  if(it.isIntro) return "פ׳";
+  const s=sectionOf(it);
+  if(!s) return heNum(it.chapter);
+  if(s.intro && Number(it.chapter)===s.from) return "פ׳";
+  return heNum(Number(it.chapter)-s.from+(s.intro?0:1));
+}
+function halachaLabel(it){                     // "הלכה י״ב" / "הלכה ג׳ · ערב פסח שחל בשבת" / "פורים · הלכה א׳"
+  if(it.isIntro) return T("פתיחה");
+  const s=sectionOf(it);
+  if(!s) return T("הלכה ")+heNum(it.chapter);
+  if(s.intro && Number(it.chapter)===s.from) return T("פתיחה ל"+s.he);
+  const n=printedNum(it);
+  return s.own ? T("פורים · הלכה ")+n : T("הלכה ")+n+" · "+T(s.he);
+}
+function sectionHe(it, pnFn){ const s=sectionOf(it); return s ? T(s.he) : pnFn(it.he); }
 function esc(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function trackName(slug){return slug==="year1"?"שנה ראשונה":"שנה שנייה";}
 async function getJson(p,fresh){try{const r=await fetch(p,{cache:fresh?"no-store":"default"});return r.ok?await r.json():null;}catch(e){return null;}}
@@ -1734,6 +1777,37 @@ function renderStreakBadge(){
 const FAV_KEY="hy_favorites_v1";
 function loadFavMap(){try{return JSON.parse(localStorage.getItem(FAV_KEY)||"{}");}catch(e){return {};}}
 function saveFavMap(m){try{localStorage.setItem(FAV_KEY,JSON.stringify(m));}catch(e){}}
+// One-time migration (2026-10-12): six parashot moved from Sefaria's chapter numbers to the
+// printed book's, so a saved "learned"/favourite mark on an OLD number is carried to the NEW
+// one here, once per device. Groups are [first,last] Sefaria chapters that became one halacha;
+// a merged halacha counts as learned if any of its parts was. Mirrors printed_numbering.py.
+(function migrateToPrintedNumbering(){
+  const FLAG="hy_renum_v1";
+  try{ if(localStorage.getItem(FLAG)) return; }catch(e){ return; }
+  const RENUM={"year1::Noach":[[10,11]],"year1::Vayishlach":[[11,12]],"year1::Miketz":[[12,13],[14,15]],
+               "year2::Bereshit":[[29,30]],"year2::Balak":[[1,3]],"year2::Vaetchanan":[[1,4]]};
+  function newCh(groups, old){
+    let n=old;
+    groups.forEach(([a,b])=>{ if(old>b) n-=b-a; else if(old>=a) n-=old-a; });
+    return n;
+  }
+  function remap(storageKey){
+    let m; try{ m=JSON.parse(localStorage.getItem(storageKey)||"{}"); }catch(e){ return; }
+    const out={}; let touched=false;
+    Object.keys(m).forEach(k=>{
+      const parts=k.split("::");                // track::key::chapter
+      const groups=RENUM[parts[0]+"::"+parts[1]];
+      const ch=parseInt(parts[2],10);
+      if(!groups || parts.length!==3 || !isFinite(ch)){ out[k]=m[k]; return; }
+      const nk=parts[0]+"::"+parts[1]+"::"+newCh(groups,ch);
+      if(nk!==k) touched=true;
+      out[nk]=out[nk]||m[k];
+    });
+    if(touched){ try{ localStorage.setItem(storageKey, JSON.stringify(out)); }catch(e){} }
+  }
+  remap(PROGRESS_KEY); remap(FAV_KEY);
+  try{ localStorage.setItem(FLAG,"1"); }catch(e){}
+})();
 function isFav(track,key,ch){return !!loadFavMap()[pKey(track,key,ch)];}
 function toggleFav(track,key,ch){
   const m=loadFavMap(); const k=pKey(track,key,ch);
@@ -2055,7 +2129,10 @@ let nikudMap=null;
 // straight quotes are quotation marks, so a regular quoted word ("ברוך") stays vocalized.
 const _NIKMARKS=/[֑-ׇ]/g;
 function _isAbbr(bare){
-  bare=bare.replace(/^["“]+|["”]+$/g,"").replace(/^[(]+|[).,:;]+$/g,"");
+  // Peel quotes and punctuation from both ends until nothing is left to peel: a word closing a
+  // quotation and then a comma (ללבן",) used to keep its quote after one pass and read as an
+  // "internal gershayim", losing its nikud.
+  for(let prev=null; prev!==bare; ){ prev=bare; bare=bare.replace(/^["“(]+|["”).,:;!?]+$/g,""); }
   if(/['׳’]$/.test(bare)) return true;                 // trailing geresh
   if(/[א-ת]["״]/.test(bare)) return true;         // internal gershayim
   return false;
@@ -2326,7 +2403,7 @@ function renderJumpStrip(recenter){
   if(recenter===undefined) recenter=true;
   const el=document.getElementById("rJump");
   el.innerHTML=R.items.map((it,i)=>{
-    const label = it.isIntro ? "פ׳" : heNum(it.chapter);
+    const label = printedNum(it);
     const cur = i===R.idx ? " cur":"";
     const done = isDone(it.track,it.key,it.chapter) ? " done":"";
     return '<div class="jump-pill'+cur+done+'" data-i="'+i+'">'+label+'</div>';
@@ -2398,7 +2475,7 @@ function renderReaderCard(navigated){
   const it=R.items[R.idx];
   curLoc = it.track+"|"+it.key+"|"+(it.isIntro?"intro":it.chapter);   // key into ctxGloss (same as srcParas)
   const doneCount=R.items.filter(x=>isDone(x.track,x.key,x.chapter)).length;
-  document.getElementById("rPos").textContent = (it.isIntro?"פתיחה":"הלכה "+heNum(it.chapter))+" · "+
+  document.getElementById("rPos").textContent = halachaLabel(it)+" · "+
     "פרשת "+(it.keyHe||it.key)+" ("+trackName(it.track)+") · "+(R.idx+1)+" מתוך "+n;
   document.getElementById("rFill").style.width = Math.round(doneCount/n*100)+"%";
   document.getElementById("rFill").classList.toggle("full", doneCount>=n);
@@ -2418,7 +2495,7 @@ function renderReaderCard(navigated){
     : '';
   const badge=it.isIntro
     ? '<div class="h-badge"><span class="h-num">פ׳</span><span class="h-label">פתיחת פרשת '+esc(it.keyHe||it.key)+'</span>'+sefariaLink+'</div>'
-    : '<div class="h-badge"><span class="h-num">'+heNum(it.chapter)+'</span><span class="h-label">הלכה '+heNum(it.chapter)+' · פרשת '+esc(it.keyHe||it.key)+'</span>'+sefariaLink+'</div>';
+    : '<div class="h-badge"><span class="h-num">'+printedNum(it)+'</span><span class="h-label">'+halachaLabel(it)+(isPurimHalacha(it)?'':' · פרשת '+esc(it.keyHe||it.key))+'</span>'+sefariaLink+'</div>';
   const biur=biurHtml(it.clarification);
   const done=isDone(it.track,it.key,it.chapter);
   const fav=isFav(it.track,it.key,it.chapter);
@@ -2436,7 +2513,7 @@ function renderReaderCard(navigated){
   document.getElementById("sealSlot").innerHTML =
     '<label class="seal'+(done?' on':'')+'"><input type="checkbox" id="rChk" '+(done?'checked':'')+'>'+CHECK_ICON+'</label>';
   document.getElementById("sealCap").textContent =
-    it.isIntro ? 'פתיחת '+(it.keyHe||it.key) : 'הלכה '+heNum(it.chapter);
+    it.isIntro ? 'פתיחת '+(it.keyHe||it.key) : halachaLabel(it);
   document.getElementById("sealMinor").innerHTML =
     '<button class="minor-btn'+(fav?' fav-on':'')+'" id="rFavBtn">'+STAR_ICON+'<span id="rFavTxt">'+(fav?'במועדפים':'מועדפים')+'</span></button>'+
     '<button class="minor-btn" id="rShareBtn">'+SHARE_ICON+'<span>שתף</span></button>';
@@ -2477,7 +2554,7 @@ function renderReaderCard(navigated){
     btn.disabled=true; btn.style.opacity=".7";
     btn.innerHTML='<span class="spin" style="width:14px;height:14px;border-width:2px;"></span><span>מכין תמונה…</span>';
     try{
-      const label=it.isIntro?("פתיחת פרשת "+(it.keyHe||it.key)):("הלכה "+heNum(it.chapter)+" · פרשת "+(it.keyHe||it.key));
+      const label=it.isIntro?("פתיחת פרשת "+(it.keyHe||it.key)):(halachaLabel(it)+" · פרשת "+(it.keyHe||it.key));
       const blobs=await buildHalachaImageBlobs(it,label);
       const baseName="halacha-"+(it.key||"")+"-"+(it.isIntro?"peticha":it.chapter);
       const files=blobs.map((b,i)=>new File([b],
@@ -2740,7 +2817,7 @@ function festivalPortion(items, dayIndex, days){
   const n=items.length, a=Math.floor(dayIndex*n/days), b=Math.floor((dayIndex+1)*n/days);
   return b>a ? items.slice(a,b) : items;
 }
-function _itemLabel(it){ return it.isIntro ? "פתיחה" : heNum(it.chapter); }
+function _itemLabel(it){ return it.isIntro ? "פתיחה" : printedNum(it); }
 // Layout of the festival / period notice (default "strip2"): "card" = the full gold card, "strip" = one slim bar,
 // "strip2" = the slim bar plus the two track cards side by side. ?pl= overrides (for previews).
 const PERIOD_LAYOUT=(()=>{ try{ const v=new URLSearchParams(location.search).get("pl"); if(["card","strip","strip2"].includes(v)) return v; }catch(e){} return "strip2"; })();
@@ -2761,8 +2838,8 @@ async function renderFestivalCard(sch){
   const first=portion[0], last=portion[portion.length-1];
   const pn = he => he.startsWith("הלכות") ? he : "פרשת "+he;     // the Chanukah node is "הלכות חנוכה", not a parasha
   const range = first.he!==last.he
-    ? _itemLabel(first)+" ("+pn(first.he)+") – "+_itemLabel(last)+" ("+pn(last.he)+")"
-    : (portion.length===1 ? "הלכה "+_itemLabel(first) : "הלכות "+_itemLabel(first)+"–"+_itemLabel(last))+" ("+pn(first.he)+")";
+    ? _itemLabel(first)+" ("+sectionHe(first,pn)+") – "+_itemLabel(last)+" ("+sectionHe(last,pn)+")"
+    : (portion.length===1 ? "הלכה "+_itemLabel(first) : "הלכות "+_itemLabel(first)+"–"+_itemLabel(last))+" ("+sectionHe(first,pn)+")";
   const whyTxt='הלכות מיוחדות ל'+f.name+', מתוך מה שכתב הבן איש חי ב'+srcHe+' (שנה ראשונה) — לא פרשת השבוע. '+
     'ההלכות מחולקות באופן שווה בין '+heNum(days.length)+' ימי החול של השבוע שלפני החג'+(days.some(d=>!d.pre)?' וימי חול המועד':'')+
     ', כי ביום טוב ובשבת לא לומדים בטלפון.';
@@ -2916,7 +2993,7 @@ async function renderPeriodCard(){
   const items=await _periodItems(w.slugs); if(!items.length) return null;
   if(w.id==="shab"){
     const it=_shabbatPick(items, today); if(!it) return null;
-    const label=it.isIntro?"פתיחת פרשת "+it.he:"הלכה "+heNum(it.chapter)+" · פרשת "+it.he;
+    const label=it.isIntro?"פתיחת פרשת "+it.he:halachaLabel(it)+" · פרשת "+it.he;
     const mins=Math.max(1,Math.round(srcParas(it).join(" ").split(/\s+/).length/150));
     const done=isDone(it.track,it.key,it.chapter);
     if(PERIOD_LAYOUT!=="card") _notices.shab={tag:"לקראת שבת", title:"הלכה לפני שבת", label:it._topic.he+" · "+label,
@@ -2951,8 +3028,8 @@ async function renderPeriodCard(){
   const first=portion[0], last=portion[portion.length-1];
   const pn=he=>he.startsWith("הלכות")?he:"פרשת "+he;
   const range=first.he!==last.he
-    ? _itemLabel(first)+" ("+pn(first.he)+") – "+_itemLabel(last)+" ("+pn(last.he)+")"
-    : (portion.length===1?"הלכה "+_itemLabel(first):"הלכות "+_itemLabel(first)+"–"+_itemLabel(last))+" ("+pn(first.he)+")";
+    ? _itemLabel(first)+" ("+sectionHe(first,pn)+") – "+_itemLabel(last)+" ("+sectionHe(last,pn)+")"
+    : (portion.length===1?"הלכה "+_itemLabel(first):"הלכות "+_itemLabel(first)+"–"+_itemLabel(last))+" ("+sectionHe(first,pn)+")";
   const dayLbl="יום "+heNum(w.idx+1)+" מתוך "+heNum(w.days.length);
   if(PERIOD_LAYOUT!=="card") _notices[w.id]={tag:"הלכה לתקופה", title:w.title, label:dayLbl+" · "+range, why:w.why, portion, all:items,
     chips:[items.length+" הלכות", w.days.length+" ימי לימוד", "בלי שבת ויום טוב"]};
@@ -3082,7 +3159,7 @@ async function renderWeek(rec){
     const nid=Object.keys(_notices)[0], np=nid&&_notices[nid], first=np&&(np.portion.find(x=>!isDone(x.track,x.key,x.chapter))||np.portion[0]);
     if(first){
       const txt=srcParas(first).join(" ").replace(/\s+/g," ").trim();
-      const ref=first.isIntro?"פתיחת פרשת "+first.he:"הלכה "+heNum(first.chapter)+" · "+(first.he.startsWith("הלכות")?first.he:"פרשת "+first.he);
+      const ref=first.isIntro?"פתיחת פרשת "+first.he:halachaLabel(first)+" · "+(first.he.startsWith("הלכות")?first.he:"פרשת "+first.he);
       html+='<div class="pprev" data-nid="'+esc(nid)+'"><div class="pp-top"><span class="pp-tag">ההלכה של היום</span><span class="pp-ref">'+esc(ref)+'</span></div>'+
         '<div class="pp-txt">'+esc(txt)+'</div><button class="pp-btn">לפתיחת הדף ›</button></div>';
     }
@@ -3513,7 +3590,7 @@ function runSearch(q, keepShown){
     : allHits.length>hits.length ? ("מוצגות "+hits.length+" מתוך "+allHits.length+" תוצאות")
     : ("נמצאו "+hits.length+" תוצאות");
   resEl.innerHTML=hits.map((it,i)=>{
-    const label = it.isIntro ? "פתיחה" : "הלכה "+heNum(it.chapter);
+    const label = it.isIntro ? "פתיחה" : halachaLabel(it);
     return '<div class="prow" data-i="'+i+'" style="display:block;"><div class="nm">'+esc(it.he)+' · '+label+'</div>'+
       '<div class="search-hit">'+hiTerms(searchSnippet(it,terms), terms)+'</div></div>';
   }).join('') + (allHits.length>hits.length
@@ -3617,7 +3694,7 @@ document.addEventListener("visibilitychange", ()=>{
 
 // The version this page was built with. The deploy script keeps it identical to sw.js's
 // CACHE_VERSION, so a running page can tell whether it is old code vs. what is live now.
-const APP_VERSION = "v275";
+const APP_VERSION = "v288";
 // Show the running version in the footer so "am I on the latest?" is answerable at a glance.
 (function(){ const set=()=>{ const e=document.getElementById("verLabel"); if(e) e.textContent="גרסה "+APP_VERSION; };
   if(document.readyState!=="loading") set(); else document.addEventListener("DOMContentLoaded",set); })();

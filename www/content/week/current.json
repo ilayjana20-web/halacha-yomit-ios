@@ -1,21 +1,26 @@
 {
-  "date": "2026-09-28",
+  "date": "2026-10-12",
   "weekday_he": "יום שני",
-  "parasha_en": "Shmini Atzeret",
-  "parasha_he": "שמיני עצרת",
+  "parasha_en": "Noach",
+  "parasha_he": "נח",
   "diaspora": 0,
   "holiday_week": false,
   "tracks": {
     "year1": [
       {
-        "key": "V'Zot HaBerachah",
-        "slug": "V_Zot_HaBerachah",
-        "he": "וזאת הברכה",
-        "chapters": 18
+        "key": "Noach",
+        "slug": "Noach",
+        "he": "נח",
+        "chapters": 17
       }
     ],
-    "year2": null
-  },
-  "holiday": true,
-  "title_he": "הלכות הושענא רבה, שמיני עצרת ושמחת תורה"
+    "year2": [
+      {
+        "key": "Noach",
+        "slug": "Noach",
+        "he": "נח",
+        "chapters": 21
+      }
+    ]
+  }
 }

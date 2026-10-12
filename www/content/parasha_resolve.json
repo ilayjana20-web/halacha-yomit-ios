@@ -1,267 +1,4 @@
 {
- "Matot-Masei": {
-  "parasha_en": "Matot-Masei",
-  "parasha_he": "מטות-מסעי",
-  "holiday_week": false,
-  "tracks": {
-   "year1": [
-    {
-     "key": "Matot",
-     "slug": "Matot",
-     "he": "מטות",
-     "chapters": 16
-    },
-    {
-     "key": "Masei",
-     "slug": "Masei",
-     "he": "מסעי",
-     "chapters": 16
-    }
-   ],
-   "year2": [
-    {
-     "key": "Matot",
-     "slug": "Matot",
-     "he": "מטות",
-     "chapters": 19
-    },
-    {
-     "key": "Masei",
-     "slug": "Masei",
-     "he": "מסעי",
-     "chapters": 16
-    }
-   ]
-  }
- },
- "Devarim": {
-  "parasha_en": "Devarim",
-  "parasha_he": "דברים",
-  "holiday_week": false,
-  "tracks": {
-   "year1": [
-    {
-     "key": "Devarim",
-     "slug": "Devarim",
-     "he": "דברים",
-     "chapters": 28
-    }
-   ],
-   "year2": null
-  }
- },
- "Vaetchanan": {
-  "parasha_en": "Vaetchanan",
-  "parasha_he": "ואתחנן",
-  "holiday_week": false,
-  "tracks": {
-   "year1": [
-    {
-     "key": "Vaetchanan",
-     "slug": "Vaetchanan",
-     "he": "ואתחנן",
-     "chapters": 15
-    }
-   ],
-   "year2": [
-    {
-     "key": "Vaetchanan",
-     "slug": "Vaetchanan",
-     "he": "ואתחנן",
-     "chapters": 27
-    }
-   ]
-  }
- },
- "Eikev": {
-  "parasha_en": "Eikev",
-  "parasha_he": "עקב",
-  "holiday_week": false,
-  "tracks": {
-   "year1": [
-    {
-     "key": "Eikev",
-     "slug": "Eikev",
-     "he": "עקב",
-     "chapters": 19
-    }
-   ],
-   "year2": [
-    {
-     "key": "Eikev",
-     "slug": "Eikev",
-     "he": "עקב",
-     "chapters": 19
-    }
-   ]
-  }
- },
- "Re'eh": {
-  "parasha_en": "Re'eh",
-  "parasha_he": "ראה",
-  "holiday_week": false,
-  "tracks": {
-   "year1": [
-    {
-     "key": "Re'eh",
-     "slug": "Re_eh",
-     "he": "ראה",
-     "chapters": 17
-    }
-   ],
-   "year2": [
-    {
-     "key": "Re'eh",
-     "slug": "Re_eh",
-     "he": "ראה",
-     "chapters": 40
-    }
-   ]
-  }
- },
- "Shoftim": {
-  "parasha_en": "Shoftim",
-  "parasha_he": "שופטים",
-  "holiday_week": false,
-  "tracks": {
-   "year1": [
-    {
-     "key": "Shoftim",
-     "slug": "Shoftim",
-     "he": "שופטים",
-     "chapters": 28
-    }
-   ],
-   "year2": [
-    {
-     "key": "Shoftim",
-     "slug": "Shoftim",
-     "he": "שופטים",
-     "chapters": 30
-    }
-   ]
-  }
- },
- "Ki Teitzei": {
-  "parasha_en": "Ki Teitzei",
-  "parasha_he": "כי תצא",
-  "holiday_week": false,
-  "tracks": {
-   "year1": [
-    {
-     "key": "Ki Teitzei",
-     "slug": "Ki_Teitzei",
-     "he": "כי תצא",
-     "chapters": 15
-    }
-   ],
-   "year2": [
-    {
-     "key": "Ki Teitzei",
-     "slug": "Ki_Teitzei",
-     "he": "כי תצא",
-     "chapters": 25
-    }
-   ]
-  }
- },
- "Ki Tavo": {
-  "parasha_en": "Ki Tavo",
-  "parasha_he": "כי תבוא",
-  "holiday_week": false,
-  "tracks": {
-   "year1": [
-    {
-     "key": "Ki Tavo",
-     "slug": "Ki_Tavo",
-     "he": "כי תבוא",
-     "chapters": 26
-    }
-   ],
-   "year2": [
-    {
-     "key": "Ki Tavo",
-     "slug": "Ki_Tavo",
-     "he": "כי תבוא",
-     "chapters": 23
-    }
-   ]
-  }
- },
- "Nitzavim-Vayeilech": {
-  "parasha_en": "Nitzavim-Vayeilech",
-  "parasha_he": "נצבים-וילך",
-  "holiday_week": false,
-  "tracks": {
-   "year1": [
-    {
-     "key": "Nitzavim",
-     "slug": "Nitzavim",
-     "he": "נצבים",
-     "chapters": 25
-    },
-    {
-     "key": "Vayeilech",
-     "slug": "Vayeilech",
-     "he": "וילך",
-     "chapters": 23
-    }
-   ],
-   "year2": null
-  }
- },
- "Rosh Hashana I": {
-  "parasha_en": "Rosh Hashana I",
-  "parasha_he": "ראש השנה א",
-  "holiday_week": false,
-  "holiday": true,
-  "title_he": "הלכות ראש השנה",
-  "tracks": {
-   "year1": [
-    {
-     "key": "Nitzavim",
-     "slug": "Nitzavim",
-     "he": "נצבים",
-     "chapters": 25
-    }
-   ],
-   "year2": null
-  }
- },
- "Ha'Azinu": {
-  "parasha_en": "Ha'Azinu",
-  "parasha_he": "האזינו",
-  "holiday_week": false,
-  "tracks": {
-   "year1": [
-    {
-     "key": "Ha'Azinu",
-     "slug": "Ha_Azinu",
-     "he": "האזינו",
-     "chapters": 15
-    }
-   ],
-   "year2": null
-  }
- },
- "Sukkot I": {
-  "parasha_en": "Sukkot I",
-  "parasha_he": "סוכות חג ראשון",
-  "holiday_week": false,
-  "holiday": true,
-  "title_he": "הלכות סוכות",
-  "tracks": {
-   "year1": [
-    {
-     "key": "Ha'Azinu",
-     "slug": "Ha_Azinu",
-     "he": "האזינו",
-     "chapters": 15
-    }
-   ],
-   "year2": null
-  }
- },
  "Shmini Atzeret": {
   "parasha_en": "Shmini Atzeret",
   "parasha_he": "שמיני עצרת",
@@ -298,7 +35,7 @@
      "key": "Bereshit",
      "slug": "Bereshit",
      "he": "בראשית",
-     "chapters": 32
+     "chapters": 31
     }
    ]
   }
@@ -313,7 +50,7 @@
      "key": "Noach",
      "slug": "Noach",
      "he": "נח",
-     "chapters": 18
+     "chapters": 17
     }
    ],
    "year2": [
@@ -451,7 +188,7 @@
      "key": "Vayishlach",
      "slug": "Vayishlach",
      "he": "וישלח",
-     "chapters": 19
+     "chapters": 18
     }
    ],
    "year2": [
@@ -497,7 +234,7 @@
      "key": "Miketz",
      "slug": "Miketz",
      "he": "מקץ",
-     "chapters": 15
+     "chapters": 13
     }
    ],
    "year2": [
@@ -1206,7 +943,7 @@
      "key": "Balak",
      "slug": "Balak",
      "he": "בלק",
-     "chapters": 19
+     "chapters": 17
     }
    ]
   }
@@ -1232,6 +969,234 @@
      "chapters": 18
     }
    ]
+  }
+ },
+ "Devarim": {
+  "parasha_en": "Devarim",
+  "parasha_he": "דברים",
+  "holiday_week": false,
+  "tracks": {
+   "year1": [
+    {
+     "key": "Devarim",
+     "slug": "Devarim",
+     "he": "דברים",
+     "chapters": 28
+    }
+   ],
+   "year2": null
+  }
+ },
+ "Vaetchanan": {
+  "parasha_en": "Vaetchanan",
+  "parasha_he": "ואתחנן",
+  "holiday_week": false,
+  "tracks": {
+   "year1": [
+    {
+     "key": "Vaetchanan",
+     "slug": "Vaetchanan",
+     "he": "ואתחנן",
+     "chapters": 15
+    }
+   ],
+   "year2": [
+    {
+     "key": "Vaetchanan",
+     "slug": "Vaetchanan",
+     "he": "ואתחנן",
+     "chapters": 24
+    }
+   ]
+  }
+ },
+ "Eikev": {
+  "parasha_en": "Eikev",
+  "parasha_he": "עקב",
+  "holiday_week": false,
+  "tracks": {
+   "year1": [
+    {
+     "key": "Eikev",
+     "slug": "Eikev",
+     "he": "עקב",
+     "chapters": 19
+    }
+   ],
+   "year2": [
+    {
+     "key": "Eikev",
+     "slug": "Eikev",
+     "he": "עקב",
+     "chapters": 19
+    }
+   ]
+  }
+ },
+ "Re'eh": {
+  "parasha_en": "Re'eh",
+  "parasha_he": "ראה",
+  "holiday_week": false,
+  "tracks": {
+   "year1": [
+    {
+     "key": "Re'eh",
+     "slug": "Re_eh",
+     "he": "ראה",
+     "chapters": 17
+    }
+   ],
+   "year2": [
+    {
+     "key": "Re'eh",
+     "slug": "Re_eh",
+     "he": "ראה",
+     "chapters": 40
+    }
+   ]
+  }
+ },
+ "Shoftim": {
+  "parasha_en": "Shoftim",
+  "parasha_he": "שופטים",
+  "holiday_week": false,
+  "tracks": {
+   "year1": [
+    {
+     "key": "Shoftim",
+     "slug": "Shoftim",
+     "he": "שופטים",
+     "chapters": 28
+    }
+   ],
+   "year2": [
+    {
+     "key": "Shoftim",
+     "slug": "Shoftim",
+     "he": "שופטים",
+     "chapters": 30
+    }
+   ]
+  }
+ },
+ "Ki Teitzei": {
+  "parasha_en": "Ki Teitzei",
+  "parasha_he": "כי תצא",
+  "holiday_week": false,
+  "tracks": {
+   "year1": [
+    {
+     "key": "Ki Teitzei",
+     "slug": "Ki_Teitzei",
+     "he": "כי תצא",
+     "chapters": 15
+    }
+   ],
+   "year2": [
+    {
+     "key": "Ki Teitzei",
+     "slug": "Ki_Teitzei",
+     "he": "כי תצא",
+     "chapters": 25
+    }
+   ]
+  }
+ },
+ "Ki Tavo": {
+  "parasha_en": "Ki Tavo",
+  "parasha_he": "כי תבוא",
+  "holiday_week": false,
+  "tracks": {
+   "year1": [
+    {
+     "key": "Ki Tavo",
+     "slug": "Ki_Tavo",
+     "he": "כי תבוא",
+     "chapters": 26
+    }
+   ],
+   "year2": [
+    {
+     "key": "Ki Tavo",
+     "slug": "Ki_Tavo",
+     "he": "כי תבוא",
+     "chapters": 23
+    }
+   ]
+  }
+ },
+ "Nitzavim-Vayeilech": {
+  "parasha_en": "Nitzavim-Vayeilech",
+  "parasha_he": "נצבים-וילך",
+  "holiday_week": false,
+  "tracks": {
+   "year1": [
+    {
+     "key": "Nitzavim",
+     "slug": "Nitzavim",
+     "he": "נצבים",
+     "chapters": 25
+    },
+    {
+     "key": "Vayeilech",
+     "slug": "Vayeilech",
+     "he": "וילך",
+     "chapters": 23
+    }
+   ],
+   "year2": null
+  }
+ },
+ "Rosh Hashana I": {
+  "parasha_en": "Rosh Hashana I",
+  "parasha_he": "ראש השנה א",
+  "holiday_week": false,
+  "holiday": true,
+  "title_he": "הלכות ראש השנה",
+  "tracks": {
+   "year1": [
+    {
+     "key": "Nitzavim",
+     "slug": "Nitzavim",
+     "he": "נצבים",
+     "chapters": 25
+    }
+   ],
+   "year2": null
+  }
+ },
+ "Ha'Azinu": {
+  "parasha_en": "Ha'Azinu",
+  "parasha_he": "האזינו",
+  "holiday_week": false,
+  "tracks": {
+   "year1": [
+    {
+     "key": "Ha'Azinu",
+     "slug": "Ha_Azinu",
+     "he": "האזינו",
+     "chapters": 15
+    }
+   ],
+   "year2": null
+  }
+ },
+ "Sukkot I": {
+  "parasha_en": "Sukkot I",
+  "parasha_he": "סוכות חג ראשון",
+  "holiday_week": false,
+  "holiday": true,
+  "title_he": "הלכות סוכות",
+  "tracks": {
+   "year1": [
+    {
+     "key": "Ha'Azinu",
+     "slug": "Ha_Azinu",
+     "he": "האזינו",
+     "chapters": 15
+    }
+   ],
+   "year2": null
   }
  },
  "Vayakhel-Pekudei": {
@@ -1344,8 +1309,43 @@
     {
      "key": "Behar Bechukotai",
      "slug": "Behar_Bechukotai",
-     "he": "בא\"ח שנה שניה  בהר",
+     "he": "בהר בחוקותי",
      "chapters": 13
+    }
+   ]
+  }
+ },
+ "Matot-Masei": {
+  "parasha_en": "Matot-Masei",
+  "parasha_he": "מטות-מסעי",
+  "holiday_week": false,
+  "tracks": {
+   "year1": [
+    {
+     "key": "Matot",
+     "slug": "Matot",
+     "he": "מטות",
+     "chapters": 16
+    },
+    {
+     "key": "Masei",
+     "slug": "Masei",
+     "he": "מסעי",
+     "chapters": 16
+    }
+   ],
+   "year2": [
+    {
+     "key": "Matot",
+     "slug": "Matot",
+     "he": "מטות",
+     "chapters": 19
+    },
+    {
+     "key": "Masei",
+     "slug": "Masei",
+     "he": "מסעי",
+     "chapters": 16
     }
    ]
   }
@@ -1484,7 +1484,7 @@
      "key": "Balak",
      "slug": "Balak",
      "he": "בלק",
-     "chapters": 19
+     "chapters": 17
     }
    ]
   }
@@ -1540,7 +1540,7 @@
     {
      "key": "Behar Bechukotai",
      "slug": "Behar_Bechukotai",
-     "he": "בא\"ח שנה שניה  בהר",
+     "he": "בהר בחוקותי",
      "chapters": 13
     }
    ]
