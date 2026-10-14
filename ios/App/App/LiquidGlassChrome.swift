@@ -60,6 +60,8 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
     // since the back chevron sits on the right — see the forced RTL semantic content below).
     // Not a UINavigationController here, so there's no interactivePopGestureRecognizer to get
     // this for free; only enabled while the reader is actually open.
+    private let scrollTopCatcher = ScrollTopCatcher()
+
     private lazy var backEdgeSwipe: UIScreenEdgePanGestureRecognizer = {
         let gr = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(backEdgeSwiped))
         gr.edges = .left
@@ -124,6 +126,16 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
         pullToRefresh = UIRefreshControl()
         pullToRefresh.addTarget(self, action: #selector(pulledToRefresh), for: .valueChanged)
         scrollView.refreshControl = pullToRefresh
+
+        // Tapping the status bar scrolls to top. UIKit sends that tap to a single scroll view
+        // that has scrollsToTop = true, so the web view opts out and a tiny hidden catcher
+        // takes over and smooth-scrolls the page itself.
+        scrollView.scrollsToTop = false
+        scrollTopCatcher.frame = CGRect(x: 0, y: 0, width: 2, height: 2)
+        scrollTopCatcher.onScrollToTop = { [weak self] in
+            self?.runJS("try{window.scrollTo({top:0,behavior:'smooth'})}catch(e){window.scrollTo(0,0)}")
+        }
+        view.addSubview(scrollTopCatcher)
     }
 
     @objc private func backEdgeSwiped(_ gr: UIScreenEdgePanGestureRecognizer) {
@@ -353,5 +365,27 @@ final class MainContainerViewController: UIViewController, WKScriptMessageHandle
         default:
             break
         }
+    }
+}
+
+/// Invisible scroll view that receives the status-bar tap ("scroll to top") and forwards it.
+final class ScrollTopCatcher: UIScrollView, UIScrollViewDelegate {
+    var onScrollToTop: (() -> Void)?
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        alpha = 0.02
+        isUserInteractionEnabled = false
+        scrollsToTop = true
+        contentSize = CGSize(width: 2, height: 4000)
+        contentOffset = CGPoint(x: 0, y: 2000)
+        delegate = self
+    }
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    func scrollViewShouldScrollToTop(_ scrollView: UIScrollView) -> Bool {
+        onScrollToTop?()
+        return false
     }
 }
