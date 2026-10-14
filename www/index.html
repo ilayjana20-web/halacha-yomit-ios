@@ -27,12 +27,44 @@
 /* Liquid Glass native chrome (iOS app only) replaces these — see LiquidGlassChrome.swift. */
 html.ios-native-chrome .tabbar,
 html.ios-native-chrome #rBack,
-html.ios-native-chrome #rShareBtn,
-html.ios-native-chrome .search-box{display:none !important;}
+html.ios-native-chrome #rShareBtn{display:none !important;}
+/* The native nav bar (back/title/share) already covers the reader's chrome — the web app's
+   own branded header (portrait, title, gear/stats buttons) would otherwise still show right
+   below it, duplicating the back/share affordance and reading as two disconnected headers
+   stacked on top of each other. Hidden only while BOTH native chrome and the reader are active
+   (body.reading) — the home/topics/picker screens keep the full header exactly as before. */
+html.ios-native-chrome body.reading .hero{display:none !important;}
+/* No native bar sits above the page any more (it left a black strip over the content): the web
+   content runs edge to edge under the status bar, the search field replaces the "חיפוש הלכה"
+   title card, and the reader's back/share buttons sit in the reader's own title row. */
+html.ios-native-chrome #searchView .page-head{display:none;}
+html.ios-native-chrome #searchView .search-box{margin:18px 0 6px;}
+html.ios-native-chrome #searchInput{padding:21px 54px 21px 22px;font-size:18px;
+  background:var(--glass-tint-strong);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+  border:1px solid var(--glass-border);}
+.rh-bar{display:none;}
+html.ios-native-chrome .rh-bar{display:block;position:sticky;top:calc(max(env(safe-area-inset-top),47px) + 6px);height:0;z-index:30;}
+html.ios-native-chrome .rh-btn{position:absolute;top:0;width:42px;height:42px;border-radius:50%;display:flex;
+  align-items:center;justify-content:center;padding:0;border:1px solid var(--glass-border);
+  background:var(--glass-tint-strong);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+  box-shadow:var(--clay-sm);color:var(--good-deep);-webkit-tap-highlight-color:transparent;}
+html.ios-native-chrome .rh-back{inset-inline-start:2px;}
+html.ios-native-chrome .rh-share{inset-inline-end:2px;}
+html.ios-native-chrome .rh-btn svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:2.3;
+  stroke-linecap:round;stroke-linejoin:round;}
+html.ios-native-chrome body.reading #readerView{padding-top:calc(max(env(safe-area-inset-top),47px) + 6px);}
+html.ios-native-chrome body.reading .reader-head{padding-inline:54px;}
+html.ios-native-chrome body.reading .offline-banner{display:none;}
 </style>
 <script>
 (function(){
-  var isIOSNative = !!(window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform()==="ios");
+  // A true global (not a closure-local var) — openSettings()/openStats()/showToast() etc.,
+  // defined later as top-level functions in the body script, reference this by bare name and
+  // need it to resolve through the global object. A closure-local `var` here was invisible to
+  // them (ReferenceError, silently swallowing every tap on settings/stats/toast — the bug that
+  // made the gear icon do nothing and a second tap register as the webview's own double-tap-
+  // to-zoom gesture instead).
+  window.isIOSNative = !!(window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform()==="ios");
   document.documentElement.classList.toggle("ios-native-chrome", isIOSNative);
   // Safe to call from anywhere, anytime, including synchronously during the earliest page
   // script — no-ops instantly on web/Android, or if the native side hasn't registered the
@@ -44,141 +76,35 @@ html.ios-native-chrome .search-box{display:none !important;}
       }
     }catch(e){}
   };
-  // The other direction: the native UISearchBar (search tab only, see LiquidGlassChrome.swift)
-  // drives the existing #searchInput + its debounced "input" listener, rather than
-  // duplicating the search-triggering logic natively.
-
-  // Edge-swipe back (like Android's back gesture) + status-bar tap scroll-to-top. iOS app only.
-  window.betelAppBack = function(){
-    var pb = document.getElementById("pickerBack");
-    if(pb && pb.offsetParent !== null){ pb.click(); return true; }
-    var rv = document.getElementById("readerView"), rb = document.getElementById("rBack");
-    if(rv && !rv.classList.contains("hidden") && rb){ rb.click(); return true; }
-    return false;
-  };
-  window.betelCanGoBack = function(){
-    var pb=document.getElementById("pickerBack");
-    if(pb && pb.offsetParent!==null) return true;
-    var rv=document.getElementById("readerView");
-    return !!(rv && !rv.classList.contains("hidden") && document.getElementById("rBack"));
-  };
-  window.betelScrollTop = function(){
-    try{ window.scrollTo({top:0, behavior:"smooth"}); }catch(e){ window.scrollTo(0,0); }
-  };
-  if(isIOSNative && false){   // native UIScreenEdgePanGestureRecognizer handles this now
-    var sx=0, sy=0, st=0, edge=false;
-    document.addEventListener("touchstart", function(e){
-      var t=e.touches[0]; sx=t.clientX; sy=t.clientY; st=Date.now();
-      edge = e.touches.length===1 && (sx<=22 || sx>=window.innerWidth-22);
-    }, {passive:true});
-    document.addEventListener("touchend", function(e){
-      if(!edge) return; edge=false;
-      var t=e.changedTouches[0], dx=t.clientX-sx, dy=t.clientY-sy;
-      var inward = sx<=22 ? dx : -dx;
-      if(inward>70 && Math.abs(dy)<0.6*inward && Date.now()-st<700) window.betelAppBack();
-    }, {passive:true});
-  }
-
-  // Pull-down-to-refresh (re-renders the open tab), tap-the-active-tab-again scrolls to top,
-  // and a long-press menu on parasha tiles that opens the real iOS action sheet (Liquid Glass on
-  // iOS 26) via the native side. iOS app only.
-  window.betelTabReselect = function(id){
-    var b = document.getElementById(id);
-    if(!b || !b.classList.contains("active")) return false;
-    if((window.scrollY||document.documentElement.scrollTop||0) > 8){ window.betelScrollTop(); return true; }
-    return false;
-  };
-  var __actCb = {};
-  window.__betelActionDone = function(cb, id){ var f = __actCb[cb]; delete __actCb[cb]; if(f) f(id); };
-  function nativeSheet(title, actions, cancel, cb){
-    var n = String(Date.now()); __actCb[n] = cb;
-    window.notifyNativeChrome({type:"actionSheet", title:title, actions:actions, cancel:cancel, cb:n});
-  }
-  if(isIOSNative){
-    // (pull-to-refresh is Apple's native UIRefreshControl now - see LiquidGlassChrome.swift)
-
-    // ---- long-press on a parasha tile -> system action sheet ----
-    var lpTimer=null, lpx=0, lpy=0, lpFired=0;
-    document.addEventListener("touchstart", function(e){
-      var tile = e.target.closest && e.target.closest(".btile[data-key]");
-      if(!tile || e.touches.length!==1) return;
-      var t=e.touches[0]; lpx=t.clientX; lpy=t.clientY;
-      clearTimeout(lpTimer);
-      lpTimer=setTimeout(function(){
-        lpFired=Date.now();
-        window.notifyNativeChrome({type:"haptic", style:"light"});
-        var nm = (tile.querySelector(".bn,.bt,.name")||tile).textContent.trim().split("\n")[0].slice(0,40);
-        nativeSheet(nm, [{id:"open",title:"פתיחה"},{id:"share",title:"שיתוף"}], "ביטול", function(id){
-          if(id==="open") tile.click();
-          else if(id==="share"){
-            var txt = "הלכות הבן איש חי — " + nm;
-            try{ if(typeof APP_STORE_URL==="string" && APP_STORE_URL.indexOf("REPLACE")<0) txt += "\n" + APP_STORE_URL; }catch(_){}
-            if(navigator.share) navigator.share({title:"הלכות הבן איש חי", text:txt}).catch(function(){});
-            else if(navigator.clipboard) navigator.clipboard.writeText(txt);
-          }
+  // The search field is the page's own #searchInput; the keyboard's "search" key dismisses it.
+  // The reader's back/share glass buttons just forward to the original (hidden) controls.
+  // Image shares go through the native share sheet (Web Share API `files` is unreliable inside
+  // WKWebView). Resolves true once the native sheet handled it (even if the user cancelled),
+  // false when unavailable so the caller falls back to the web paths.
+  window.nativeShareImages = async function(files, text){
+    var p = isIOSNative && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.ShareImageBridge;
+    if(!p) return false;
+    try{
+      var images = await Promise.all(files.map(function(f){
+        return new Promise(function(res, rej){
+          var r = new FileReader();
+          r.onload = function(){ res({name:f.name, data:String(r.result).split(",")[1]}); };
+          r.onerror = rej; r.readAsDataURL(f);
         });
-      }, 480);
-    }, {passive:true});
-    document.addEventListener("touchmove", function(e){
-      var t=e.touches[0]; if(lpTimer && (Math.abs(t.clientX-lpx)>8 || Math.abs(t.clientY-lpy)>8)){ clearTimeout(lpTimer); lpTimer=null; }
-    }, {passive:true});
-    ["touchend","touchcancel"].forEach(function(ev){ document.addEventListener(ev, function(){ clearTimeout(lpTimer); lpTimer=null; }, {passive:true}); });
-    document.addEventListener("click", function(e){ if(Date.now()-lpFired<700){ e.stopPropagation(); e.preventDefault(); } }, true);
-  }
-
-  // ---- Native picker bridge: the "all parshiyot" screen is drawn natively (NativePickerView in
-  // LiquidGlassChrome.swift). The web page keeps all the logic: we scrape the rendered tiles, send them over,
-  // and the native side calls act/track/back which just click the real DOM buttons. iOS app only.
-  if(isIOSNative){
-    var npStyle=document.createElement("style");
-    npStyle.textContent="html.native-picker #pickerView{visibility:hidden}";
-    document.head.appendChild(npStyle);
-    var npOpen=false;
-    function npTxt(el){ return el ? el.textContent.replace(/\s+/g," ").trim() : ""; }
-    function npPct(el){ var i=el && el.querySelector(".tbar i"); var m=i && /([\d.]+)%/.exec(i.getAttribute("style")||""); return m?Math.round(parseFloat(m[1])):0; }
-    function npState(){
-      var pv=document.getElementById("pickerView"), pl=document.getElementById("plist");
-      if(!pv || !pl || pv.classList.contains("hidden")) return null;
-      var tiles=[].slice.call(pl.querySelectorAll(".btile"));
-      if(!tiles.length) return null;
-      var level = pl.querySelector(".btile[data-book]") ? 1 : 2;
-      var tabs=[];
-      if(level===1) [].slice.call(document.querySelectorAll("#pickerTabs .tab")).forEach(function(t){ tabs.push({id:t.getAttribute("data-track"),label:npTxt(t),active:t.classList.contains("active")}); });
-      var tb=pl.querySelector(".tot-banner"), banner=null;
-      if(tb){ var foot=tb.querySelectorAll(".tb-foot span"); var pct=npPct({querySelector:function(){return null;}});
-        var w=tb.querySelector(".tb-track i"); var mm=w&&/([\d.]+)%/.exec(w.getAttribute("style")||"");
-        banner={label:npTxt(tb.querySelector(".tb-lbl")),num:npTxt(tb.querySelector(".tb-num")),pct:mm?Math.round(parseFloat(mm[1])):0,foot:npTxt(foot[0]),footPct:npTxt(foot[1])}; }
-      var back=document.getElementById("pickerBack");
-      return {level:level, tabs:tabs, backLabel: back ? npTxt(back).replace(/^▶\s*/,"") : null, banner:banner,
-        items:tiles.map(function(t){ return {
-          id: t.hasAttribute("data-book") ? "book:"+t.getAttribute("data-book") : "key:"+t.getAttribute("data-key"),
-          ord:npTxt(t.querySelector(".ord")), title:npTxt(t.querySelector(".bn")), meta:npTxt(t.querySelector(".bm")),
-          pct:npPct(t), full:t.classList.contains("full"), untouched:t.classList.contains("untouched") }; })};
-    }
-    function npSync(){
-      var st=npState();
-      if(st){ npOpen=true; document.documentElement.classList.add("native-picker"); window.notifyNativeChrome({type:"picker",open:true,state:st}); }
-      else if(npOpen){ npOpen=false; document.documentElement.classList.remove("native-picker"); window.notifyNativeChrome({type:"picker",open:false}); }
-    }
-    window.NativePickerHost={
-      act:function(id){ var sel = id.indexOf("book:")===0 ? '.btile[data-book="'+id.slice(5)+'"]' : '.btile[data-key="'+id.slice(4)+'"]';
-        var el=document.querySelector("#plist "+sel); if(el) el.click(); },
-      track:function(t){ var el=document.querySelector('#pickerTabs .tab[data-track="'+t+'"]'); if(el) el.click(); },
-      back:function(){ var b=document.getElementById("pickerBack"); if(b) b.click(); }
-    };
-    window.addEventListener("load", function(){
-      try{
-        var orig=window.renderPList;
-        if(typeof orig==="function"){ window.renderPList=function(){ var r=orig.apply(this,arguments); setTimeout(npSync,0); return r; }; }
-        var pv=document.getElementById("pickerView");
-        if(pv) new MutationObserver(function(){ setTimeout(npSync,0); }).observe(pv,{attributes:true,attributeFilter:["class"]});
-      }catch(e){}
-    });
-  }
-  window.nativeSetSearchQuery = function(q){
-    var el = document.getElementById("searchInput");
-    if(el){ el.value = q; el.dispatchEvent(new Event("input")); }
+      }));
+      await p.shareImages({images:images, text:text||""});
+      return true;
+    }catch(e){ return false; }
   };
+  document.addEventListener("keydown", function(e){
+    if(isIOSNative && e.key==="Enter" && e.target && e.target.id==="searchInput") e.target.blur();
+  });
+  document.addEventListener("click", function(e){
+    var b = e.target && e.target.closest ? e.target.closest("#rhBack,#rhShare") : null;
+    if(!b) return;
+    var t = document.getElementById(b.id==="rhBack" ? "rBack" : "rShareBtn");
+    if(t) t.click();
+  });
   // Pushes the streak + today's parasha into the HalachaWidget's shared App Group storage
   // (see ios/App/App/HalachaWidgetBridge.swift) so the home-screen widget reflects the
   // learner's real state. No-ops on web/Android or before the native target exists. Called
@@ -230,6 +156,12 @@ html.ios-native-chrome .search-box{display:none !important;}
     --good-deep:#2C6D73;
     --clay:9px 9px 20px rgba(140,125,89,.22), -8px -8px 18px rgba(255,255,255,.75), inset 0 0 0 1px rgba(255,255,255,.4);
     --clay-sm:6px 6px 14px rgba(140,125,89,.18), -5px -5px 12px rgba(255,255,255,.7), inset 0 0 0 1px rgba(255,255,255,.4);
+    /* Liquid-Glass-style translucent material (see "Materials & depth": a semi-transparent
+       tint + backdrop-filter blur, with a bright top edge standing in for light catching the
+       surface) — used on the surfaces that actually sit over scrolling/other content
+       (gear buttons, the collapsing mini header, sheets) where a blur has something to blur. */
+    --glass-tint:rgba(255,253,246,.6); --glass-tint-strong:rgba(255,253,246,.78);
+    --glass-border:rgba(255,255,255,.6); --glass-blur:blur(20px) saturate(180%);
   }
 
   /* ============================ DARK MODE ============================
@@ -250,6 +182,8 @@ html.ios-native-chrome .search-box{display:none !important;}
     --shadow-card-sm:0 6px 18px rgba(0,0,0,.45);
     --clay:0 10px 26px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.05);
     --clay-sm:0 6px 16px rgba(0,0,0,.42), inset 0 0 0 1px rgba(255,255,255,.05);
+    --glass-tint:rgba(24,34,42,.62); --glass-tint-strong:rgba(24,34,42,.8);
+    --glass-border:rgba(255,255,255,.08); --glass-blur:blur(20px) saturate(160%);
     color-scheme:dark;
   }
   html[data-theme="dark"] body{
@@ -260,8 +194,8 @@ html.ios-native-chrome .search-box{display:none !important;}
       linear-gradient(180deg, rgba(255,255,255,.03), transparent 360px);}
   html[data-theme="dark"] .hero{background:linear-gradient(135deg,#16323A,#18222A 70%);}
   html[data-theme="dark"] .hero .portrait{box-shadow:0 0 0 3px var(--card), 0 0 0 4.5px var(--good);}
-  html[data-theme="dark"] .gear-btn{background:#22343D;}
-  html[data-theme="dark"] .gear-btn svg{stroke:#9FD8CF;}
+  /* .gear-btn's glass background + icon stroke are already theme-aware via
+     --glass-tint/--good-deep (see :root / html[data-theme="dark"] above) — no override needed. */
   /* reader — the two frozen panels, re-tuned for dark but still clearly distinct from each other */
   html[data-theme="dark"] .halacha{
     box-shadow:0 10px 28px rgba(0,0,0,.5); border-color:var(--line);}
@@ -324,7 +258,6 @@ html.ios-native-chrome .search-box{display:none !important;}
   html[data-theme="dark"] .tool-btn.fav-on{background:#3A3218;border-color:var(--gold-soft);color:var(--gold-deep);}
   html[data-theme="dark"] .tabbar-inner{background:rgba(24,34,42,.92);
     box-shadow:0 10px 26px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.06);}
-  html[data-theme="dark"] .modal-panel{background:var(--card);}
   html[data-theme="dark"] #searchInput{background:var(--card);color:var(--ink);}
   html[data-theme="dark"] mark{background:rgba(127,227,208,.22);color:#7FE3D0;}
   html[data-theme="dark"] .note{background:var(--card);color:var(--muted);}
@@ -362,6 +295,12 @@ html.ios-native-chrome .search-box{display:none !important;}
     background:var(--card);box-shadow:var(--clay-sm);z-index:0;
     transition:transform .32s cubic-bezier(.34,1.4,.64,1), width .32s cubic-bezier(.34,1.4,.64,1);}
   @media (prefers-reduced-motion: reduce){ .seg-pill{transition:none;} }
+  /* Glass surfaces (gear buttons, settings/stats sheet) go frosty-solid instead of blurred —
+     same intent, no transparency, for anyone who's asked the system to reduce it. */
+  @media (prefers-reduced-transparency: reduce){
+    .gear-btn,.modal-panel{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+      background:var(--card)!important;}
+  }
   /* the five top-level screens fade + rise into place instead of hard-cutting in; the OUTGOING
      screen still just disappears (display:none), which reads fine since attention is already
      moving to what's arriving. */
@@ -1179,18 +1118,21 @@ html.ios-native-chrome .search-box{display:none !important;}
   /* Settings gear + modal */
   .hero-icons{position:relative;z-index:5;order:2;flex:0 0 auto;
     display:flex;flex-direction:column;gap:7px;}
-  .gear-btn{position:relative;width:36px;height:36px;border-radius:50%;border:none;cursor:pointer;
-    background:var(--good);display:flex;align-items:center;justify-content:center;
-    box-shadow:3px 3px 8px rgba(63,132,138,.35), -3px -3px 8px rgba(255,255,255,.8);
+  .gear-btn{position:relative;width:36px;height:36px;border-radius:50%;cursor:pointer;
+    background:var(--glass-tint);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+    border:1px solid var(--glass-border);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:3px 3px 8px rgba(63,132,138,.2), -2px -2px 6px rgba(255,255,255,.5);
     transition:.2s;}
   .gear-btn:active{transform:scale(.9) rotate(20deg);}
-  .gear-btn svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:1.8;
+  .gear-btn svg{width:18px;height:18px;stroke:var(--good-deep);fill:none;stroke-width:1.8;
     stroke-linecap:round;stroke-linejoin:round;}
   .modal-overlay{position:fixed;inset:0;z-index:80;background:rgba(6,22,32,.6);
     backdrop-filter:blur(4px);display:flex;align-items:flex-end;animation:overlayIn .25s ease;}
   @keyframes overlayIn{from{opacity:0;}to{opacity:1;}}
   .modal-panel{position:relative;width:100%;max-width:var(--maxw);margin:0 auto;max-height:86vh;
-    background:linear-gradient(180deg,var(--paper2),#F6EFDB);
+    background:var(--glass-tint-strong);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+    border-top:1px solid var(--glass-border);
     border-radius:28px 28px 0 0;box-shadow:0 -16px 52px rgba(0,0,0,.34);
     display:flex;flex-direction:column;animation:sheetUp .3s cubic-bezier(.2,.8,.2,1);}
   @keyframes sheetUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
@@ -1425,7 +1367,7 @@ html.ios-native-chrome .search-box{display:none !important;}
   </div>
   <div class="search-box">
     <svg viewBox="0 0 24 24" class="search-icon"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
-    <input type="search" id="searchInput" placeholder="חפשו מילה, נושא או ביטוי…" autocomplete="off">
+    <input type="search" id="searchInput" placeholder="חפשו מילה, נושא או ביטוי…" autocomplete="off" enterkeyhint="search">
   </div>
   <div id="searchStatus" class="search-status"></div>
   <div class="plist" id="searchResults"></div>
@@ -1434,6 +1376,7 @@ html.ios-native-chrome .search-box{display:none !important;}
 <!-- SHARED READER (single halacha at a time) -->
 <div class="wrap hidden" id="readerView">
   <button class="backbtn" id="rBack">▶ חזרה</button>
+  <div class="rh-bar"><button class="rh-btn rh-back" id="rhBack" aria-label="חזרה"><svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg></button><button class="rh-btn rh-share" id="rhShare" aria-label="שיתוף"><svg viewBox="0 0 24 24"><path d="M12 15V4"/><polyline points="8 8 12 4 16 8"/><path d="M6 11H5a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7a1 1 0 0 0-1-1h-1"/></svg></button></div>
   <div class="reader">
     <div class="reader-head">
       <h2 class="reader-title" id="rTitle" style="font-family:var(--serif);font-weight:900;font-size:24px;color:var(--navy);margin:6px 0 2px;">—</h2>
@@ -2541,7 +2484,9 @@ function renderReaderCard(navigated){
         blobs.length>1?(baseName+"-"+(i+1)+"of"+blobs.length+".png"):(baseName+".png"),
         {type:"image/png"}));
       const shareText="הלכות הבן איש חי — "+label;
-      if(navigator.canShare && navigator.canShare({files})){
+      if(await nativeShareImages(files, shareText)){
+        // handled by the native share sheet
+      }else if(navigator.canShare && navigator.canShare({files})){
         await navigator.share({title:"הלכות הבן איש חי",text:shareText,files});
       }else{
         for(const f of files){
@@ -3988,101 +3933,13 @@ document.getElementById("statsOverlay").addEventListener("click",(e)=>{
       if(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) cb();
     });
   }
-  whenCapacitorReady(async function(){
-    try{
-      const { LocalNotifications } = window.Capacitor.Plugins;
-      if(!LocalNotifications) return;
-      const perm = await LocalNotifications.checkPermissions();
-      if(perm.display !== "granted"){
-        const req = await LocalNotifications.requestPermissions();
-        if(req.display !== "granted") return;
-      }
-      await LocalNotifications.schedule({
-        notifications: [{
-          id: 1,
-          title: "הלכה יומית",
-          body: "ההלכה של היום מוכנה — לחצו לקריאה",
-          schedule: { on: { hour: 7, minute: 30 }, repeats: true, allowWhileIdle: true }
-        }]
-      });
-
-      await LocalNotifications.cancel({ notifications: [{ id: 2 }] });
-      const alreadyLearnedToday = typeof learnedToday === "function" && learnedToday();
-      if(!alreadyLearnedToday){
-        const now = new Date();
-        let at = new Date(); at.setHours(20, 30, 0, 0);
-        if(at <= now) at = new Date(now.getTime() + 5 * 60 * 1000);   // already past 20:30 — nudge shortly instead
-        const streak = typeof currentStreak === "function" ? currentStreak() : 0;
-        const title = streak > 0 ? "🔥 אל תפסידו את הרצף" : "הלכה יומית";
-        const body = streak > 0
-          ? streak + " ימים ברצף — היום עוד לא למדתם! לחצו לשמור על הרצף"
-          : "ההלכה של היום מחכה לכם — לחצו לקריאה";
-        await LocalNotifications.schedule({
-          notifications: [{ id: 2, title, body, schedule: { at, allowWhileIdle: true } }]
-        });
-      }
-    }catch(e){ /* permission denied or plugin unavailable — app works fine without it */ }
-  });
+  // Reminder scheduling moved to the feature block (window.hyScheduleReminders) so the user can pick the times.
+  void whenCapacitorReady;
 })();
 </script>
 
 <script>
-/* Native shell integration (iOS/Android app build only — no-op on the plain website).
-   Two real native features the App Store wants to see beyond a bare WebView, both fully
-   offline (no server, no push infra):
-   1. A fixed daily 07:30 notification that today's halacha is ready — scheduled once with a
-      fixed id, so rescheduling on every launch just overwrites the same notification.
-   2. A "don't lose your streak" evening reminder (id 2), rescheduled fresh on every launch:
-      cancelled outright if today's learning is already logged (see learnedToday() in the page
-      itself — index.html's streak feature), otherwise scheduled for this evening (or a few
-      minutes from now if it's already past that time), worded from the current streak length. */
-(function(){
-  function whenCapacitorReady(cb){
-    if(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) cb();
-    else document.addEventListener("DOMContentLoaded", ()=>{
-      if(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) cb();
-    });
-  }
-  whenCapacitorReady(async function(){
-    try{
-      const { LocalNotifications } = window.Capacitor.Plugins;
-      if(!LocalNotifications) return;
-      const perm = await LocalNotifications.checkPermissions();
-      if(perm.display !== "granted"){
-        const req = await LocalNotifications.requestPermissions();
-        if(req.display !== "granted") return;
-      }
-      await LocalNotifications.schedule({
-        notifications: [{
-          id: 1,
-          title: "הלכה יומית",
-          body: "ההלכה של היום מוכנה — לחצו לקריאה",
-          schedule: { on: { hour: 7, minute: 30 }, repeats: true, allowWhileIdle: true }
-        }]
-      });
-
-      await LocalNotifications.cancel({ notifications: [{ id: 2 }] });
-      const alreadyLearnedToday = typeof learnedToday === "function" && learnedToday();
-      if(!alreadyLearnedToday){
-        const now = new Date();
-        let at = new Date(); at.setHours(20, 30, 0, 0);
-        if(at <= now) at = new Date(now.getTime() + 5 * 60 * 1000);   // already past 20:30 — nudge shortly instead
-        const streak = typeof currentStreak === "function" ? currentStreak() : 0;
-        const title = streak > 0 ? "🔥 אל תפסידו את הרצף" : "הלכה יומית";
-        const body = streak > 0
-          ? streak + " ימים ברצף — היום עוד לא למדתם! לחצו לשמור על הרצף"
-          : "ההלכה של היום מחכה לכם — לחצו לקריאה";
-        await LocalNotifications.schedule({
-          notifications: [{ id: 2, title, body, schedule: { at, allowWhileIdle: true } }]
-        });
-      }
-    }catch(e){ /* permission denied or plugin unavailable — app works fine without it */ }
-  });
-})();
-</script>
-
-<script>
-const APP_STORE_URL = "https://apps.apple.com/app/REPLACE_WITH_REAL_SLUG/idREPLACE_WITH_REAL_ID";
+const APP_STORE_URL = "https://apps.apple.com/app/id6815639083";
 async function _ensureQrLib(){ if(!window.qrcode) await _loadScript("qrcode.js"); }
 function shareAppText(){
   const text="📖 הלכות הבן איש חי — הלכה אחת ביום, בדיוק לפי הסדר של הבן איש חי\n"+APP_STORE_URL;
@@ -4132,7 +3989,7 @@ async function buildAppQrImage(){
     if(qr.isDark(r,c)) ctx.fillRect(qrX+c*cell, qrY+r*cell, Math.ceil(cell), Math.ceil(cell));
 
   ctx.fillStyle=ink; ctx.font='500 30px "Heebo",sans-serif';
-  ctx.fillText("סריקה תפתח את האפליקציה ב-App Store", W/2, qrY+qrSize+60);
+  ctx.fillText("סריקה תפתח את האפליקציה בחנות האפליקציות", W/2, qrY+qrSize+60);
   ctx.fillStyle=goldDeep; ctx.font='700 32px "Frank Ruhl Libre",serif';
   ctx.fillText("הלכות הבן איש חי", W/2, H-70);
   return cv;
@@ -4144,7 +4001,9 @@ async function shareAppQR(){
     cv.toBlob(async blob=>{
       if(!blob){ showToast("שגיאה ביצירת תמונה"); return; }
       const file=new File([blob],"halacha-yomit-qr.png",{type:"image/png"});
-      if(navigator.canShare && navigator.canShare({files:[file]})){
+      if(await nativeShareImages([file], APP_STORE_URL)){
+        // handled by the native share sheet
+      }else if(navigator.canShare && navigator.canShare({files:[file]})){
         try{ await navigator.share({files:[file], text:APP_STORE_URL}); }catch(e){}
       }else{
         const url=URL.createObjectURL(blob);
@@ -4158,6 +4017,394 @@ async function shareAppQR(){
 }
 document.getElementById("shareAppBtn").addEventListener("click", shareAppText);
 document.getElementById("shareQrBtn").addEventListener("click", shareAppQR);
+</script>
+
+<div class="mini-topbar" id="miniTopbar" aria-hidden="true"><img src="icon-512.png" alt=""></div>
+<style>
+.mini-topbar{position:fixed;top:0;left:0;right:0;z-index:70;
+  height:calc(env(safe-area-inset-top) + 44px);
+  display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px;
+  background:linear-gradient(180deg,var(--card) 0%,var(--card) 75%,transparent);
+  opacity:0;transform:translateY(-10px);pointer-events:none;
+  transition:opacity .25s ease,transform .25s ease;}
+.mini-topbar.show{opacity:1;transform:translateY(0);}
+.mini-topbar img{width:30px;height:30px;border-radius:9px;display:block;
+  box-shadow:0 2px 8px rgba(0,0,0,.18);}
+body.reading .mini-topbar{display:none;}
+</style>
+<script>
+(function(){
+  // Apple-Music-style collapsing header: the big hero (portrait + title) scrolls away
+  // normally with the page; once it's mostly scrolled past, a small pinned bar with just the
+  // app's own icon fades in at the top — same idea the user already built into their other
+  // app, and the pattern system apps like Music use for a collapsing large title.
+  var bar = document.getElementById("miniTopbar");
+  if(!bar) return;
+  var ticking = false;
+  function onScroll(){
+    if(ticking) return;
+    ticking = true;
+    requestAnimationFrame(function(){
+      var hero = document.querySelector(".hero");
+      var threshold = (hero ? hero.offsetHeight : 160) * 0.6;
+      bar.classList.toggle("show", window.scrollY > threshold);
+      ticking = false;
+    });
+  }
+  window.addEventListener("scroll", onScroll, {passive:true});
+})();
+</script>
+<style>
+/* ---- Accessibility: honour "Reduce Motion" and keep focus visible for keyboard / VoiceOver users ---- */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;scroll-behavior:auto !important;}
+}
+:focus-visible{outline:3px solid var(--good,#3F848A);outline-offset:2px;}
+/* ---- Read aloud button (sits next to favourite / share in the reader) ---- */
+.minor-btn.speaking{color:var(--good-deep,#2C6D73);}
+/* ---- Wide screens (iPad / large windows): a roomier reading column ---- */
+@media (min-width:744px){
+  :root{--maxw:860px;}
+  .tabbar{max-width:640px;margin-inline:auto;}
+  /* comfortable line length for the reading column on iPad */
+  #readerView .reader{max-width:780px;margin-inline:auto;}
+}
+</style>
+<script>
+/* Feature block (v1.2): iCloud progress sync, Dynamic Type, VoiceOver labels, read aloud,
+   smart reminders and native "open today's halacha" actions (Siri / widget / notification / URL).
+   Everything is defensive: on the website / Android (no Capacitor iOS plugins) it is a no-op or
+   a harmless extra, and any failure is swallowed so it can never break the app itself. */
+(function(){
+  "use strict";
+  var IOS = !!window.isIOSNative;
+  function plugins(){ return (window.Capacitor && window.Capacitor.Plugins) || {}; }
+  function jget(k, d){ try{ var v = JSON.parse(localStorage.getItem(k) || "null"); return v == null ? d : v; }catch(e){ return d; } }
+
+  /* =====================================================================================
+     1. iCloud sync of progress / favourites / streak (NSUbiquitousKeyValueStore, see
+        CloudSyncBridge.swift). Merge = last-writer-wins PER halacha (with tombstones so
+        un-marking syncs too); the streak keeps the more recent / higher one.
+     ===================================================================================== */
+  var PK = "hy_progress_v1", FK = "hy_favorites_v1", SK = "hy_streak_v1", MK = "hy_sync_meta_v1";
+  var rawSet = Storage.prototype.setItem;
+  var applying = false, pushTimer = null, meta = jget(MK, null) || { p: {}, f: {} };
+  function saveMeta(){ try{ rawSet.call(localStorage, MK, JSON.stringify(meta)); }catch(e){} }
+  function trackDiff(which, newJson){
+    var oldMap = jget(which === "p" ? PK : FK, {}), newMap = {};
+    try{ newMap = JSON.parse(newJson) || {}; }catch(e){ return; }
+    var now = Date.now(), t = meta[which], seen = {}, k;
+    for(k in oldMap) seen[k] = 1;
+    for(k in newMap) seen[k] = 1;
+    for(k in seen){ if(!!oldMap[k] !== !!newMap[k]) t[k] = now; }
+    saveMeta();
+  }
+  Storage.prototype.setItem = function(k, v){
+    var mine = (this === window.localStorage) && !applying;
+    if(mine && k === PK) trackDiff("p", v);
+    if(mine && k === FK) trackDiff("f", v);
+    var r = rawSet.apply(this, arguments);
+    if(mine && (k === PK || k === FK || k === SK)) schedulePush();
+    return r;
+  };
+  function buildBlob(){
+    var out = { v: 1, t: Date.now(), p: {}, f: {}, s: jget(SK, null) };
+    [["p", PK], ["f", FK]].forEach(function(pair){
+      var map = jget(pair[1], {}), t = meta[pair[0]], dst = out[pair[0]], k;
+      for(k in map) if(map[k]) dst[k] = [t[k] || 0, true];
+      for(k in t) if(!map[k]) dst[k] = [t[k], false];
+    });
+    return out;
+  }
+  function mergeMap(local, lmeta, remote){
+    var changed = false;
+    Object.keys(remote || {}).forEach(function(k){
+      var r = remote[k], lt = lmeta[k] || 0, lv = !!local[k];
+      if(r[0] > lt){
+        lmeta[k] = r[0];
+        if(!!r[1] !== lv){ if(r[1]) local[k] = true; else delete local[k]; changed = true; }
+      }
+    });
+    return changed;
+  }
+  function mergeStreak(a, b){
+    if(!a) return b; if(!b) return a;
+    var best = Math.max(a.best || 0, b.best || 0), out;
+    if((a.last || "") > (b.last || "")) out = { last: a.last, count: a.count };
+    else if((b.last || "") > (a.last || "")) out = { last: b.last, count: b.count };
+    else out = { last: a.last, count: Math.max(a.count || 0, b.count || 0) };
+    out.best = Math.max(best, out.count || 0);
+    return out;
+  }
+  function applyRemote(blob){
+    if(!blob || blob.v !== 1) return false;
+    var progress = jget(PK, {}), favs = jget(FK, {}), changed = false;
+    var c1 = mergeMap(progress, meta.p, blob.p), c2 = mergeMap(favs, meta.f, blob.f);
+    var localStreak = jget(SK, null), merged = mergeStreak(localStreak, blob.s), c3 = false;
+    if(merged && JSON.stringify(merged) !== JSON.stringify(localStreak)) c3 = true;
+    applying = true;
+    try{
+      if(c1) rawSet.call(localStorage, PK, JSON.stringify(progress));
+      if(c2) rawSet.call(localStorage, FK, JSON.stringify(favs));
+      if(c3) rawSet.call(localStorage, SK, JSON.stringify(merged));
+    }finally{ applying = false; }
+    saveMeta();
+    changed = c1 || c2 || c3;
+    return changed;
+  }
+  function cloud(){ var p = plugins().CloudSyncBridge; return (IOS && p) ? p : null; }
+  async function push(){
+    var c = cloud(); if(!c) return;
+    try{ await c.setBlob({ value: JSON.stringify(buildBlob()) }); }catch(e){}
+  }
+  function schedulePush(){ clearTimeout(pushTimer); pushTimer = setTimeout(push, 2500); }
+  async function pull(refreshUi){
+    var c = cloud(); if(!c) return;
+    try{
+      var res = await c.getBlob();
+      var blob = res && res.value ? JSON.parse(res.value) : null;
+      var changed = blob ? applyRemote(blob) : false;
+      if(changed){
+        try{ if(typeof renderStreakBadge === "function") renderStreakBadge(); }catch(e){}
+        if(refreshUi){ try{ if(typeof showWeek === "function" && document.getElementById("weekView") &&
+          !document.getElementById("weekView").classList.contains("hidden") &&
+          !document.body.classList.contains("reading")) showWeek(); }catch(e){} }
+      }
+      if(!blob || changed) schedulePush();   // first device uploads; after a merge, publish the union
+    }catch(e){}
+  }
+  window.hyCloud = { build: buildBlob, apply: applyRemote, mergeStreak: mergeStreak, pull: pull, push: push };
+  if(IOS){
+    setTimeout(function(){ pull(true); }, 1500);
+    document.addEventListener("visibilitychange", function(){ if(document.visibilityState === "visible") pull(false); });
+    try{ var cp = plugins().CloudSyncBridge; if(cp && cp.addListener) cp.addListener("cloudChanged", function(){ pull(false); }); }catch(e){}
+  }
+
+  /* =====================================================================================
+     2. Dynamic Type (the user's system text size scales the reader text) + VoiceOver labels
+     ===================================================================================== */
+  function dynScale(){
+    try{
+      if(!(window.CSS && CSS.supports && CSS.supports("font", "-apple-system-body"))) return 1;
+      var p = document.createElement("div");
+      p.style.cssText = "font:-apple-system-body;position:absolute;visibility:hidden;pointer-events:none";
+      p.textContent = "x"; document.body.appendChild(p);
+      var px = parseFloat(getComputedStyle(p).fontSize); p.remove();
+      if(!px) return 1;
+      return Math.max(.85, Math.min(1.9, px / 17));
+    }catch(e){ return 1; }
+  }
+  function applyDyn(){
+    var v = parseFloat(localStorage.getItem("hy_fontsize_v1") || "1") || 1;
+    document.documentElement.style.setProperty("--fsz", String(v * dynScale()));
+  }
+  var origApplyFsz = window.applyFsz;
+  if(typeof origApplyFsz === "function"){
+    window.applyFsz = function(){ var r = origApplyFsz.apply(this, arguments); applyDyn(); return r; };
+  }
+  applyDyn();
+  document.addEventListener("visibilitychange", function(){ if(document.visibilityState === "visible") applyDyn(); });
+
+  function labelAll(){
+    function set(sel, label){ document.querySelectorAll(sel).forEach(function(el){ if(!el.getAttribute("aria-label")) el.setAttribute("aria-label", label); }); }
+    set("#openSettings", "הגדרות");
+    set("#openStats", "סטטיסטיקה והתקדמות");
+    set("#closeSettings", "סגירה");
+    set("#closeStats", "סגירה");
+    set("#rBack", "חזרה");
+    set("#rChk", "סמן שלמדתי את ההלכה");
+    set("#rFavBtn", "הוספה למועדפים");
+    set("#rShareBtn", "שיתוף ההלכה");
+    set("#searchInput", "חיפוש בכל הספר");
+    set("#fszDown", "הקטנת הטקסט");
+    set("#fszUp", "הגדלת הטקסט");
+    document.querySelectorAll(".jump-pill").forEach(function(el){
+      if(!el.getAttribute("role")){ el.setAttribute("role", "button"); el.setAttribute("tabindex", "0"); }
+      el.setAttribute("aria-label", "הלכה " + el.textContent.trim() + (el.classList.contains("done") ? ", נלמדה" : "") + (el.classList.contains("cur") ? ", נוכחית" : ""));
+    });
+    var st = document.getElementById("searchStatus"); if(st && !st.getAttribute("aria-live")) st.setAttribute("aria-live", "polite");
+    var ts = document.querySelector(".toast"); if(ts){ ts.setAttribute("role", "status"); ts.setAttribute("aria-live", "polite"); }
+    document.querySelectorAll("svg").forEach(function(s){ if(!s.hasAttribute("aria-hidden")) s.setAttribute("aria-hidden", "true"); });
+  }
+  var labelTimer = null;
+  function scheduleLabel(){ clearTimeout(labelTimer); labelTimer = setTimeout(labelAll, 120); }
+  try{ new MutationObserver(scheduleLabel).observe(document.body, { childList: true, subtree: true }); }catch(e){}
+  document.addEventListener("keydown", function(e){
+    if((e.key === "Enter" || e.key === " ") && e.target && e.target.classList && e.target.classList.contains("jump-pill")){ e.preventDefault(); e.target.click(); }
+  });
+  labelAll();
+
+  /* =====================================================================================
+     3. Read aloud (system Hebrew voice via the Web Speech API)
+     ===================================================================================== */
+  var synth = window.speechSynthesis, speaking = false;
+  function stripMarks(s){ return s.replace(/[֑-ׇ]/g, "").replace(/\s+/g, " ").trim(); }
+  function chunks(text){
+    // split after sentence punctuation (no regex lookbehind: iOS < 16.4 can't parse it)
+    var pieces = text.split(/([.!?:;׃])\s+/), parts = [], i;
+    for(i = 0; i < pieces.length; i += 2) parts.push(pieces[i] + (pieces[i + 1] || ""));
+    var out = [], cur = "";
+    parts.forEach(function(p){
+      if(!p) return;
+      if((cur + " " + p).length > 220 && cur){ out.push(cur); cur = p; } else cur = cur ? cur + " " + p : p;
+    });
+    if(cur) out.push(cur);
+    return out;
+  }
+  function hebrewVoice(){
+    try{ return (synth.getVoices() || []).filter(function(v){ return /^he/i.test(v.lang); })[0] || null; }catch(e){ return null; }
+  }
+  function currentText(){
+    var el = document.querySelector("#rCard .halacha"); if(!el) return "";
+    var src = el.querySelector(".source"), biur = el.querySelector(".biur:not(.pending)");
+    return stripMarks((src ? src.innerText : "") + (biur ? ". " + biur.innerText : ""));
+  }
+  function stopSpeak(){
+    try{ synth.cancel(); }catch(e){}
+    speaking = false; var b = document.getElementById("rSpeakBtn");
+    if(b){ b.classList.remove("speaking"); var s = b.querySelector("span"); if(s) s.textContent = "הקראה"; b.setAttribute("aria-label", "הקראת ההלכה"); }
+  }
+  function startSpeak(){
+    var text = currentText(); if(!text) return;
+    var voice = hebrewVoice(), list = chunks(text), i = 0;
+    speaking = true;
+    var b = document.getElementById("rSpeakBtn");
+    if(b){ b.classList.add("speaking"); var s = b.querySelector("span"); if(s) s.textContent = "עצור"; b.setAttribute("aria-label", "עצירת ההקראה"); }
+    (function next(){
+      if(!speaking || i >= list.length){ stopSpeak(); return; }
+      var u = new SpeechSynthesisUtterance(list[i++]);
+      u.lang = "he-IL"; if(voice) u.voice = voice; u.rate = .95;
+      u.onend = next; u.onerror = function(){ stopSpeak(); };
+      try{ synth.speak(u); }catch(e){ stopSpeak(); }
+    })();
+  }
+  function ensureSpeakBtn(){
+    var host = document.getElementById("sealMinor"); if(!host || !synth) return;
+    if(document.getElementById("rSpeakBtn")) return;
+    var b = document.createElement("button");
+    b.className = "minor-btn"; b.id = "rSpeakBtn"; b.type = "button"; b.setAttribute("aria-label", "הקראת ההלכה");
+    b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg><span>הקראה</span>';
+    b.addEventListener("click", function(){ if(speaking) stopSpeak(); else startSpeak(); });
+    host.appendChild(b);
+  }
+  if(synth){
+    var sealMinorObs = new MutationObserver(function(){ stopSpeak(); ensureSpeakBtn(); });
+    var attach = function(){ var h = document.getElementById("sealMinor"); if(h){ sealMinorObs.observe(h, { childList: true }); ensureSpeakBtn(); } };
+    attach();
+    document.addEventListener("visibilitychange", function(){ if(document.visibilityState !== "visible") stopSpeak(); });
+    window.addEventListener("pagehide", stopSpeak);
+  }
+
+  /* =====================================================================================
+     4. Smart reminders (local notifications, fully offline)
+        - morning reminder at the user's time, for the next 7 days, skipped on days already learned
+        - evening "keep your streak" reminder for the next 3 days, cancelled the moment you learn
+        - tapping any reminder opens straight onto today's halacha
+     ===================================================================================== */
+  var RK = "hy_reminders_v1", DEF = { morningOn: true, morning: "07:30", eveningOn: true, evening: "20:30" };
+  function getReminderPrefs(){ var p = jget(RK, {}); return { morningOn: p.morningOn !== false, morning: p.morning || DEF.morning, eveningOn: p.eveningOn !== false, evening: p.evening || DEF.evening }; }
+  window.getReminderPrefs = getReminderPrefs;
+  function hm(s){ var m = /^(\d{1,2}):(\d{2})$/.exec(s || ""); return m ? [Math.min(23, +m[1]), Math.min(59, +m[2])] : [7, 30]; }
+  function dayAt(offset, h, m){ var d = new Date(); d.setDate(d.getDate() + offset); d.setHours(h, m, 0, 0); return d; }
+  function planReminders(prefs, now, learned, parasha, streak){
+    var plan = [], d, at, hmv;
+    if(prefs.morningOn){
+      hmv = hm(prefs.morning);
+      for(d = 0; d < 7; d++){
+        at = dayAt(d, hmv[0], hmv[1]); if(at <= now) continue; if(d === 0 && learned) continue;
+        plan.push({ id: 1000 + d, title: "הלכה יומית", body: parasha ? "ההלכה של היום מוכנה · " + parasha : "ההלכה של היום מוכנה — לחצו לקריאה", at: at });
+      }
+    }
+    if(prefs.eveningOn){
+      hmv = hm(prefs.evening);
+      for(d = 0; d < 3; d++){
+        at = dayAt(d, hmv[0], hmv[1]); if(at <= now) continue; if(d === 0 && learned) continue;
+        var withStreak = d === 0 && streak > 0;
+        plan.push({ id: 2000 + d, title: withStreak ? "🔥 אל תפסידו את הרצף" : "הלכה יומית",
+          body: withStreak ? streak + " ימים ברצף — היום עוד לא למדתם! לחצו לשמור על הרצף" : "ההלכה של היום מחכה לכם — לחצו לקריאה", at: at });
+      }
+    }
+    return plan;
+  }
+  window.hyPlanReminders = planReminders;
+  var ALL_IDS = [1, 2]; (function(){ var i; for(i = 0; i < 7; i++) ALL_IDS.push(1000 + i); for(i = 0; i < 3; i++) ALL_IDS.push(2000 + i); })();
+  async function scheduleReminders(){
+    try{
+      var LN = plugins().LocalNotifications; if(!IOS || !LN) return;
+      var perm = await LN.checkPermissions();
+      if(perm.display !== "granted"){ perm = await LN.requestPermissions(); if(perm.display !== "granted") return; }
+      await LN.cancel({ notifications: ALL_IDS.map(function(id){ return { id: id }; }) });
+      var pEl = document.getElementById("wParasha"), parasha = pEl ? pEl.textContent.trim() : "";
+      if(parasha === "—") parasha = "";
+      var plan = planReminders(getReminderPrefs(), new Date(), typeof learnedToday === "function" && learnedToday(), parasha,
+        typeof currentStreak === "function" ? currentStreak() : 0);
+      if(!plan.length) return;
+      await LN.schedule({ notifications: plan.map(function(n){
+        return { id: n.id, title: n.title, body: n.body, extra: { action: "today" }, schedule: { at: n.at, allowWhileIdle: true } };
+      }) });
+    }catch(e){}
+  }
+  window.hyScheduleReminders = scheduleReminders;
+  window.setReminderPrefs = function(patch){
+    var p = getReminderPrefs(); Object.keys(patch || {}).forEach(function(k){ if(k in DEF) p[k] = patch[k]; });
+    try{ rawSet.call(localStorage, RK, JSON.stringify(p)); }catch(e){}
+    scheduleReminders(); return p;
+  };
+  // cancel today's reminders the moment today's learning is logged
+  var origBump = window.bumpStreak;
+  if(typeof origBump === "function"){
+    window.bumpStreak = function(){
+      var r = origBump.apply(this, arguments);
+      try{
+        var LN = plugins().LocalNotifications;
+        if(IOS && LN) LN.cancel({ notifications: [{ id: 1000 }, { id: 2000 }] });
+      }catch(e){}
+      return r;
+    };
+  }
+  if(IOS){
+    setTimeout(scheduleReminders, 2500);
+    try{
+      var LN2 = plugins().LocalNotifications;
+      if(LN2 && LN2.addListener) LN2.addListener("localNotificationActionPerformed", function(){ window.hyNativeAction("today"); });
+    }catch(e){}
+  }
+
+  /* =====================================================================================
+     5. Native actions: "open today's halacha" from Siri / Shortcuts / the widget / a reminder / URL
+     ===================================================================================== */
+  window.hyNativeAction = function(action){
+    if(action !== "today") return;
+    var tries = 0;
+    function go(){
+      if(document.body.classList.contains("reading")){ var back = document.getElementById("rBack"); if(back) back.click(); }
+      var seg = document.getElementById("segWeek"); if(seg && tries === 0) seg.click();
+      var btn = document.querySelector('#wContent [data-act="today"]') || document.querySelector('#wContent [data-act="one"]') || document.querySelector("#wContent .entry-btn");
+      if(btn){ btn.click(); return; }
+      if(++tries < 25) setTimeout(go, 400);
+    }
+    go();
+  };
+  async function takePending(){
+    try{
+      var b = plugins().HalachaWidgetBridge; if(!IOS || !b || !b.takePendingAction) return;
+      var r = await b.takePendingAction();
+      if(r && r.action) window.hyNativeAction(r.action);
+    }catch(e){}
+  }
+  if(IOS){
+    setTimeout(takePending, 1200);
+    document.addEventListener("visibilitychange", function(){ if(document.visibilityState === "visible") takePending(); });
+    try{
+      var AppP = plugins().App;
+      if(AppP){
+        if(AppP.addListener) AppP.addListener("appUrlOpen", function(e){ if(e && /^halachayomit:\/\/today/i.test(e.url || "")) window.hyNativeAction("today"); });
+        if(AppP.getLaunchUrl) AppP.getLaunchUrl().then(function(r){ if(r && /^halachayomit:\/\/today/i.test(r.url || "")) setTimeout(function(){ window.hyNativeAction("today"); }, 1200); }).catch(function(){});
+      }
+    }catch(e){}
+  }
+})();
 </script>
 </body>
 </html>

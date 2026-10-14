@@ -12,8 +12,19 @@ public class HalachaWidgetBridge: CAPPlugin, CAPBridgedPlugin {
     public let identifier = "HalachaWidgetBridge"
     public let jsName = "HalachaWidgetBridge"
     public let pluginMethods: [CAPPluginMethod] = [
-        CAPPluginMethod(name: "updateSharedData", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "updateSharedData", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "takePendingAction", returnType: CAPPluginReturnPromise)
     ]
+
+    /// Returns {action: "today"} once if a Siri shortcut / widget button asked the app to open
+    /// today's halacha while it wasn't in front, otherwise {action: null}.
+    @objc func takePendingAction(_ call: CAPPluginCall) {
+        if let action = HalachaSharedData.takePendingAction() {
+            call.resolve(["action": action])
+        } else {
+            call.resolve(["action": NSNull()])
+        }
+    }
 
     @objc func updateSharedData(_ call: CAPPluginCall) {
         let snapshot = HalachaSharedData.Snapshot(

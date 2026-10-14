@@ -64,6 +64,7 @@ struct HalachaWidgetEntryView: View {
             }
         }
         .environment(\.layoutDirection, .rightToLeft)
+        .widgetURL(URL(string: "halachayomit://today"))
         .containerBackground(for: .widget) {
             if family == .systemSmall || family == .systemMedium {
                 HalachaWidgetTheme.gradient(for: entry.snapshot.theme)
@@ -110,6 +111,17 @@ struct HalachaWidgetEntryView: View {
                     Text("היום כבר למדתם ✓")
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(HalachaWidgetTheme.good)
+                } else {
+                    // Interactive (iOS 17): taps straight into today's halacha without having to find
+                    // it in the app (OpenTodayHalachaIntent, shared with the Siri shortcut).
+                    Button(intent: OpenTodayHalachaIntent()) {
+                        Text("המשך ללמוד ›")
+                            .font(.system(size: 12, weight: .bold))
+                            .padding(.horizontal, 12).padding(.vertical, 6)
+                            .background(HalachaWidgetTheme.gold, in: Capsule())
+                            .foregroundStyle(.white)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
             .frame(maxWidth: .infinity)

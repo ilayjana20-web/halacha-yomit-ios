@@ -50,6 +50,8 @@ struct NativeStatsView: View {
                 }
             }
         }
+        // Single column on iPad too — see NativeSettingsView.
+        .navigationViewStyle(.stack)
         .environment(\.layoutDirection, .rightToLeft)
         .onAppear {
             // Starts fully hidden then animates to the real fill on the next runloop tick —

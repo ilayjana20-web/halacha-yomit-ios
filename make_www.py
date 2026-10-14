@@ -53,6 +53,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.expanduser("~/halacha_yomit/static")
 DST = os.path.join(HERE, "www")
 
+# Feature block (iCloud sync, Dynamic Type, VoiceOver, read aloud, smart reminders, native actions)
+# lives in its own file so it can be edited/tested as plain HTML+JS.
+FEATURES_BLOCK = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "blocks", "features.html"), encoding="utf-8").read()
+
 NATIVE_BLOCK = r'''
 <script>
 /* Native shell integration (iOS/Android app build only — no-op on the plain website).
@@ -71,41 +75,8 @@ NATIVE_BLOCK = r'''
       if(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) cb();
     });
   }
-  whenCapacitorReady(async function(){
-    try{
-      const { LocalNotifications } = window.Capacitor.Plugins;
-      if(!LocalNotifications) return;
-      const perm = await LocalNotifications.checkPermissions();
-      if(perm.display !== "granted"){
-        const req = await LocalNotifications.requestPermissions();
-        if(req.display !== "granted") return;
-      }
-      await LocalNotifications.schedule({
-        notifications: [{
-          id: 1,
-          title: "הלכה יומית",
-          body: "ההלכה של היום מוכנה — לחצו לקריאה",
-          schedule: { on: { hour: 7, minute: 30 }, repeats: true, allowWhileIdle: true }
-        }]
-      });
-
-      await LocalNotifications.cancel({ notifications: [{ id: 2 }] });
-      const alreadyLearnedToday = typeof learnedToday === "function" && learnedToday();
-      if(!alreadyLearnedToday){
-        const now = new Date();
-        let at = new Date(); at.setHours(20, 30, 0, 0);
-        if(at <= now) at = new Date(now.getTime() + 5 * 60 * 1000);   // already past 20:30 — nudge shortly instead
-        const streak = typeof currentStreak === "function" ? currentStreak() : 0;
-        const title = streak > 0 ? "🔥 אל תפסידו את הרצף" : "הלכה יומית";
-        const body = streak > 0
-          ? streak + " ימים ברצף — היום עוד לא למדתם! לחצו לשמור על הרצף"
-          : "ההלכה של היום מחכה לכם — לחצו לקריאה";
-        await LocalNotifications.schedule({
-          notifications: [{ id: 2, title, body, schedule: { at, allowWhileIdle: true } }]
-        });
-      }
-    }catch(e){ /* permission denied or plugin unavailable — app works fine without it */ }
-  });
+  // Reminder scheduling moved to the feature block (window.hyScheduleReminders) so the user can pick the times.
+  void whenCapacitorReady;
 })();
 </script>
 '''
@@ -143,12 +114,44 @@ CHROME_HEAD_BLOCK = r'''
 /* Liquid Glass native chrome (iOS app only) replaces these — see LiquidGlassChrome.swift. */
 html.ios-native-chrome .tabbar,
 html.ios-native-chrome #rBack,
-html.ios-native-chrome #rShareBtn,
-html.ios-native-chrome .search-box{display:none !important;}
+html.ios-native-chrome #rShareBtn{display:none !important;}
+/* The native nav bar (back/title/share) already covers the reader's chrome — the web app's
+   own branded header (portrait, title, gear/stats buttons) would otherwise still show right
+   below it, duplicating the back/share affordance and reading as two disconnected headers
+   stacked on top of each other. Hidden only while BOTH native chrome and the reader are active
+   (body.reading) — the home/topics/picker screens keep the full header exactly as before. */
+html.ios-native-chrome body.reading .hero{display:none !important;}
+/* No native bar sits above the page any more (it left a black strip over the content): the web
+   content runs edge to edge under the status bar, the search field replaces the "חיפוש הלכה"
+   title card, and the reader's back/share buttons sit in the reader's own title row. */
+html.ios-native-chrome #searchView .page-head{display:none;}
+html.ios-native-chrome #searchView .search-box{margin:18px 0 6px;}
+html.ios-native-chrome #searchInput{padding:21px 54px 21px 22px;font-size:18px;
+  background:var(--glass-tint-strong);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+  border:1px solid var(--glass-border);}
+.rh-bar{display:none;}
+html.ios-native-chrome .rh-bar{display:block;position:sticky;top:calc(max(env(safe-area-inset-top),47px) + 6px);height:0;z-index:30;}
+html.ios-native-chrome .rh-btn{position:absolute;top:0;width:42px;height:42px;border-radius:50%;display:flex;
+  align-items:center;justify-content:center;padding:0;border:1px solid var(--glass-border);
+  background:var(--glass-tint-strong);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+  box-shadow:var(--clay-sm);color:var(--good-deep);-webkit-tap-highlight-color:transparent;}
+html.ios-native-chrome .rh-back{inset-inline-start:2px;}
+html.ios-native-chrome .rh-share{inset-inline-end:2px;}
+html.ios-native-chrome .rh-btn svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:2.3;
+  stroke-linecap:round;stroke-linejoin:round;}
+html.ios-native-chrome body.reading #readerView{padding-top:calc(max(env(safe-area-inset-top),47px) + 6px);}
+html.ios-native-chrome body.reading .reader-head{padding-inline:54px;}
+html.ios-native-chrome body.reading .offline-banner{display:none;}
 </style>
 <script>
 (function(){
-  var isIOSNative = !!(window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform()==="ios");
+  // A true global (not a closure-local var) — openSettings()/openStats()/showToast() etc.,
+  // defined later as top-level functions in the body script, reference this by bare name and
+  // need it to resolve through the global object. A closure-local `var` here was invisible to
+  // them (ReferenceError, silently swallowing every tap on settings/stats/toast — the bug that
+  // made the gear icon do nothing and a second tap register as the webview's own double-tap-
+  // to-zoom gesture instead).
+  window.isIOSNative = !!(window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform()==="ios");
   document.documentElement.classList.toggle("ios-native-chrome", isIOSNative);
   // Safe to call from anywhere, anytime, including synchronously during the earliest page
   // script — no-ops instantly on web/Android, or if the native side hasn't registered the
@@ -160,141 +163,35 @@ html.ios-native-chrome .search-box{display:none !important;}
       }
     }catch(e){}
   };
-  // The other direction: the native UISearchBar (search tab only, see LiquidGlassChrome.swift)
-  // drives the existing #searchInput + its debounced "input" listener, rather than
-  // duplicating the search-triggering logic natively.
-
-  // Edge-swipe back (like Android's back gesture) + status-bar tap scroll-to-top. iOS app only.
-  window.betelAppBack = function(){
-    var pb = document.getElementById("pickerBack");
-    if(pb && pb.offsetParent !== null){ pb.click(); return true; }
-    var rv = document.getElementById("readerView"), rb = document.getElementById("rBack");
-    if(rv && !rv.classList.contains("hidden") && rb){ rb.click(); return true; }
-    return false;
-  };
-  window.betelCanGoBack = function(){
-    var pb=document.getElementById("pickerBack");
-    if(pb && pb.offsetParent!==null) return true;
-    var rv=document.getElementById("readerView");
-    return !!(rv && !rv.classList.contains("hidden") && document.getElementById("rBack"));
-  };
-  window.betelScrollTop = function(){
-    try{ window.scrollTo({top:0, behavior:"smooth"}); }catch(e){ window.scrollTo(0,0); }
-  };
-  if(isIOSNative && false){   // native UIScreenEdgePanGestureRecognizer handles this now
-    var sx=0, sy=0, st=0, edge=false;
-    document.addEventListener("touchstart", function(e){
-      var t=e.touches[0]; sx=t.clientX; sy=t.clientY; st=Date.now();
-      edge = e.touches.length===1 && (sx<=22 || sx>=window.innerWidth-22);
-    }, {passive:true});
-    document.addEventListener("touchend", function(e){
-      if(!edge) return; edge=false;
-      var t=e.changedTouches[0], dx=t.clientX-sx, dy=t.clientY-sy;
-      var inward = sx<=22 ? dx : -dx;
-      if(inward>70 && Math.abs(dy)<0.6*inward && Date.now()-st<700) window.betelAppBack();
-    }, {passive:true});
-  }
-
-  // Pull-down-to-refresh (re-renders the open tab), tap-the-active-tab-again scrolls to top,
-  // and a long-press menu on parasha tiles that opens the real iOS action sheet (Liquid Glass on
-  // iOS 26) via the native side. iOS app only.
-  window.betelTabReselect = function(id){
-    var b = document.getElementById(id);
-    if(!b || !b.classList.contains("active")) return false;
-    if((window.scrollY||document.documentElement.scrollTop||0) > 8){ window.betelScrollTop(); return true; }
-    return false;
-  };
-  var __actCb = {};
-  window.__betelActionDone = function(cb, id){ var f = __actCb[cb]; delete __actCb[cb]; if(f) f(id); };
-  function nativeSheet(title, actions, cancel, cb){
-    var n = String(Date.now()); __actCb[n] = cb;
-    window.notifyNativeChrome({type:"actionSheet", title:title, actions:actions, cancel:cancel, cb:n});
-  }
-  if(isIOSNative){
-    // (pull-to-refresh is Apple's native UIRefreshControl now - see LiquidGlassChrome.swift)
-
-    // ---- long-press on a parasha tile -> system action sheet ----
-    var lpTimer=null, lpx=0, lpy=0, lpFired=0;
-    document.addEventListener("touchstart", function(e){
-      var tile = e.target.closest && e.target.closest(".btile[data-key]");
-      if(!tile || e.touches.length!==1) return;
-      var t=e.touches[0]; lpx=t.clientX; lpy=t.clientY;
-      clearTimeout(lpTimer);
-      lpTimer=setTimeout(function(){
-        lpFired=Date.now();
-        window.notifyNativeChrome({type:"haptic", style:"light"});
-        var nm = (tile.querySelector(".bn,.bt,.name")||tile).textContent.trim().split("\n")[0].slice(0,40);
-        nativeSheet(nm, [{id:"open",title:"פתיחה"},{id:"share",title:"שיתוף"}], "ביטול", function(id){
-          if(id==="open") tile.click();
-          else if(id==="share"){
-            var txt = "הלכות הבן איש חי — " + nm;
-            try{ if(typeof APP_STORE_URL==="string" && APP_STORE_URL.indexOf("REPLACE")<0) txt += "\n" + APP_STORE_URL; }catch(_){}
-            if(navigator.share) navigator.share({title:"הלכות הבן איש חי", text:txt}).catch(function(){});
-            else if(navigator.clipboard) navigator.clipboard.writeText(txt);
-          }
+  // The search field is the page's own #searchInput; the keyboard's "search" key dismisses it.
+  // The reader's back/share glass buttons just forward to the original (hidden) controls.
+  // Image shares go through the native share sheet (Web Share API `files` is unreliable inside
+  // WKWebView). Resolves true once the native sheet handled it (even if the user cancelled),
+  // false when unavailable so the caller falls back to the web paths.
+  window.nativeShareImages = async function(files, text){
+    var p = isIOSNative && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.ShareImageBridge;
+    if(!p) return false;
+    try{
+      var images = await Promise.all(files.map(function(f){
+        return new Promise(function(res, rej){
+          var r = new FileReader();
+          r.onload = function(){ res({name:f.name, data:String(r.result).split(",")[1]}); };
+          r.onerror = rej; r.readAsDataURL(f);
         });
-      }, 480);
-    }, {passive:true});
-    document.addEventListener("touchmove", function(e){
-      var t=e.touches[0]; if(lpTimer && (Math.abs(t.clientX-lpx)>8 || Math.abs(t.clientY-lpy)>8)){ clearTimeout(lpTimer); lpTimer=null; }
-    }, {passive:true});
-    ["touchend","touchcancel"].forEach(function(ev){ document.addEventListener(ev, function(){ clearTimeout(lpTimer); lpTimer=null; }, {passive:true}); });
-    document.addEventListener("click", function(e){ if(Date.now()-lpFired<700){ e.stopPropagation(); e.preventDefault(); } }, true);
-  }
-
-  // ---- Native picker bridge: the "all parshiyot" screen is drawn natively (NativePickerView in
-  // LiquidGlassChrome.swift). The web page keeps all the logic: we scrape the rendered tiles, send them over,
-  // and the native side calls act/track/back which just click the real DOM buttons. iOS app only.
-  if(isIOSNative){
-    var npStyle=document.createElement("style");
-    npStyle.textContent="html.native-picker #pickerView{visibility:hidden}";
-    document.head.appendChild(npStyle);
-    var npOpen=false;
-    function npTxt(el){ return el ? el.textContent.replace(/\s+/g," ").trim() : ""; }
-    function npPct(el){ var i=el && el.querySelector(".tbar i"); var m=i && /([\d.]+)%/.exec(i.getAttribute("style")||""); return m?Math.round(parseFloat(m[1])):0; }
-    function npState(){
-      var pv=document.getElementById("pickerView"), pl=document.getElementById("plist");
-      if(!pv || !pl || pv.classList.contains("hidden")) return null;
-      var tiles=[].slice.call(pl.querySelectorAll(".btile"));
-      if(!tiles.length) return null;
-      var level = pl.querySelector(".btile[data-book]") ? 1 : 2;
-      var tabs=[];
-      if(level===1) [].slice.call(document.querySelectorAll("#pickerTabs .tab")).forEach(function(t){ tabs.push({id:t.getAttribute("data-track"),label:npTxt(t),active:t.classList.contains("active")}); });
-      var tb=pl.querySelector(".tot-banner"), banner=null;
-      if(tb){ var foot=tb.querySelectorAll(".tb-foot span"); var pct=npPct({querySelector:function(){return null;}});
-        var w=tb.querySelector(".tb-track i"); var mm=w&&/([\d.]+)%/.exec(w.getAttribute("style")||"");
-        banner={label:npTxt(tb.querySelector(".tb-lbl")),num:npTxt(tb.querySelector(".tb-num")),pct:mm?Math.round(parseFloat(mm[1])):0,foot:npTxt(foot[0]),footPct:npTxt(foot[1])}; }
-      var back=document.getElementById("pickerBack");
-      return {level:level, tabs:tabs, backLabel: back ? npTxt(back).replace(/^▶\s*/,"") : null, banner:banner,
-        items:tiles.map(function(t){ return {
-          id: t.hasAttribute("data-book") ? "book:"+t.getAttribute("data-book") : "key:"+t.getAttribute("data-key"),
-          ord:npTxt(t.querySelector(".ord")), title:npTxt(t.querySelector(".bn")), meta:npTxt(t.querySelector(".bm")),
-          pct:npPct(t), full:t.classList.contains("full"), untouched:t.classList.contains("untouched") }; })};
-    }
-    function npSync(){
-      var st=npState();
-      if(st){ npOpen=true; document.documentElement.classList.add("native-picker"); window.notifyNativeChrome({type:"picker",open:true,state:st}); }
-      else if(npOpen){ npOpen=false; document.documentElement.classList.remove("native-picker"); window.notifyNativeChrome({type:"picker",open:false}); }
-    }
-    window.NativePickerHost={
-      act:function(id){ var sel = id.indexOf("book:")===0 ? '.btile[data-book="'+id.slice(5)+'"]' : '.btile[data-key="'+id.slice(4)+'"]';
-        var el=document.querySelector("#plist "+sel); if(el) el.click(); },
-      track:function(t){ var el=document.querySelector('#pickerTabs .tab[data-track="'+t+'"]'); if(el) el.click(); },
-      back:function(){ var b=document.getElementById("pickerBack"); if(b) b.click(); }
-    };
-    window.addEventListener("load", function(){
-      try{
-        var orig=window.renderPList;
-        if(typeof orig==="function"){ window.renderPList=function(){ var r=orig.apply(this,arguments); setTimeout(npSync,0); return r; }; }
-        var pv=document.getElementById("pickerView");
-        if(pv) new MutationObserver(function(){ setTimeout(npSync,0); }).observe(pv,{attributes:true,attributeFilter:["class"]});
-      }catch(e){}
-    });
-  }
-  window.nativeSetSearchQuery = function(q){
-    var el = document.getElementById("searchInput");
-    if(el){ el.value = q; el.dispatchEvent(new Event("input")); }
+      }));
+      await p.shareImages({images:images, text:text||""});
+      return true;
+    }catch(e){ return false; }
   };
+  document.addEventListener("keydown", function(e){
+    if(isIOSNative && e.key==="Enter" && e.target && e.target.id==="searchInput") e.target.blur();
+  });
+  document.addEventListener("click", function(e){
+    var b = e.target && e.target.closest ? e.target.closest("#rhBack,#rhShare") : null;
+    if(!b) return;
+    var t = document.getElementById(b.id==="rhBack" ? "rBack" : "rShareBtn");
+    if(t) t.click();
+  });
   // Pushes the streak + today's parasha into the HalachaWidget's shared App Group storage
   // (see ios/App/App/HalachaWidgetBridge.swift) so the home-screen widget reflects the
   // learner's real state. No-ops on web/Android or before the native target exists. Called
@@ -326,7 +223,7 @@ html.ios-native-chrome .search-box{display:none !important;}
 # TODO(david): replace with the app's real App Store link before shipping this feature —
 # https://apps.apple.com/app/<slug>/id<numeric id>. Deliberately left as an obvious
 # placeholder (not a guess) so this is impossible to ship by accident.
-APP_STORE_URL = "https://apps.apple.com/app/REPLACE_WITH_REAL_SLUG/idREPLACE_WITH_REAL_ID"
+APP_STORE_URL = "https://apps.apple.com/app/id6815639083"
 
 SHARE_SETTINGS_SECTION = '''      <section class="settings-sec">
         <h3>שיתוף</h3>
@@ -391,7 +288,7 @@ async function buildAppQrImage(){
     if(qr.isDark(r,c)) ctx.fillRect(qrX+c*cell, qrY+r*cell, Math.ceil(cell), Math.ceil(cell));
 
   ctx.fillStyle=ink; ctx.font='500 30px "Heebo",sans-serif';
-  ctx.fillText("סריקה תפתח את האפליקציה ב-App Store", W/2, qrY+qrSize+60);
+  ctx.fillText("סריקה תפתח את האפליקציה בחנות האפליקציות", W/2, qrY+qrSize+60);
   ctx.fillStyle=goldDeep; ctx.font='700 32px "Frank Ruhl Libre",serif';
   ctx.fillText("הלכות הבן איש חי", W/2, H-70);
   return cv;
@@ -417,6 +314,46 @@ async function shareAppQR(){
 }
 document.getElementById("shareAppBtn").addEventListener("click", shareAppText);
 document.getElementById("shareQrBtn").addEventListener("click", shareAppQR);
+</script>
+'''
+
+# Appended before </body> alongside NATIVE_BLOCK/SHARE_BLOCK. Not gated to any platform — pure
+# scroll-position CSS/JS, so it works identically on the live website too, not just in the app.
+MINI_TOPBAR_BLOCK = r'''
+<div class="mini-topbar" id="miniTopbar" aria-hidden="true"><img src="icon-512.png" alt=""></div>
+<style>
+.mini-topbar{position:fixed;top:0;left:0;right:0;z-index:70;
+  height:calc(env(safe-area-inset-top) + 44px);
+  display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px;
+  background:linear-gradient(180deg,var(--card) 0%,var(--card) 75%,transparent);
+  opacity:0;transform:translateY(-10px);pointer-events:none;
+  transition:opacity .25s ease,transform .25s ease;}
+.mini-topbar.show{opacity:1;transform:translateY(0);}
+.mini-topbar img{width:30px;height:30px;border-radius:9px;display:block;
+  box-shadow:0 2px 8px rgba(0,0,0,.18);}
+body.reading .mini-topbar{display:none;}
+</style>
+<script>
+(function(){
+  // Apple-Music-style collapsing header: the big hero (portrait + title) scrolls away
+  // normally with the page; once it's mostly scrolled past, a small pinned bar with just the
+  // app's own icon fades in at the top — same idea the user already built into their other
+  // app, and the pattern system apps like Music use for a collapsing large title.
+  var bar = document.getElementById("miniTopbar");
+  if(!bar) return;
+  var ticking = false;
+  function onScroll(){
+    if(ticking) return;
+    ticking = true;
+    requestAnimationFrame(function(){
+      var hero = document.querySelector(".hero");
+      var threshold = (hero ? hero.offsetHeight : 160) * 0.6;
+      bar.classList.toggle("show", window.scrollY > threshold);
+      ticking = false;
+    });
+  }
+  window.addEventListener("scroll", onScroll, {passive:true});
+})();
 </script>
 '''
 
@@ -708,7 +645,102 @@ def main() -> int:
                         '  clearTimeout(showToast._t);\n'
                         '  showToast._t=setTimeout(()=>t.classList.add("hidden"),2200);\n'
                         '}', "index.html showToast native toast")
-    html = replace_once(html, "</body>", NATIVE_BLOCK + SHARE_BLOCK + "</body>", "index.html </body>")
+
+    # Liquid-Glass-style translucent material on the surfaces that actually overlay scrolling
+    # content (gear buttons, the settings/stats sheet) — see "Materials & depth" in Apple's own
+    # fluid-interfaces guidance: blur only earns its place over something it can blur, so
+    # ordinary content cards (.hero, .entry-card) are deliberately left as the solid "clay"
+    # cards they already were.
+    html = replace_once(html,
+                        '    --good-deep:#2C6D73;\n'
+                        '    --clay:9px 9px 20px rgba(140,125,89,.22), -8px -8px 18px rgba(255,255,255,.75), inset 0 0 0 1px rgba(255,255,255,.4);\n'
+                        '    --clay-sm:6px 6px 14px rgba(140,125,89,.18), -5px -5px 12px rgba(255,255,255,.7), inset 0 0 0 1px rgba(255,255,255,.4);\n'
+                        '  }',
+                        '    --good-deep:#2C6D73;\n'
+                        '    --clay:9px 9px 20px rgba(140,125,89,.22), -8px -8px 18px rgba(255,255,255,.75), inset 0 0 0 1px rgba(255,255,255,.4);\n'
+                        '    --clay-sm:6px 6px 14px rgba(140,125,89,.18), -5px -5px 12px rgba(255,255,255,.7), inset 0 0 0 1px rgba(255,255,255,.4);\n'
+                        '    /* Liquid-Glass-style translucent material (see "Materials & depth": a semi-transparent\n'
+                        '       tint + backdrop-filter blur, with a bright top edge standing in for light catching the\n'
+                        '       surface) — used on the surfaces that actually sit over scrolling/other content\n'
+                        '       (gear buttons, the collapsing mini header, sheets) where a blur has something to blur. */\n'
+                        '    --glass-tint:rgba(255,253,246,.6); --glass-tint-strong:rgba(255,253,246,.78);\n'
+                        '    --glass-border:rgba(255,255,255,.6); --glass-blur:blur(20px) saturate(180%);\n'
+                        '  }', "index.html glass vars (light)")
+    html = replace_once(html,
+                        '    --clay:0 10px 26px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.05);\n'
+                        '    --clay-sm:0 6px 16px rgba(0,0,0,.42), inset 0 0 0 1px rgba(255,255,255,.05);\n'
+                        '    color-scheme:dark;\n'
+                        '  }',
+                        '    --clay:0 10px 26px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.05);\n'
+                        '    --clay-sm:0 6px 16px rgba(0,0,0,.42), inset 0 0 0 1px rgba(255,255,255,.05);\n'
+                        '    --glass-tint:rgba(24,34,42,.62); --glass-tint-strong:rgba(24,34,42,.8);\n'
+                        '    --glass-border:rgba(255,255,255,.08); --glass-blur:blur(20px) saturate(160%);\n'
+                        '    color-scheme:dark;\n'
+                        '  }', "index.html glass vars (dark)")
+    html = replace_once(html,
+                        '  html[data-theme="dark"] .gear-btn{background:#22343D;}\n'
+                        '  html[data-theme="dark"] .gear-btn svg{stroke:#9FD8CF;}',
+                        '  /* .gear-btn\'s glass background + icon stroke are already theme-aware via\n'
+                        '     --glass-tint/--good-deep (see :root / html[data-theme="dark"] above) — no override needed. */',
+                        "index.html gear-btn dark override removed")
+    html = replace_once(html,
+                        '  html[data-theme="dark"] .modal-panel{background:var(--card);}\n',
+                        '', "index.html modal-panel dark override removed")
+    html = replace_once(html,
+                        '  @media (prefers-reduced-motion: reduce){ .seg-pill{transition:none;} }',
+                        '  @media (prefers-reduced-motion: reduce){ .seg-pill{transition:none;} }\n'
+                        '  /* Glass surfaces (gear buttons, settings/stats sheet) go frosty-solid instead of blurred —\n'
+                        '     same intent, no transparency, for anyone who\'s asked the system to reduce it. */\n'
+                        '  @media (prefers-reduced-transparency: reduce){\n'
+                        '    .gear-btn,.modal-panel{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;\n'
+                        '      background:var(--card)!important;}\n'
+                        '  }', "index.html glass reduced-transparency fallback")
+    html = replace_once(html,
+                        '  .gear-btn{position:relative;width:36px;height:36px;border-radius:50%;border:none;cursor:pointer;\n'
+                        '    background:var(--good);display:flex;align-items:center;justify-content:center;\n'
+                        '    box-shadow:3px 3px 8px rgba(63,132,138,.35), -3px -3px 8px rgba(255,255,255,.8);\n'
+                        '    transition:.2s;}\n'
+                        '  .gear-btn:active{transform:scale(.9) rotate(20deg);}\n'
+                        '  .gear-btn svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:1.8;\n'
+                        '    stroke-linecap:round;stroke-linejoin:round;}',
+                        '  .gear-btn{position:relative;width:36px;height:36px;border-radius:50%;cursor:pointer;\n'
+                        '    background:var(--glass-tint);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);\n'
+                        '    border:1px solid var(--glass-border);\n'
+                        '    display:flex;align-items:center;justify-content:center;\n'
+                        '    box-shadow:3px 3px 8px rgba(63,132,138,.2), -2px -2px 6px rgba(255,255,255,.5);\n'
+                        '    transition:.2s;}\n'
+                        '  .gear-btn:active{transform:scale(.9) rotate(20deg);}\n'
+                        '  .gear-btn svg{width:18px;height:18px;stroke:var(--good-deep);fill:none;stroke-width:1.8;\n'
+                        '    stroke-linecap:round;stroke-linejoin:round;}', "index.html gear-btn glass")
+    html = replace_once(html,
+                        '  .modal-panel{position:relative;width:100%;max-width:var(--maxw);margin:0 auto;max-height:86vh;\n'
+                        '    background:linear-gradient(180deg,var(--paper2),#F6EFDB);\n'
+                        '    border-radius:28px 28px 0 0;box-shadow:0 -16px 52px rgba(0,0,0,.34);\n'
+                        '    display:flex;flex-direction:column;animation:sheetUp .3s cubic-bezier(.2,.8,.2,1);}',
+                        '  .modal-panel{position:relative;width:100%;max-width:var(--maxw);margin:0 auto;max-height:86vh;\n'
+                        '    background:var(--glass-tint-strong);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);\n'
+                        '    border-top:1px solid var(--glass-border);\n'
+                        '    border-radius:28px 28px 0 0;box-shadow:0 -16px 52px rgba(0,0,0,.34);\n'
+                        '    display:flex;flex-direction:column;animation:sheetUp .3s cubic-bezier(.2,.8,.2,1);}',
+                        "index.html modal-panel glass")
+
+    html = replace_once(html,
+                        '<input type="search" id="searchInput" placeholder="חפשו מילה, נושא או ביטוי…" autocomplete="off">',
+                        '<input type="search" id="searchInput" placeholder="חפשו מילה, נושא או ביטוי…" autocomplete="off" enterkeyhint="search">',
+                        "index.html search input enterkeyhint")
+    html = replace_once(html,
+                        '  <button class="backbtn" id="rBack">▶ חזרה</button>\n',
+                        '  <button class="backbtn" id="rBack">▶ חזרה</button>\n  <div class="rh-bar"><button class="rh-btn rh-back" id="rhBack" aria-label="חזרה"><svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg></button><button class="rh-btn rh-share" id="rhShare" aria-label="שיתוף"><svg viewBox="0 0 24 24"><path d="M12 15V4"/><polyline points="8 8 12 4 16 8"/><path d="M6 11H5a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7a1 1 0 0 0-1-1h-1"/></svg></button></div>\n',
+                        "index.html reader back/share glass buttons")
+    html = replace_once(html,
+                        '      if(navigator.canShare && navigator.canShare({files})){\n        await navigator.share({title:"הלכות הבן איש חי",text:shareText,files});\n      }else{',
+                        '      if(await nativeShareImages(files, shareText)){\n        // handled by the native share sheet\n      }else if(navigator.canShare && navigator.canShare({files})){\n        await navigator.share({title:"הלכות הבן איש חי",text:shareText,files});\n      }else{',
+                        'index.html halacha image native share')
+    html = replace_once(html,
+                        '      if(navigator.canShare && navigator.canShare({files:[file]})){\n        try{ await navigator.share({files:[file], text:APP_STORE_URL}); }catch(e){}\n      }else{',
+                        '      if(await nativeShareImages([file], APP_STORE_URL)){\n        // handled by the native share sheet\n      }else if(navigator.canShare && navigator.canShare({files:[file]})){\n        try{ await navigator.share({files:[file], text:APP_STORE_URL}); }catch(e){}\n      }else{',
+                        'index.html QR image native share')
+    html = replace_once(html, "</body>", NATIVE_BLOCK + SHARE_BLOCK + MINI_TOPBAR_BLOCK + FEATURES_BLOCK + "</body>", "index.html </body>")
     open(p, "w", encoding="utf-8").write(html)
 
     # 6. qrcode.js — the offline QR-code generator the share-QR feature above needs (see
