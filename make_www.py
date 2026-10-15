@@ -435,6 +435,15 @@ def main() -> int:
                         "  const IS_NATIVE_APP = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());\n"
                         "  if(IS_LOCAL && !IS_NATIVE_APP) return;     // chips just stay at their \"–\" placeholder",
                         "index.html IS_LOCAL guard")
+    # The native apps bundle the whole corpus, so the service worker (precache + update checks) is
+    # pointless there: it caused a reload on first launch and a "downloading content" banner.
+    html = replace_once(html, 'function initOffline(){\n  if(!("serviceWorker" in navigator)) return;\n',
+                        'function initOffline(){\n  if(!("serviceWorker" in navigator)) return;\n'
+                        '  // The native apps (iOS / Android) ship the whole corpus inside the app bundle, so there is\n'
+                        '  // nothing to precache or update-check: registering the worker there only caused a reload on the\n'
+                        '  // very first launch, a pointless "downloading content" banner, and a second 23MB copy on disk.\n'
+                        '  if(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) return;\n',
+                        "index.html initOffline native skip")
     html = replace_once(html, '<meta charset="UTF-8">',
                         '<meta charset="UTF-8">\n' + CSP_META, "index.html CSP meta")
     html = replace_once(html,

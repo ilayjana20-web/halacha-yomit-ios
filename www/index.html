@@ -3690,6 +3690,10 @@ async function ensureFresh(){
 // ---------- offline (service worker precache of the entire corpus) ----------
 function initOffline(){
   if(!("serviceWorker" in navigator)) return;
+  // The native apps (iOS / Android) ship the whole corpus inside the app bundle, so there is
+  // nothing to precache or update-check: registering the worker there only caused a reload on the
+  // very first launch, a pointless "downloading content" banner, and a second 23MB copy on disk.
+  if(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) return;
   // Ask the browser to mark this site's storage as "persistent" — without this, browsers are
   // allowed to silently evict the offline cache under disk-space pressure (LRU eviction of
   // regular/"best-effort" origin storage). Persistent storage is exempt from that eviction,
