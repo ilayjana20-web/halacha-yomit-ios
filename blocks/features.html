@@ -22,7 +22,7 @@
    a harmless extra, and any failure is swallowed so it can never break the app itself. */
 (function(){
   "use strict";
-  var IOS = !!window.isIOSNative;
+  var IOS = !!window.isIOSNative, ANDROID = !!window.isAndroidNative, NATIVE = IOS || ANDROID;
   function plugins(){ return (window.Capacitor && window.Capacitor.Plugins) || {}; }
   function jget(k, d){ try{ var v = JSON.parse(localStorage.getItem(k) || "null"); return v == null ? d : v; }catch(e){ return d; } }
 
@@ -275,9 +275,14 @@
   var ALL_IDS = [1, 2]; (function(){ var i; for(i = 0; i < 7; i++) ALL_IDS.push(1000 + i); for(i = 0; i < 3; i++) ALL_IDS.push(2000 + i); })();
   async function scheduleReminders(){
     try{
-      var LN = plugins().LocalNotifications; if(!IOS || !LN) return;
+      var LN = plugins().LocalNotifications; if(!NATIVE || !LN) return;
       var perm = await LN.checkPermissions();
       if(perm.display !== "granted"){ perm = await LN.requestPermissions(); if(perm.display !== "granted") return; }
+      // Android 8+ needs a notification channel (the permission prompt for Android 13+ is the
+      // requestPermissions() call above, backed by POST_NOTIFICATIONS in the plugin manifest).
+      if(ANDROID && LN.createChannel){
+        try{ await LN.createChannel({ id: "daily_halacha", name: "תזכורות הלכה יומית", description: "תזכורת ללמוד את ההלכה של היום", importance: 4, visibility: 1, vibration: true }); }catch(e){}
+      }
       await LN.cancel({ notifications: ALL_IDS.map(function(id){ return { id: id }; }) });
       var pEl = document.getElementById("wParasha"), parasha = pEl ? pEl.textContent.trim() : "";
       if(parasha === "—") parasha = "";
@@ -285,7 +290,9 @@
         typeof currentStreak === "function" ? currentStreak() : 0);
       if(!plan.length) return;
       await LN.schedule({ notifications: plan.map(function(n){
-        return { id: n.id, title: n.title, body: n.body, extra: { action: "today" }, schedule: { at: n.at, allowWhileIdle: true } };
+        var o = { id: n.id, title: n.title, body: n.body, extra: { action: "today" }, schedule: { at: n.at, allowWhileIdle: true }, isExactNotification: false };
+        if(ANDROID) o.channelId = "daily_halacha";
+        return o;
       }) });
     }catch(e){}
   }
@@ -302,12 +309,12 @@
       var r = origBump.apply(this, arguments);
       try{
         var LN = plugins().LocalNotifications;
-        if(IOS && LN) LN.cancel({ notifications: [{ id: 1000 }, { id: 2000 }] });
+        if(NATIVE && LN) LN.cancel({ notifications: [{ id: 1000 }, { id: 2000 }] });
       }catch(e){}
       return r;
     };
   }
-  if(IOS){
+  if(NATIVE){
     setTimeout(scheduleReminders, 2500);
     try{
       var LN2 = plugins().LocalNotifications;
@@ -346,6 +353,39 @@
         if(AppP.addListener) AppP.addListener("appUrlOpen", function(e){ if(e && /^halachayomit:\/\/today/i.test(e.url || "")) window.hyNativeAction("today"); });
         if(AppP.getLaunchUrl) AppP.getLaunchUrl().then(function(r){ if(r && /^halachayomit:\/\/today/i.test(r.url || "")) setTimeout(function(){ window.hyNativeAction("today"); }, 1200); }).catch(function(){});
       }
+    }catch(e){}
+  }
+
+  /* =====================================================================================
+     6. Android hardware/gesture Back button: close the topmost sheet, then step out of the
+        reader / sub-screens, then go to the weekly home; only a second Back within 2s on the
+        home screen exits the app (so a stray swipe never kills the app mid-reading).
+     ===================================================================================== */
+  if(ANDROID){
+    var lastBack = 0;
+    function click(id){ var el = document.getElementById(id); if(el){ el.click(); return true; } return false; }
+    function visible(el){ return el && !el.classList.contains("hidden"); }
+    function onBack(){
+      var gs = document.getElementById("glossSheet");
+      if(gs && gs.classList.contains("show")){ var gc = gs.querySelector(".gw-close"); if(gc) gc.click(); else gs.classList.remove("show"); return; }
+      var ovs = document.querySelectorAll(".modal-overlay:not(.hidden)");
+      if(ovs.length){ ovs[ovs.length - 1].classList.add("hidden"); return; }
+      if(document.body.classList.contains("reading")){ if(click("rBack")) return; }
+      var picker = document.getElementById("pickerView");
+      if(visible(picker) && click("pickerBack")) return;
+      var week = document.getElementById("weekView");
+      if(week && !visible(week)){ if(click("segWeek")) return; }
+      var now = Date.now();
+      if(now - lastBack < 2000){
+        var A = plugins().App; if(A && A.exitApp) A.exitApp();
+        return;
+      }
+      lastBack = now;
+      if(typeof showToast === "function") showToast("לחצו שוב ליציאה");
+    }
+    try{
+      var AB = plugins().App;
+      if(AB && AB.addListener) AB.addListener("backButton", onBack);
     }catch(e){}
   }
 })();

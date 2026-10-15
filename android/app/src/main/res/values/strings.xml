@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">הלכות הבן איש חי</string>
+    <string name="title_activity_main">הלכות הבן איש חי</string>
+    <string name="package_name">com.davidpitchkhadze.benishchai</string>
+    <string name="custom_url_scheme">com.davidpitchkhadze.benishchai</string>
+</resources>
