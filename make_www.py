@@ -328,7 +328,7 @@ async function buildAppQrImage(){
     if(qr.isDark(r,c)) ctx.fillRect(qrX+c*cell, qrY+r*cell, Math.ceil(cell), Math.ceil(cell));
 
   ctx.fillStyle=ink; ctx.font='500 30px "Heebo",sans-serif';
-  ctx.fillText(window.isAndroidNative?"סריקה תפתח את האפליקציה ב-Google Play":"סריקה תפתח את האפליקציה בחנות האפליקציות", W/2, qrY+qrSize+60);
+  ctx.fillText(window.isAndroidNative?"סריקה תפתח את האפליקציה בחנות גוגל פליי":"סריקה תפתח את האפליקציה בחנות האפליקציות", W/2, qrY+qrSize+60);
   ctx.fillStyle=goldDeep; ctx.font='700 32px "Frank Ruhl Libre",serif';
   ctx.fillText("הלכות הבן איש חי", W/2, H-70);
   return cv;
