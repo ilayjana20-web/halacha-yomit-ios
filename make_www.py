@@ -152,6 +152,7 @@ html.ios-native-chrome body.reading .offline-banner{display:none;}
   // made the gear icon do nothing and a second tap register as the webview's own double-tap-
   // to-zoom gesture instead).
   window.isIOSNative = !!(window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform()==="ios");
+  window.isAndroidNative = !!(window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform()==="android");
   document.documentElement.classList.toggle("ios-native-chrome", isIOSNative);
   // Safe to call from anywhere, anytime, including synchronously during the earliest page
   // script — no-ops instantly on web/Android, or if the native side hasn't registered the
@@ -168,7 +169,43 @@ html.ios-native-chrome body.reading .offline-banner{display:none;}
   // Image shares go through the native share sheet (Web Share API `files` is unreliable inside
   // WKWebView). Resolves true once the native sheet handled it (even if the user cancelled),
   // false when unavailable so the caller falls back to the web paths.
+  // Android: the system share sheet via @capacitor/share (Share.share), images written to the
+  // cache dir first through @capacitor/filesystem (Share needs file:// URIs). Both resolve true
+  // once the sheet handled it (a user cancel counts), false when unavailable so callers fall back
+  // to navigator.share and then the clipboard.
+  function _androidPlugins(){
+    var P = window.Capacitor && window.Capacitor.Plugins;
+    return isAndroidNative && P ? P : null;
+  }
+  function _shareCancelled(e){ return /cancel/i.test(String((e && (e.message || e)) || "")); }
+  window.nativeShareText = async function(title, text){
+    var P = _androidPlugins(), S = P && P.Share;
+    if(!S) return false;
+    try{ await S.share({title:title, text:text, dialogTitle:title}); return true; }
+    catch(e){ return _shareCancelled(e); }
+  };
+  async function _androidShareImages(files, text){
+    var P = _androidPlugins(), S = P && P.Share, FS = P && P.Filesystem;
+    if(!S || !FS) return false;
+    try{
+      var uris = [];
+      for(var i = 0; i < files.length; i++){
+        var f = files[i];
+        var data = await new Promise(function(res, rej){
+          var r = new FileReader();
+          r.onload = function(){ res(String(r.result).split(",")[1]); };
+          r.onerror = rej; r.readAsDataURL(f);
+        });
+        var name = "share/" + Date.now() + "-" + i + "-" + String(f.name || "image.png").replace(/[^\w.\-]/g, "_");
+        var w = await FS.writeFile({path:name, data:data, directory:"CACHE", recursive:true});
+        uris.push(w.uri);
+      }
+      await S.share({title:"הלכות הבן איש חי", text:text||"", files:uris, dialogTitle:"הלכות הבן איש חי"});
+      return true;
+    }catch(e){ return _shareCancelled(e); }
+  }
   window.nativeShareImages = async function(files, text){
+    if(isAndroidNative) return _androidShareImages(files, text);
     var p = isIOSNative && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.ShareImageBridge;
     if(!p) return false;
     try{
@@ -224,6 +261,8 @@ html.ios-native-chrome body.reading .offline-banner{display:none;}
 # https://apps.apple.com/app/<slug>/id<numeric id>. Deliberately left as an obvious
 # placeholder (not a guess) so this is impossible to ship by accident.
 APP_STORE_URL = "https://apps.apple.com/app/id6815639083"
+# Google Play listing (Android build): picked at runtime in SHARE_BLOCK via window.isAndroidNative.
+PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.davidpitchkhadze.benishchai"
 
 SHARE_SETTINGS_SECTION = '''      <section class="settings-sec">
         <h3>שיתוף</h3>
@@ -238,10 +277,11 @@ SHARE_SETTINGS_SECTION = '''      <section class="settings-sec">
 # <canvas> work identically on web/iOS/Android) — see point 6 in the module docstring above.
 SHARE_BLOCK = r'''
 <script>
-const APP_STORE_URL = "''' + APP_STORE_URL + r'''";
+const APP_STORE_URL = window.isAndroidNative ? "''' + PLAY_STORE_URL + r'''" : "''' + APP_STORE_URL + r'''";
 async function _ensureQrLib(){ if(!window.qrcode) await _loadScript("qrcode.js"); }
-function shareAppText(){
+async function shareAppText(){
   const text="📖 הלכות הבן איש חי — הלכה אחת ביום, בדיוק לפי הסדר של הבן איש חי\n"+APP_STORE_URL;
+  if(await nativeShareText("הלכות הבן איש חי", text)) return;
   if(navigator.share){ navigator.share({title:"הלכות הבן איש חי", text}).catch(()=>{}); }
   else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(()=>showToast("הקישור הועתק")).catch(()=>{}); }
 }
@@ -288,7 +328,7 @@ async function buildAppQrImage(){
     if(qr.isDark(r,c)) ctx.fillRect(qrX+c*cell, qrY+r*cell, Math.ceil(cell), Math.ceil(cell));
 
   ctx.fillStyle=ink; ctx.font='500 30px "Heebo",sans-serif';
-  ctx.fillText("סריקה תפתח את האפליקציה בחנות האפליקציות", W/2, qrY+qrSize+60);
+  ctx.fillText(window.isAndroidNative?"סריקה תפתח את האפליקציה בחנות גוגל פליי":"סריקה תפתח את האפליקציה בחנות האפליקציות", W/2, qrY+qrSize+60);
   ctx.fillStyle=goldDeep; ctx.font='700 32px "Frank Ruhl Libre",serif';
   ctx.fillText("הלכות הבן איש חי", W/2, H-70);
   return cv;

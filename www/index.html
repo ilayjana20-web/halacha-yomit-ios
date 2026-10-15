@@ -65,6 +65,7 @@ html.ios-native-chrome body.reading .offline-banner{display:none;}
   // made the gear icon do nothing and a second tap register as the webview's own double-tap-
   // to-zoom gesture instead).
   window.isIOSNative = !!(window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform()==="ios");
+  window.isAndroidNative = !!(window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform()==="android");
   document.documentElement.classList.toggle("ios-native-chrome", isIOSNative);
   // Safe to call from anywhere, anytime, including synchronously during the earliest page
   // script — no-ops instantly on web/Android, or if the native side hasn't registered the
@@ -81,7 +82,43 @@ html.ios-native-chrome body.reading .offline-banner{display:none;}
   // Image shares go through the native share sheet (Web Share API `files` is unreliable inside
   // WKWebView). Resolves true once the native sheet handled it (even if the user cancelled),
   // false when unavailable so the caller falls back to the web paths.
+  // Android: the system share sheet via @capacitor/share (Share.share), images written to the
+  // cache dir first through @capacitor/filesystem (Share needs file:// URIs). Both resolve true
+  // once the sheet handled it (a user cancel counts), false when unavailable so callers fall back
+  // to navigator.share and then the clipboard.
+  function _androidPlugins(){
+    var P = window.Capacitor && window.Capacitor.Plugins;
+    return isAndroidNative && P ? P : null;
+  }
+  function _shareCancelled(e){ return /cancel/i.test(String((e && (e.message || e)) || "")); }
+  window.nativeShareText = async function(title, text){
+    var P = _androidPlugins(), S = P && P.Share;
+    if(!S) return false;
+    try{ await S.share({title:title, text:text, dialogTitle:title}); return true; }
+    catch(e){ return _shareCancelled(e); }
+  };
+  async function _androidShareImages(files, text){
+    var P = _androidPlugins(), S = P && P.Share, FS = P && P.Filesystem;
+    if(!S || !FS) return false;
+    try{
+      var uris = [];
+      for(var i = 0; i < files.length; i++){
+        var f = files[i];
+        var data = await new Promise(function(res, rej){
+          var r = new FileReader();
+          r.onload = function(){ res(String(r.result).split(",")[1]); };
+          r.onerror = rej; r.readAsDataURL(f);
+        });
+        var name = "share/" + Date.now() + "-" + i + "-" + String(f.name || "image.png").replace(/[^\w.\-]/g, "_");
+        var w = await FS.writeFile({path:name, data:data, directory:"CACHE", recursive:true});
+        uris.push(w.uri);
+      }
+      await S.share({title:"הלכות הבן איש חי", text:text||"", files:uris, dialogTitle:"הלכות הבן איש חי"});
+      return true;
+    }catch(e){ return _shareCancelled(e); }
+  }
   window.nativeShareImages = async function(files, text){
+    if(isAndroidNative) return _androidShareImages(files, text);
     var p = isIOSNative && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.ShareImageBridge;
     if(!p) return false;
     try{
@@ -3939,10 +3976,11 @@ document.getElementById("statsOverlay").addEventListener("click",(e)=>{
 </script>
 
 <script>
-const APP_STORE_URL = "https://apps.apple.com/app/id6815639083";
+const APP_STORE_URL = window.isAndroidNative ? "https://play.google.com/store/apps/details?id=com.davidpitchkhadze.benishchai" : "https://apps.apple.com/app/id6815639083";
 async function _ensureQrLib(){ if(!window.qrcode) await _loadScript("qrcode.js"); }
-function shareAppText(){
+async function shareAppText(){
   const text="📖 הלכות הבן איש חי — הלכה אחת ביום, בדיוק לפי הסדר של הבן איש חי\n"+APP_STORE_URL;
+  if(await nativeShareText("הלכות הבן איש חי", text)) return;
   if(navigator.share){ navigator.share({title:"הלכות הבן איש חי", text}).catch(()=>{}); }
   else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(()=>showToast("הקישור הועתק")).catch(()=>{}); }
 }
@@ -3989,7 +4027,7 @@ async function buildAppQrImage(){
     if(qr.isDark(r,c)) ctx.fillRect(qrX+c*cell, qrY+r*cell, Math.ceil(cell), Math.ceil(cell));
 
   ctx.fillStyle=ink; ctx.font='500 30px "Heebo",sans-serif';
-  ctx.fillText("סריקה תפתח את האפליקציה בחנות האפליקציות", W/2, qrY+qrSize+60);
+  ctx.fillText(window.isAndroidNative?"סריקה תפתח את האפליקציה בחנות גוגל פליי":"סריקה תפתח את האפליקציה בחנות האפליקציות", W/2, qrY+qrSize+60);
   ctx.fillStyle=goldDeep; ctx.font='700 32px "Frank Ruhl Libre",serif';
   ctx.fillText("הלכות הבן איש חי", W/2, H-70);
   return cv;
@@ -4078,7 +4116,7 @@ body.reading .mini-topbar{display:none;}
    a harmless extra, and any failure is swallowed so it can never break the app itself. */
 (function(){
   "use strict";
-  var IOS = !!window.isIOSNative;
+  var IOS = !!window.isIOSNative, ANDROID = !!window.isAndroidNative, NATIVE = IOS || ANDROID;
   function plugins(){ return (window.Capacitor && window.Capacitor.Plugins) || {}; }
   function jget(k, d){ try{ var v = JSON.parse(localStorage.getItem(k) || "null"); return v == null ? d : v; }catch(e){ return d; } }
 
@@ -4331,9 +4369,14 @@ body.reading .mini-topbar{display:none;}
   var ALL_IDS = [1, 2]; (function(){ var i; for(i = 0; i < 7; i++) ALL_IDS.push(1000 + i); for(i = 0; i < 3; i++) ALL_IDS.push(2000 + i); })();
   async function scheduleReminders(){
     try{
-      var LN = plugins().LocalNotifications; if(!IOS || !LN) return;
+      var LN = plugins().LocalNotifications; if(!NATIVE || !LN) return;
       var perm = await LN.checkPermissions();
       if(perm.display !== "granted"){ perm = await LN.requestPermissions(); if(perm.display !== "granted") return; }
+      // Android 8+ needs a notification channel (the permission prompt for Android 13+ is the
+      // requestPermissions() call above, backed by POST_NOTIFICATIONS in the plugin manifest).
+      if(ANDROID && LN.createChannel){
+        try{ await LN.createChannel({ id: "daily_halacha", name: "תזכורות הלכה יומית", description: "תזכורת ללמוד את ההלכה של היום", importance: 4, visibility: 1, vibration: true }); }catch(e){}
+      }
       await LN.cancel({ notifications: ALL_IDS.map(function(id){ return { id: id }; }) });
       var pEl = document.getElementById("wParasha"), parasha = pEl ? pEl.textContent.trim() : "";
       if(parasha === "—") parasha = "";
@@ -4341,7 +4384,9 @@ body.reading .mini-topbar{display:none;}
         typeof currentStreak === "function" ? currentStreak() : 0);
       if(!plan.length) return;
       await LN.schedule({ notifications: plan.map(function(n){
-        return { id: n.id, title: n.title, body: n.body, extra: { action: "today" }, schedule: { at: n.at, allowWhileIdle: true } };
+        var o = { id: n.id, title: n.title, body: n.body, extra: { action: "today" }, schedule: { at: n.at, allowWhileIdle: true }, isExactNotification: false };
+        if(ANDROID) o.channelId = "daily_halacha";
+        return o;
       }) });
     }catch(e){}
   }
@@ -4358,12 +4403,12 @@ body.reading .mini-topbar{display:none;}
       var r = origBump.apply(this, arguments);
       try{
         var LN = plugins().LocalNotifications;
-        if(IOS && LN) LN.cancel({ notifications: [{ id: 1000 }, { id: 2000 }] });
+        if(NATIVE && LN) LN.cancel({ notifications: [{ id: 1000 }, { id: 2000 }] });
       }catch(e){}
       return r;
     };
   }
-  if(IOS){
+  if(NATIVE){
     setTimeout(scheduleReminders, 2500);
     try{
       var LN2 = plugins().LocalNotifications;
@@ -4402,6 +4447,39 @@ body.reading .mini-topbar{display:none;}
         if(AppP.addListener) AppP.addListener("appUrlOpen", function(e){ if(e && /^halachayomit:\/\/today/i.test(e.url || "")) window.hyNativeAction("today"); });
         if(AppP.getLaunchUrl) AppP.getLaunchUrl().then(function(r){ if(r && /^halachayomit:\/\/today/i.test(r.url || "")) setTimeout(function(){ window.hyNativeAction("today"); }, 1200); }).catch(function(){});
       }
+    }catch(e){}
+  }
+
+  /* =====================================================================================
+     6. Android hardware/gesture Back button: close the topmost sheet, then step out of the
+        reader / sub-screens, then go to the weekly home; only a second Back within 2s on the
+        home screen exits the app (so a stray swipe never kills the app mid-reading).
+     ===================================================================================== */
+  if(ANDROID){
+    var lastBack = 0;
+    function click(id){ var el = document.getElementById(id); if(el){ el.click(); return true; } return false; }
+    function visible(el){ return el && !el.classList.contains("hidden"); }
+    function onBack(){
+      var gs = document.getElementById("glossSheet");
+      if(gs && gs.classList.contains("show")){ var gc = gs.querySelector(".gw-close"); if(gc) gc.click(); else gs.classList.remove("show"); return; }
+      var ovs = document.querySelectorAll(".modal-overlay:not(.hidden)");
+      if(ovs.length){ ovs[ovs.length - 1].classList.add("hidden"); return; }
+      if(document.body.classList.contains("reading")){ if(click("rBack")) return; }
+      var picker = document.getElementById("pickerView");
+      if(visible(picker) && click("pickerBack")) return;
+      var week = document.getElementById("weekView");
+      if(week && !visible(week)){ if(click("segWeek")) return; }
+      var now = Date.now();
+      if(now - lastBack < 2000){
+        var A = plugins().App; if(A && A.exitApp) A.exitApp();
+        return;
+      }
+      lastBack = now;
+      if(typeof showToast === "function") showToast("לחצו שוב ליציאה");
+    }
+    try{
+      var AB = plugins().App;
+      if(AB && AB.addListener) AB.addListener("backButton", onBack);
     }catch(e){}
   }
 })();
