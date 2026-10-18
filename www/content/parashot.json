@@ -12,9 +12,9 @@
       "key": "Noach",
       "slug": "Noach",
       "he": "נח",
-      "chapters": 18,
+      "chapters": 17,
       "has_intro": true,
-      "clarified": 18
+      "clarified": 17
     },
     {
       "key": "Lech Lecha",
@@ -60,9 +60,9 @@
       "key": "Vayishlach",
       "slug": "Vayishlach",
       "he": "וישלח",
-      "chapters": 19,
+      "chapters": 18,
       "has_intro": true,
-      "clarified": 19
+      "clarified": 18
     },
     {
       "key": "Vayeshev",
@@ -84,9 +84,9 @@
       "key": "Miketz",
       "slug": "Miketz",
       "he": "מקץ",
-      "chapters": 15,
+      "chapters": 13,
       "has_intro": true,
-      "clarified": 15
+      "clarified": 13
     },
     {
       "key": "Vayigash",
@@ -422,9 +422,9 @@
       "key": "Bereshit",
       "slug": "Bereshit",
       "he": "בראשית",
-      "chapters": 32,
+      "chapters": 31,
       "has_intro": true,
-      "clarified": 32
+      "clarified": 31
     },
     {
       "key": "Noach",
@@ -718,9 +718,9 @@
       "key": "Balak",
       "slug": "Balak",
       "he": "בלק",
-      "chapters": 19,
+      "chapters": 17,
       "has_intro": true,
-      "clarified": 19
+      "clarified": 17
     },
     {
       "key": "Pinchas",
@@ -750,9 +750,9 @@
       "key": "Vaetchanan",
       "slug": "Vaetchanan",
       "he": "ואתחנן",
-      "chapters": 27,
+      "chapters": 24,
       "has_intro": true,
-      "clarified": 27
+      "clarified": 24
     },
     {
       "key": "Eikev",
